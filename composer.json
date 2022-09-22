@@ -1,6 +1,6 @@
 {
-    "name": "newcool/growtype-form",
-    "description": "growtype-form - 1.0.0",
+    "name": "newcool/growtype-post",
+    "description": "growtype-post - 1.0.0",
     "type": "wordpress-plugin",
     "require": {
         "php": "^7.2"
