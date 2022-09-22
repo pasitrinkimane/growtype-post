@@ -309,7 +309,7 @@ $('document').ready(function () {
     /**
      * General file input
      */
-    $('.growtype-form-wrapper .input-file-wrapper input[type=file]').change(function (e) {
+    $('.growtype-post-wrapper .input-file-wrapper input[type=file]').change(function (e) {
         let maxFileSize = $(this).attr('max-size');
         let maxSizeErrorMessage = $(this).attr('max-size-error-message');
         if (maxFileSize !== undefined) {

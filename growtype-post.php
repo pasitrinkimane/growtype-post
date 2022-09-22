@@ -8,12 +8,12 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              http://example.com
+ * @link              http://newcoolstudio.com
  * @since             1.0.0
  * @package           GROWTYPE_POST
  *
  * @wordpress-plugin
- * Plugin Name:       Growtype - Form
+ * Plugin Name:       Growtype - Post
  * Plugin URI:        http://newcoolstudio.com/
  * Description:       Advanced form functionality for "Growtype" theme.
  * Version:           1.0.0
@@ -21,7 +21,7 @@
  * Author URI:        http://newcoolstudio.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       growtype-form
+ * Text Domain:       growtype-post
  * Domain Path:       /languages
  */
 
@@ -40,7 +40,7 @@ define('Growtype_Post_Version', '1.0.0');
 /**
  * Plugin base name
  */
-define('GROWTYPE_POST_BASE_NAME', 'growtype-form');
+define('GROWTYPE_POST_BASE_NAME', 'growtype-post');
 
 /**
  * Plugin dir path
@@ -59,21 +59,21 @@ define('GROWTYPE_POST_URL_PUBLIC', plugin_dir_url(__FILE__) . 'public/');
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-growtype-form-activator.php
+ * This action is documented in includes/class-growtype-post-activator.php
  */
 function activate_growtype_post()
 {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-growtype-form-activator.php';
+    require_once plugin_dir_path(__FILE__) . 'includes/class-growtype-post-activator.php';
     GROWTYPE_POST_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-growtype-form-deactivator.php
+ * This action is documented in includes/class-growtype-post-deactivator.php
  */
 function deactivate_growtype_post()
 {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-growtype-form-deactivator.php';
+    require_once plugin_dir_path(__FILE__) . 'includes/class-growtype-post-deactivator.php';
     GROWTYPE_POST_Deactivator::deactivate();
 }
 
@@ -84,7 +84,7 @@ register_deactivation_hook(__FILE__, 'deactivate_growtype_post');
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path(__FILE__) . 'includes/class-growtype-form.php';
+require plugin_dir_path(__FILE__) . 'includes/class-growtype-post.php';
 
 /**
  * @return mixed
