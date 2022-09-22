@@ -36,7 +36,7 @@ class Growtype_Post_i18n
         load_plugin_textdomain(
             'growtype-post',
             false,
-            Growtype_Post_BASE_NAME . '/languages/'
+            GROWTYPE_POST_BASE_NAME . '/languages/'
         );
     }
 }
