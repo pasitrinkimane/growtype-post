@@ -15,7 +15,7 @@
  * @wordpress-plugin
  * Plugin Name:       Growtype - Post
  * Plugin URI:        http://newcoolstudio.com/
- * Description:       Advanced form functionality for "Growtype" theme.
+ * Description:       Advanced wp post types functionality for modern websites.
  * Version:           1.0.0
  * Author:            Growtype
  * Author URI:        http://newcoolstudio.com/
