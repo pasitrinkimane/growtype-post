@@ -69,7 +69,7 @@ class Growtype_Post_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		wp_enqueue_style( $this->Growtype_Post, Growtype_Post_URL_PUBLIC . 'styles/growtype-post.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->Growtype_Post, GROWTYPE_POST_URL_PUBLIC . 'styles/growtype-post.css', array(), $this->version, 'all' );
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Growtype_Post_Public {
 		 * between the defined hooks and the functions defined in this
 		 * class.
 		 */
-		wp_enqueue_script( $this->Growtype_Post, Growtype_Post_URL_PUBLIC . 'scripts/growtype-post.js', array( 'jquery' ), $this->version, true );
+		wp_enqueue_script( $this->Growtype_Post, GROWTYPE_POST_URL_PUBLIC . 'scripts/growtype-post.js', array( 'jquery' ), $this->version, true );
 	}
 
 }
