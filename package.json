@@ -35,15 +35,30 @@
     "lint:css": "stylelint \"resources/**/*.{css,scss,vue}\"",
     "translate": "npm run translate:pot && npm run translate:js",
     "translate:pot": "wp i18n make-pot . ./resources/lang/sage.pot --ignore-domain --include=\"app,resources\"",
-    "translate:js": "wp i18n make-json ./resources/lang --pretty-print"
+    "translate:js": "wp i18n make-json ./resources/lang --pretty-print",
+    "build-wp": "wp-scripts build",
+    "format": "wp-scripts format",
+    "lint-wp:css": "wp-scripts lint-style",
+    "lint-wp:js": "wp-scripts lint-js",
+    "packages-update": "wp-scripts packages-update",
+    "plugin-zip": "wp-scripts plugin-zip",
+    "start": "wp-scripts start"
   },
   "engines": {
     "node": ">= 8.0.0"
   },
   "devDependencies": {
-    "laravel-mix": "^6.0.11",
+    "@babel/preset-react": "^7.18.6",
+    "laravel-mix": "^6.0.49",
     "resolve-url-loader": "^4.0.0",
     "sass": "^1.43.4",
     "sass-loader": "^12.1.0"
+  },
+  "dependencies": {
+    "@wordpress/block-editor": "^10.1.0",
+    "@wordpress/blocks": "^11.17.0",
+    "@wordpress/components": "^21.1.0",
+    "@wordpress/scripts": "^24.2.0",
+    "slick-carousel": "^1.8.1"
   }
 }

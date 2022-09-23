@@ -89,7 +89,7 @@ class Growtype_Post_Admin
          * class.
          */
 
-        wp_enqueue_style($this->Growtype_Post, plugin_dir_url(__FILE__) . 'css/growtype-post-admin.css', array (), $this->version, 'all');
+        wp_enqueue_style($this->Growtype_Post, GROWTYPE_POST_URL_PUBLIC . 'styles/growtype-post-admin.css', array (), $this->version, 'all');
 
     }
 
@@ -113,7 +113,7 @@ class Growtype_Post_Admin
          * class.
          */
 
-        wp_enqueue_script($this->Growtype_Post, plugin_dir_url(__FILE__) . 'js/growtype-post-admin.js', array ('jquery'), $this->version, false);
+        wp_enqueue_script($this->Growtype_Post, GROWTYPE_POST_URL_PUBLIC . 'scripts/growtype-post-admin.js', array ('jquery'), $this->version, false);
 
     }
 

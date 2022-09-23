@@ -1,20 +1,38 @@
 let mix = require('laravel-mix');
 
-mix.setPublicPath('./public');
+// mix.options({
+//     legacyNodePolyfills: true
+// });
+
 mix.setResourceRoot('./')
 
-mix
-    .sass('resources/styles/growtype-post.scss', 'styles')
-    .sass('resources/styles/growtype-post-render.scss', 'styles')
-    .sass('resources/styles/forms/login/main.scss', 'styles/forms/login')
-    .sass('resources/styles/forms/signup/main.scss', 'styles/forms/signup');
+/**
+ * Block
+ */
+// mix.setPublicPath('./');
+// mix.copy('resources/blocks/main/block.json', 'public/blocks/main');
+//
+mix.setPublicPath('./public');
+//
+// mix.js('resources/blocks/main/scripts/index.js', 'blocks/main/build')
+//     .react();
 
-mix
-    .js('resources/scripts/growtype-post.js', 'scripts')
-    .js('resources/scripts/growtype-post-render.js', 'scripts');
+// mix.sass('resources/blocks/main/styles/style.scss', 'blocks/main/styles')
+//     .sass('resources/blocks/main/styles/editor.scss', 'blocks/main/styles')
 
+/**
+ * General
+ */
+mix.sass('resources/styles/growtype-post.scss', 'styles')
+
+mix.js('resources/scripts/growtype-post.js', 'scripts')
+mix.js('resources/scripts/growtype-post-admin.js', 'scripts')
+
+/**
+ * Plugins
+ */
 mix
-    .copyDirectory('resources/plugins', 'public/plugins')
+    .copyDirectory('node_modules/slick-carousel', 'public/plugins/slick-carousel')
 
 mix
     .sourceMaps()

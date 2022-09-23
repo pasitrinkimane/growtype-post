@@ -1,0 +1,64 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "growtype/post",
+  "version": "0.1.0",
+  "title": "Growtype Post",
+  "category": "text",
+  "icon": "flag",
+  "description": "Use wp posts in advanced way.",
+  "attributes": {
+    "shortcode": {
+      "type": "string",
+      "source": "text",
+      "selector": "div"
+    },
+    "post_type": {
+      "type": "string",
+      "default": "post"
+    },
+    "columns": {
+      "type": "string",
+      "default": "3"
+    },
+    "posts_per_page": {
+      "type": "string",
+      "default": "6"
+    },
+    "preview_style": {
+      "type": "string",
+      "default": "basic"
+    },
+    "slider": {
+      "type": "boolean",
+      "default": "false"
+    },
+    "slider_slides_amount_to_show": {
+      "type": "number",
+      "default": "4"
+    },
+    "id": {
+      "type": "string",
+      "default": ""
+    },
+    "post_link": {
+      "type": "boolean",
+      "default": "false"
+    },
+    "order": {
+      "type": "string",
+      "default": "asc"
+    },
+    "orderby": {
+      "type": "string",
+      "default": "date"
+    }
+  },
+  "supports": {
+    "html": false
+  },
+  "textdomain": "growtype-post",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}

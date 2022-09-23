@@ -146,7 +146,13 @@ class Growtype_Post_Loader
         /**
          * shortcode
          */
-        require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-shortcode-main.php';
-        $this->loader = new Growtype_Post_Shortcode_Main();
+        require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-shortcode.php';
+        $this->loader = new Growtype_Post_Shortcode();
+
+        /**
+         * block
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/blocks/class-growtype-post-block.php';
+        $this->loader = new Growtype_Post_Block();
     }
 }
