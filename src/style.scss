@@ -6,12 +6,20 @@
  */
 
 @font-face {
-	font-family: Gilbert;
-	src: url(../resources/fonts/gilbert-color.otf);
-	font-weight: 700;
+  font-family: Gilbert;
+  src: url(../resources/fonts/gilbert-color.otf);
+  font-weight: 700;
 }
 
 .wp-block-growtype-post {
-	//font-family: Gilbert, sans-serif;
-	//font-size: 64px;
+  //font-family: Gilbert, sans-serif;
+  //font-size: 64px;
+}
+
+.wp-block-group__inner-container {
+  .wp-block-growtype-post {
+    .container {
+      padding: 0;
+    }
+  }
 }

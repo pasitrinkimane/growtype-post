@@ -34,7 +34,7 @@ registerBlockType( metadata.name, {
 	 */
 	example: {
 		attributes: {
-			shortcode: 'Growtype Post',
+			shortcode: 'Growtype post',
 		},
 	},
 	/**

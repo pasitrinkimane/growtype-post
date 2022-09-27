@@ -5,14 +5,14 @@
  */
 function growtype_post_is_front_post()
 {
-    return get_option('page_on_front') == growtype_post_get_post_id(get_post());
+    return get_option('page_on_front') == growtype_post_get_id(get_post());
 }
 
 /**
  * @param $post
  * @return int|null
  */
-function growtype_post_get_post_id($post)
+function growtype_post_get_id($post)
 {
     $post_id = $post->ID ?? null;
 
@@ -89,6 +89,22 @@ if (!function_exists('growtype_post_include_view')) {
 }
 
 /**
+ * Display posts
+ */
+function growtype_post_render_all($posts, $preview_style, $columns, $post_link = true, $parent_class = '', $slider = false, $parent_id = '', $pagination = null)
+{
+    return Growtype_Post_Shortcode::render_all($posts, $preview_style, $columns, $post_link, $parent_class, $slider);
+}
+
+/**
+ * Display post
+ */
+function growtype_post_render_single($template_path, $post, $post_link = true, $post_classes = '')
+{
+    return Growtype_Post_Shortcode::render_single($template_path, $post, $post_link, $post_classes);
+}
+
+/**
  * @param $post
  * @param $size
  * @return mixed|null
@@ -96,4 +112,16 @@ if (!function_exists('growtype_post_include_view')) {
 function growtype_post_get_featured_image_url($post, $size = 'medium')
 {
     return isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
+}
+
+/**
+ * @param $array
+ * @param $key
+ * @return array
+ */
+function growtype_post_array_pluck($array, $key)
+{
+    return array_map(function ($v) use ($key) {
+        return is_object($v) ? $v->$key : $v[$key];
+    }, $array);
 }

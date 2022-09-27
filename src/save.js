@@ -19,7 +19,7 @@ import { useBlockProps } from '@wordpress/block-editor';
  */
 export default function save( { attributes } ) {
 
-	console.log(attributes, 'attributes - saving block')
+	// console.log(attributes, 'attributes - saving block')
 
 	const blockProps = useBlockProps.save();
 	return <div { ...blockProps }>{ attributes.shortcode }</div>;

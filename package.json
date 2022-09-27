@@ -36,13 +36,13 @@
     "translate": "npm run translate:pot && npm run translate:js",
     "translate:pot": "wp i18n make-pot . ./resources/lang/sage.pot --ignore-domain --include=\"app,resources\"",
     "translate:js": "wp i18n make-json ./resources/lang --pretty-print",
-    "build-wp": "wp-scripts build",
-    "format": "wp-scripts format",
-    "lint-wp:css": "wp-scripts lint-style",
-    "lint-wp:js": "wp-scripts lint-js",
-    "packages-update": "wp-scripts packages-update",
-    "plugin-zip": "wp-scripts plugin-zip",
-    "start": "wp-scripts start"
+    "block-build": "wp-scripts build",
+    "block-format": "wp-scripts format",
+    "block-lint:css": "wp-scripts lint-style",
+    "block-lint:js": "wp-scripts lint-js",
+    "block-packages-update": "wp-scripts packages-update",
+    "block-plugin-zip": "wp-scripts plugin-zip",
+    "block-watch": "wp-scripts start"
   },
   "engines": {
     "node": ">= 8.0.0"

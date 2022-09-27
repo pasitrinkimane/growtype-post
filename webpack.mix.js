@@ -24,6 +24,7 @@ mix.setPublicPath('./public');
  * General
  */
 mix.sass('resources/styles/growtype-post.scss', 'styles')
+mix.sass('resources/styles/growtype-post-admin.scss', 'styles')
 
 mix.js('resources/scripts/growtype-post.js', 'scripts')
 mix.js('resources/scripts/growtype-post-admin.js', 'scripts')

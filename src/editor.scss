@@ -5,6 +5,10 @@
  */
 
 .wp-block-growtype-post input[type="text"] {
-	font-family: Arial, sans-serif;
-	font-size: 18px;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+}
+
+.components-placeholder[data-type="growtype/post"].components-placeholder {
+  min-height: initial;
 }

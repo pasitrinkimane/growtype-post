@@ -37,13 +37,17 @@
       "type": "number",
       "default": "4"
     },
-    "id": {
+    "parent_id": {
+      "type": "string",
+      "default": ""
+    },
+    "parent_class": {
       "type": "string",
       "default": ""
     },
     "post_link": {
       "type": "boolean",
-      "default": "false"
+      "default": "true"
     },
     "order": {
       "type": "string",

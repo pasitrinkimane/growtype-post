@@ -13,7 +13,7 @@ import {
     CustomSelectControl,
     SelectControl,
     ToggleControl,
-    __experimentalNumberControl as NumberControl,
+    __experimentalNumberControl as NumberControl
 } from '@wordpress/components';
 
 /**
@@ -22,7 +22,11 @@ import {
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import {useBlockProps, ColorPalette, InspectorControls} from '@wordpress/block-editor';
+import {PlainText, useBlockProps, ColorPalette, InspectorControls} from '@wordpress/block-editor';
+
+import {useInstanceId} from '@wordpress/compose';
+
+import {Icon, shortcode} from '@wordpress/icons';
 
 /**
  * The edit function describes the structure of your block in the context of the
@@ -38,10 +42,12 @@ import {useBlockProps, ColorPalette, InspectorControls} from '@wordpress/block-e
  */
 export default function Edit({attributes, setAttributes}) {
     const blockProps = useBlockProps();
+    const instanceId = useInstanceId(Edit);
+    const inputId = `blocks-shortcode-input-${instanceId}`;
 
     const updateShortcode = (attribute_key, val, inputType) => {
 
-        console.log(attribute_key, val, inputType, 'attribute_key, val, inputType')
+        // console.log(attribute_key, val, inputType, 'attribute_key, val, inputType')
 
         if (inputType === 'custom') {
             setAttributes({[attribute_key]: val.selectedItem.value})
@@ -194,14 +200,21 @@ export default function Edit({attributes, setAttributes}) {
                                         ? 'Post is a link.'
                                         : 'Post is not a link.'
                                 }
-                                checked={attributes.post_link}
+                                checked={attributes.post_link ? true : false}
                                 onChange={(val) => updateShortcode('post_link', val)}
                             />
                         </PanelRow>
                         <PanelRow>
                             <TextControl
+                                label={__('Parent class', 'growtype-post')}
+                                onChange={(val) => updateShortcode('parent_class', val)}
+                                value={attributes.id}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <TextControl
                                 label={__('Parent ID', 'growtype-post')}
-                                onChange={(val) => updateShortcode('id', val)}
+                                onChange={(val) => updateShortcode('parent_id', val)}
                                 value={attributes.id}
                             />
                         </PanelRow>
@@ -218,7 +231,7 @@ export default function Edit({attributes, setAttributes}) {
                                         ? 'Showed in a slider.'
                                         : 'Showed without slider.'
                                 }
-                                checked={attributes.slider}
+                                checked={attributes.slider ? true : false}
                                 onChange={(val) => updateShortcode('slider', val)}
                             />
                         </PanelRow>
@@ -234,10 +247,24 @@ export default function Edit({attributes, setAttributes}) {
                     </PanelBody>
                 </Panel>
             </InspectorControls>
-            <TextControl
-                value={attributes.shortcode}
-                onChange={(val) => setAttributes({shortcode: val})}
-            />
+
+            <div {...useBlockProps({className: 'components-placeholder'})}>
+                <label
+                    htmlFor={inputId}
+                    className="components-placeholder__label"
+                >
+                    <Icon icon={shortcode}/>
+                    {__('Growtype post shortcode')}
+                </label>
+                <PlainText
+                    className="blocks-shortcode__textarea"
+                    id={inputId}
+                    value={attributes.shortcode}
+                    aria-label={__('Shortcode text')}
+                    placeholder={__('Write shortcode here…')}
+                    onChange={(val) => setAttributes({shortcode: val})}
+                />
+            </div>
         </div>
     );
 }

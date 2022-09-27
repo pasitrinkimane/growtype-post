@@ -24,7 +24,6 @@ class Growtype_Post_Shortcode
             'posts_per_page' => -1,
             'slider' => 'false',
             'preview_style' => 'basic', //blog
-            'id' => 'b-posts',
             'slider_slides_amount_to_show' => '4',
             'post_link' => 'true',
             'category_name' => '', //use category slug
@@ -36,7 +35,8 @@ class Growtype_Post_Shortcode
             'category__not_in' => [],
             'category__in' => [],
             'order' => 'asc',
-            'orderby' => 'menu_order'
+            'orderby' => 'menu_order',
+            'parent_id' => ''
         ), $atts));
 
         $args = array (
@@ -154,51 +154,19 @@ class Growtype_Post_Shortcode
             }
         }
 
-        $post_classes_list = ['b-post-single'];
-
-        $extra_class = 'b-post-' . $preview_style;
-
-        if (isset($extra_class) && !empty($extra_class)) {
-            array_push($post_classes_list, $extra_class);
-        }
-
-        $post_classes = implode(' ', $post_classes_list);
-
-        $template_path = 'preview.' . $preview_style . '.index';
-
-        ob_start();
-
-        if (!empty($posts)) : ?>
-            <div <?php echo !empty($id) ? 'id="' . $id . '"' : "" ?> class="b-posts b-posts-growtype <?php echo $parent_class ?> <?php echo $slider === 'true' ? 'b-posts-slider' : '' ?>" data-columns="<?php echo $columns ?>">
-                <?php
-                foreach ($posts as $post) {
-                    echo growtype_post_include_view($template_path, ['post' => $post, 'post_link' => $post_link === 'true' ? true : false, 'post_classes' => $post_classes]);
-                }
-                ?>
-            </div>
-        <?php endif;
-
         /**
-         * Pagination
+         * Show posts
          */
-        if ($pagination) {
-            ?>
-            <div class="pagination">
-                <?php
-                echo self::pagination($posts, $total_pages ?? null);
-                ?>
-            </div>
-            <?php
-        }
+        $render = '';
 
-        $render = ob_get_clean();
+        if (!empty($posts)) {
+            $render = self::render_all($posts, $preview_style, $columns, $post_link, $parent_class, $slider, $parent_id, $pagination);
+        }
 
         /**
          * Add js scripts
          */
         if ($slider === 'true') {
-            add_action('wp_head', array (&$this, 'growtype_posts_shortcode_scripts_header'), 100);
-
             if ($posts_amount > $slider_slides_amount_to_show) {
                 add_action('wp_footer', function ($arguments) use ($id, $slider_slides_amount_to_show) { ?>
                     <script type="text/javascript">
@@ -257,13 +225,66 @@ class Growtype_Post_Shortcode
     }
 
     /**
+     * @param $preview_style
+     * @param $columns
+     * @param $post_link
+     * @param $parent_class
+     * @param $slider
      * @return void
+     * Render multiple posts
      */
-    function growtype_posts_shortcode_scripts_header()
+    public static function render_all($posts, $preview_style, $columns, $post_link, $parent_class = '', $slider = false, $parent_id = '', $pagination = null)
     {
-        ?>
-        <style></style>
-        <?php
+        $post_classes_list = ['b-post-single'];
+
+        $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
+
+        array_push($post_classes_list, 'b-post-' . $preview_style);
+
+        if (!empty($post_type)) {
+            array_push($post_classes_list, 'b-post-' . $post_type);
+        }
+
+        $post_classes = implode(' ', $post_classes_list);
+
+        $template_path = 'preview.' . $preview_style . '.index';
+
+        ob_start();
+
+        if (!empty($posts)) : ?>
+            <div <?php echo !empty($parent_id) ? 'id="' . $parent_id . '"' : "" ?> class="growtype-post-container <?php echo $parent_class ?> <?php echo $slider === 'true' ? 'b-posts-slider' : '' ?>" data-columns="<?php echo $columns ?>">
+                <?php
+                foreach ($posts as $post) {
+                    echo self::render_single($template_path, $post, $post_link, $post_classes);
+                }
+                ?>
+            </div>
+        <?php endif;
+
+        /**
+         * Pagination
+         */
+        if ($pagination) { ?>
+            <div class="pagination">
+                <?php echo self::pagination($posts, $total_pages ?? null); ?>
+            </div>
+            <?php
+        }
+
+        return ob_get_clean();
+    }
+
+    /**
+     * @param $template_path
+     * @param $post
+     * @param $post_link
+     * @param $post_classes
+     * @return void
+     * Render single post
+     */
+    public static function render_single($template_path, $post, $post_link = true, $post_classes = '')
+    {
+        return growtype_post_include_view($template_path, ['post' => $post, 'post_link' => $post_link === 'true' ? true : false, 'post_classes' => $post_classes]);
     }
 
     /**
