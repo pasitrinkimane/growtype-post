@@ -32,6 +32,10 @@ function growtype_post_get_id($post)
  */
 function growtype_post_get_limited_content($initial_content, $length = 125)
 {
+    if (empty($length)) {
+        $length = apply_filters('growtype_posts_limited_content_length', 125);
+    }
+
     $content = $initial_content;
     $content = strip_shortcodes($content);
     $content = strip_tags($content);
@@ -61,7 +65,7 @@ if (!function_exists('growtype_post_include_view')) {
         $template_path = $fallback_view;
 
         if (file_exists($child_blade_view)) {
-            $template_path = $child_blade_view;
+            return App\template($child_blade_view, $variables);
         } elseif (file_exists($child_view)) {
             $template_path = $child_view;
         }

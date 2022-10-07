@@ -12,10 +12,6 @@
 
   &.slick-initialized {
     display: block;
-    @include bp-page-content() {
-      max-width: 90%;
-      margin: auto !important;
-    }
   }
 
   &[data-columns="1"] {

@@ -18,9 +18,6 @@ import { useBlockProps } from '@wordpress/block-editor';
  * @return {WPElement} Element to render.
  */
 export default function save( { attributes } ) {
-
-	// console.log(attributes, 'attributes - saving block')
-
 	const blockProps = useBlockProps.save();
 	return <div { ...blockProps }>{ attributes.shortcode }</div>;
 }

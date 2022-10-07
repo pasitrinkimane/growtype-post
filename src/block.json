@@ -31,7 +31,7 @@
     },
     "slider": {
       "type": "boolean",
-      "default": "false"
+      "default": false
     },
     "slider_slides_amount_to_show": {
       "type": "number",
@@ -56,6 +56,10 @@
     "orderby": {
       "type": "string",
       "default": "date"
+    },
+    "intro_content_length": {
+      "type": "string",
+      "default": "100"
     }
   },
   "supports": {

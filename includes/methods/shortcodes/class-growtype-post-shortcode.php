@@ -36,7 +36,8 @@ class Growtype_Post_Shortcode
             'category__in' => [],
             'order' => 'asc',
             'orderby' => 'menu_order',
-            'parent_id' => ''
+            'parent_id' => '',
+            'intro_content_length' => '100'
         ), $atts));
 
         $args = array (
@@ -160,7 +161,17 @@ class Growtype_Post_Shortcode
         $render = '';
 
         if (!empty($posts)) {
-            $render = self::render_all($posts, $preview_style, $columns, $post_link, $parent_class, $slider, $parent_id, $pagination);
+            $render = self::render_all(
+                $posts,
+                $preview_style,
+                $columns,
+                $post_link,
+                $parent_class,
+                $slider,
+                $parent_id,
+                $pagination,
+                $intro_content_length,
+            );
         }
 
         /**
@@ -233,8 +244,17 @@ class Growtype_Post_Shortcode
      * @return void
      * Render multiple posts
      */
-    public static function render_all($posts, $preview_style, $columns, $post_link, $parent_class = '', $slider = false, $parent_id = '', $pagination = null)
-    {
+    public static function render_all(
+        $posts,
+        $preview_style,
+        $columns,
+        $post_link,
+        $parent_class = '',
+        $slider = false,
+        $parent_id = '',
+        $pagination = null,
+        $intro_content_length = null
+    ) {
         $post_classes_list = ['b-post-single'];
 
         $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
@@ -255,7 +275,13 @@ class Growtype_Post_Shortcode
             <div <?php echo !empty($parent_id) ? 'id="' . $parent_id . '"' : "" ?> class="growtype-post-container <?php echo $parent_class ?> <?php echo $slider === 'true' ? 'b-posts-slider' : '' ?>" data-columns="<?php echo $columns ?>">
                 <?php
                 foreach ($posts as $post) {
-                    echo self::render_single($template_path, $post, $post_link, $post_classes);
+                    echo self::render_single(
+                        $template_path,
+                        $post,
+                        $post_link,
+                        $post_classes,
+                        $intro_content_length
+                    );
                 }
                 ?>
             </div>
@@ -282,9 +308,21 @@ class Growtype_Post_Shortcode
      * @return void
      * Render single post
      */
-    public static function render_single($template_path, $post, $post_link = true, $post_classes = '')
-    {
-        return growtype_post_include_view($template_path, ['post' => $post, 'post_link' => $post_link === 'true' ? true : false, 'post_classes' => $post_classes]);
+    public static function render_single(
+        $template_path,
+        $post,
+        $post_link = true,
+        $post_classes = '',
+        $intro_content_length = null
+    ) {
+        return growtype_post_include_view($template_path,
+            [
+                'post' => $post,
+                'post_link' => $post_link === 'true' ? true : false,
+                'post_classes' => $post_classes,
+                'intro_content_length' => $intro_content_length
+            ]
+        );
     }
 
     /**

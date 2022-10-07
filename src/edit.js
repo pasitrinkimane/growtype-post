@@ -47,7 +47,7 @@ export default function Edit({attributes, setAttributes}) {
 
     const updateShortcode = (attribute_key, val, inputType) => {
 
-        // console.log(attribute_key, val, inputType, 'attribute_key, val, inputType')
+        console.log(val, 'val')
 
         if (inputType === 'custom') {
             setAttributes({[attribute_key]: val.selectedItem.value})
@@ -77,8 +77,6 @@ export default function Edit({attributes, setAttributes}) {
                     shortcodeTag += ' ' + propertyKey + '=' + '"' + propertyValue + '"'
                 }
             }
-
-            // console.log(element, 'element')
         })
 
         shortcodeTag += ']';
@@ -86,16 +84,16 @@ export default function Edit({attributes, setAttributes}) {
         setAttributes({shortcode: shortcodeTag})
     };
 
-    console.log(attributes, 'attributes - editing block')
-    console.log(Object.entries(attributes), 'attributes length')
-
     if (Object.entries(attributes).length === 0 || attributes.shortcode === '') {
         attributes.shortcode = '[growtype_posts]'
     }
 
+    console.log(attributes, 'attributes')
+    console.log(blockProps, 'blockProps')
+
     return (
         <div {...blockProps}>
-            <InspectorControls key="setting">
+            <InspectorControls key={'inspector'}>
                 <Panel>
                     <PanelBody
                         title={__('Main settings', 'wholesome-plugin')}
@@ -107,51 +105,6 @@ export default function Edit({attributes, setAttributes}) {
                                 help={__('Enter which post type should be used.', 'growtype-post')}
                                 onChange={(val) => updateShortcode('post_type', val)}
                                 value={attributes.post_type}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <TextControl
-                                label={__('Columns', 'growtype-post')}
-                                help={__('How many columns in grid.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('columns', val)}
-                                value={attributes.columns}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <TextControl
-                                label={__('Posts per page', 'growtype-post')}
-                                help={__('How many posts should be returned.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('posts_per_page', val)}
-                                value={attributes.posts_per_page}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <SelectControl
-                                label="Post preview style"
-                                help={__('How post preview should look.', 'growtype-post')}
-                                options={[
-                                    {
-                                        label: 'Basic',
-                                        value: 'basic',
-                                    },
-                                    {
-                                        label: 'Blog',
-                                        value: 'blog',
-                                    },
-                                    {
-                                        label: 'Content',
-                                        value: 'content',
-                                    },
-                                    {
-                                        label: 'Review',
-                                        value: 'review',
-                                    },
-                                    {
-                                        label: 'Testimonial',
-                                        value: 'testimonial',
-                                    }
-                                ]}
-                                onChange={(val) => updateShortcode('preview_style', val)}
                             />
                         </PanelRow>
                         <PanelRow>
@@ -216,6 +169,66 @@ export default function Edit({attributes, setAttributes}) {
                                 label={__('Parent ID', 'growtype-post')}
                                 onChange={(val) => updateShortcode('parent_id', val)}
                                 value={attributes.id}
+                            />
+                        </PanelRow>
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Preview settings', 'wholesome-plugin')}
+                        icon="admin-plugins"
+                    >
+                        <PanelRow>
+                            <TextControl
+                                label={__('Columns', 'growtype-post')}
+                                help={__('How many columns in grid.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('columns', val)}
+                                value={attributes.columns}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <TextControl
+                                label={__('Posts per page', 'growtype-post')}
+                                help={__('How many posts should be returned.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('posts_per_page', val)}
+                                value={attributes.posts_per_page}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <SelectControl
+                                label="Post preview style"
+                                help={__('How post preview should look.', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Basic',
+                                        value: 'basic',
+                                    },
+                                    {
+                                        label: 'Blog',
+                                        value: 'blog',
+                                    },
+                                    {
+                                        label: 'Content',
+                                        value: 'content',
+                                    },
+                                    {
+                                        label: 'Review',
+                                        value: 'review',
+                                    },
+                                    {
+                                        label: 'Testimonial',
+                                        value: 'testimonial',
+                                    }
+                                ]}
+                                onChange={(val) => updateShortcode('preview_style', val)}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <NumberControl
+                                label="Intro content length"
+                                help={__('Post preview intro content text characters amount.', 'growtype-post')}
+                                isShiftStepEnabled={false}
+                                onChange={(val) => updateShortcode('intro_content_length', val)}
+                                value={attributes.intro_content_length}
+                                min={1}
                             />
                         </PanelRow>
                     </PanelBody>

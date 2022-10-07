@@ -20,7 +20,8 @@
             <p class="e-excerpt"><?php echo $post->post_excerpt ?></p>
         <?php } ?>
         <div class="e-intro">
-            <?php echo growtype_post_get_limited_content($post->post_content, isset($content_length) ? $content_length : 200) ?>
+            <?php
+            echo growtype_post_get_limited_content($post->post_content, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
         </div>
     </div>
     <div class="b-actions">
