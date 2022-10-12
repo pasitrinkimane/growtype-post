@@ -121,6 +121,7 @@ export default function Edit({attributes, setAttributes}) {
                                         value: 'desc',
                                     }
                                 ]}
+                                value={attributes.order}
                                 onChange={(val) => updateShortcode('order', val)}
                             />
                         </PanelRow>
@@ -142,6 +143,7 @@ export default function Edit({attributes, setAttributes}) {
                                         value: 'name',
                                     },
                                 ]}
+                                value={attributes.orderby}
                                 onChange={(val) => updateShortcode('orderby', val)}
                             />
                         </PanelRow>
@@ -216,11 +218,28 @@ export default function Edit({attributes, setAttributes}) {
                                     {
                                         label: 'Testimonial',
                                         value: 'testimonial',
+                                    },
+                                    {
+                                        label: 'Custom',
+                                        value: 'custom',
                                     }
                                 ]}
+                                value={attributes.preview_style}
                                 onChange={(val) => updateShortcode('preview_style', val)}
                             />
                         </PanelRow>
+                        {attributes.preview_style === 'custom' ?
+                            <PanelRow>
+                                <TextControl
+                                    label={__('Custom preview style', 'growtype-post')}
+                                    help={__('Custom preview look.', 'growtype-post')}
+                                    onChange={(val) => updateShortcode('preview_style_custom', val)}
+                                    value={attributes.preview_style_custom}
+                                />
+                            </PanelRow>
+                            :
+                            ''
+                        }
                         <PanelRow>
                             <NumberControl
                                 label="Intro content length"

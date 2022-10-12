@@ -17,12 +17,10 @@
             <h4><?php echo $post->post_title ?></h4>
         <?php } ?>
         <?php if (!empty($post->post_excerpt)) { ?>
-            <p class="e-excerpt"><?php echo $post->post_excerpt ?></p>
+            <p class="e-excerpt">
+                <?php echo growtype_post_get_limited_content($post->post_excerpt, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
+            </p>
         <?php } ?>
-        <div class="e-intro">
-            <?php
-            echo growtype_post_get_limited_content($post->post_content, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
-        </div>
     </div>
     <div class="b-actions">
         <button class="btn btn-primary">

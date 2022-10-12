@@ -24,6 +24,7 @@ class Growtype_Post_Shortcode
             'posts_per_page' => -1,
             'slider' => 'false',
             'preview_style' => 'basic', //blog
+            'preview_style_custom' => '', //blog
             'slider_slides_amount_to_show' => '4',
             'post_link' => 'true',
             'category_name' => '', //use category slug
@@ -39,6 +40,13 @@ class Growtype_Post_Shortcode
             'parent_id' => '',
             'intro_content_length' => '100'
         ), $atts));
+
+        /**
+         * Preview style
+         */
+        if ($preview_style === 'custom' && !empty($preview_style_custom)) {
+            $preview_style = $preview_style_custom;
+        }
 
         $args = array (
             'post_type' => $post_type,
@@ -57,6 +65,10 @@ class Growtype_Post_Shortcode
 
         if (!empty($post__in)) {
             $args['post__in'] = explode(',', $post__in);
+        }
+
+        if (empty($parent_id)) {
+            $parent_id = 'growtype-post-' . $post_type;
         }
 
         if (!empty($category_name)) {
@@ -179,14 +191,14 @@ class Growtype_Post_Shortcode
          */
         if ($slider === 'true') {
             if ($posts_amount > $slider_slides_amount_to_show) {
-                add_action('wp_footer', function ($arguments) use ($id, $slider_slides_amount_to_show) { ?>
+                add_action('wp_footer', function ($arguments) use ($parent_id, $slider_slides_amount_to_show) { ?>
                     <script type="text/javascript">
                         jQuery(document).ready(function () {
                             let slidesToShow = <?php echo $slider_slides_amount_to_show ?>;
                             // if (window.innerWidth < 768) {
                             //     slidesToShow = 1;
                             // }
-                            jQuery('#<?php echo $id ?>').slick({
+                            jQuery('#<?php echo $parent_id ?>').slick({
                                 infinite: false,
                                 slidesToShow: slidesToShow,
                                 slidesToScroll: 1,

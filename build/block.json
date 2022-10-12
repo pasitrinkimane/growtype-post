@@ -29,6 +29,10 @@
       "type": "string",
       "default": "basic"
     },
+    "preview_style_custom": {
+      "type": "string",
+      "default": ""
+    },
     "slider": {
       "type": "boolean",
       "default": false
