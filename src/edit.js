@@ -55,7 +55,7 @@ export default function Edit({attributes, setAttributes}) {
             setAttributes({[attribute_key]: val})
         }
 
-        let shortcodeTag = '[growtype_posts';
+        let shortcodeTag = '[growtype_post';
         Object.entries(attributes).map(function (element) {
             if (element[0] !== 'shortcode') {
                 let propertyKey = element[0];
@@ -85,7 +85,7 @@ export default function Edit({attributes, setAttributes}) {
     };
 
     if (Object.entries(attributes).length === 0 || attributes.shortcode === '') {
-        attributes.shortcode = '[growtype_posts]'
+        attributes.shortcode = '[growtype_post]'
     }
 
     console.log(attributes, 'attributes')

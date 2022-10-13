@@ -56,16 +56,11 @@ class Growtype_Post_Admin
 
         if (is_admin()) {
 //            add_action('admin_menu', array ($this, 'add_custom_options_page'));
-//
-//            /**
-//             * General
-//             */
-//            add_action('admin_init', array ($this, 'general_content'));
-//
-//            /**
-//             * Load methods
-//             */
-//            $this->load_methods();
+
+            /**
+             * Load methods
+             */
+            $this->load_methods();
         }
     }
 

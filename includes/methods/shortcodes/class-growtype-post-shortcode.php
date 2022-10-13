@@ -8,7 +8,7 @@ class Growtype_Post_Shortcode
     function __construct()
     {
         if (!is_admin()) {
-            add_shortcode('growtype_posts', array ($this, 'growtype_posts_shortcode'));
+            add_shortcode('growtype_post', array ($this, 'growtype_post_shortcode'));
         }
     }
 
@@ -17,7 +17,7 @@ class Growtype_Post_Shortcode
      * @return string
      * Posts shortcode
      */
-    function growtype_posts_shortcode($atts)
+    function growtype_post_shortcode($atts)
     {
         extract(shortcode_atts(array (
             'post_type' => 'post',
@@ -145,7 +145,7 @@ class Growtype_Post_Shortcode
                 );
             }
 
-            $args = apply_filters('growtype_posts_shortcode_extend_args', $atts, $args);
+            $args = apply_filters('growtype_post_shortcode_extend_args', $atts, $args);
 
             $the_query = new WP_Query($args);
 

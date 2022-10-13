@@ -33,16 +33,25 @@ function growtype_post_get_id($post)
 function growtype_post_get_limited_content($initial_content, $length = 125)
 {
     if (empty($length)) {
-        $length = apply_filters('growtype_posts_limited_content_length', 125);
+        $length = apply_filters('growtype_post_limited_content_length', 125);
     }
 
     $content = $initial_content;
-    $content = strip_shortcodes($content);
-    $content = strip_tags($content);
-    $content = substr($content, 0, $length);
-    $content = substr($content, 0, strripos($content, " "));
-    $content = trim(preg_replace('/\s+/', ' ', $content));
-    $content = $content . '...';
+
+    if (strlen($initial_content) > $length) {
+
+        $removed_content = str_replace(substr($content, 0, $length), '', $content);
+
+        if (preg_match("/<[^<]+>/", $removed_content, $m) != 0) {
+            $content = strip_shortcodes($content);
+            $content = strip_tags($content);
+        }
+
+        $content = substr($content, 0, $length);
+        $content = substr($content, 0, strripos($content, " "));
+        $content = trim(preg_replace('/\s+/', ' ', $content));
+        $content = $content . '...';
+    }
 
     return $content;
 }

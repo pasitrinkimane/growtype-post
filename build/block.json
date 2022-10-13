@@ -38,7 +38,7 @@
       "default": false
     },
     "slider_slides_amount_to_show": {
-      "type": "number",
+      "type": "string",
       "default": "4"
     },
     "parent_id": {
