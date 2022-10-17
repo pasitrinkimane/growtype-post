@@ -167,6 +167,8 @@ class Growtype_Post_Shortcode
             }
         }
 
+        $slider_id = md5(rand());
+
         /**
          * Show posts
          */
@@ -175,30 +177,33 @@ class Growtype_Post_Shortcode
         if (!empty($posts)) {
             $render = self::render_all(
                 $posts,
-                $preview_style,
-                $columns,
-                $post_link,
-                $parent_class,
-                $slider,
-                $parent_id,
-                $pagination,
-                $intro_content_length,
+                [
+                    'preview_style' => $preview_style,
+                    'columns' => $columns,
+                    'post_link' => $post_link,
+                    'parent_class' => $parent_class,
+                    'slider' => $slider,
+                    'parent_id' => $parent_id,
+                    'pagination' => $pagination,
+                    'intro_content_length' => $intro_content_length,
+                    'slider_id' => $slider_id
+                ]
             );
         }
 
         /**
          * Add js scripts
+         * slick slider
          */
         if ($slider === 'true') {
             if ($posts_amount > $slider_slides_amount_to_show) {
-                add_action('wp_footer', function ($arguments) use ($parent_id, $slider_slides_amount_to_show) { ?>
+                add_action('wp_footer', function ($arguments) use ($slider_id, $slider_slides_amount_to_show) { ?>
                     <script type="text/javascript">
                         jQuery(document).ready(function () {
                             let slidesToShow = <?php echo $slider_slides_amount_to_show ?>;
-                            // if (window.innerWidth < 768) {
-                            //     slidesToShow = 1;
-                            // }
-                            jQuery('#<?php echo $parent_id ?>').slick({
+                            let sliderId = '<?php echo $slider_id ?>';
+
+                            jQuery('.growtype-post-container[data-slider-id="' + sliderId + '"]').slick({
                                 infinite: false,
                                 slidesToShow: slidesToShow,
                                 slidesToScroll: 1,
@@ -255,23 +260,17 @@ class Growtype_Post_Shortcode
      * @param $slider
      * @return void
      * Render multiple posts
+     * //$parameters -> $preview_style, $columns, $post_link = true, $parent_class = '', $slider = false, $parent_id = '', $pagination = null
      */
     public static function render_all(
         $posts,
-        $preview_style,
-        $columns,
-        $post_link,
-        $parent_class = '',
-        $slider = false,
-        $parent_id = '',
-        $pagination = null,
-        $intro_content_length = null
+        $parameters
     ) {
         $post_classes_list = ['b-post-single'];
 
         $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
 
-        array_push($post_classes_list, 'b-post-' . $preview_style);
+        array_push($post_classes_list, 'b-post-' . $parameters['preview_style']);
 
         if (!empty($post_type)) {
             array_push($post_classes_list, 'b-post-' . $post_type);
@@ -279,20 +278,26 @@ class Growtype_Post_Shortcode
 
         $post_classes = implode(' ', $post_classes_list);
 
-        $template_path = 'preview.' . $preview_style . '.index';
+        $template_path = 'preview.' . $parameters['preview_style'] . '.index';
 
         ob_start();
 
         if (!empty($posts)) : ?>
-            <div <?php echo !empty($parent_id) ? 'id="' . $parent_id . '"' : "" ?> class="growtype-post-container <?php echo $parent_class ?> <?php echo $slider === 'true' ? 'b-posts-slider' : '' ?>" data-columns="<?php echo $columns ?>">
+            <div <?php echo !empty($parameters['parent_id']) ? 'id="' . $parameters['parent_id'] . '"' : "" ?>
+                class="growtype-post-container <?php echo $parameters['parent_class'] ?> <?php echo $parameters['slider'] === 'true' ? 'is-slider' : '' ?>"
+                data-columns="<?php echo $parameters['columns'] ?>"
+                data-slider-id="<?php echo $parameters['slider_id'] ?>"
+            >
                 <?php
                 foreach ($posts as $post) {
                     echo self::render_single(
                         $template_path,
                         $post,
-                        $post_link,
-                        $post_classes,
-                        $intro_content_length
+                        [
+                            'post_link' => $parameters['post_link'],
+                            'post_classes' => $post_classes,
+                            'intro_content_length' => $parameters['intro_content_length']
+                        ]
                     );
                 }
                 ?>
@@ -302,7 +307,7 @@ class Growtype_Post_Shortcode
         /**
          * Pagination
          */
-        if ($pagination) { ?>
+        if ($parameters['pagination']) { ?>
             <div class="pagination">
                 <?php echo self::pagination($posts, $total_pages ?? null); ?>
             </div>
@@ -315,26 +320,18 @@ class Growtype_Post_Shortcode
     /**
      * @param $template_path
      * @param $post
-     * @param $post_link
-     * @param $post_classes
-     * @return void
-     * Render single post
+     * @param $parameters
+     * @return false|string|null
      */
     public static function render_single(
         $template_path,
         $post,
-        $post_link = true,
-        $post_classes = '',
-        $intro_content_length = null
+        $parameters
     ) {
-        return growtype_post_include_view($template_path,
-            [
-                'post' => $post,
-                'post_link' => $post_link === 'true' ? true : false,
-                'post_classes' => $post_classes,
-                'intro_content_length' => $intro_content_length
-            ]
-        );
+
+        $variables = array_merge(['post' => $post], $parameters);
+
+        return growtype_post_include_view($template_path, $variables);
     }
 
     /**

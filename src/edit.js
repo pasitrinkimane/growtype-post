@@ -88,9 +88,6 @@ export default function Edit({attributes, setAttributes}) {
         attributes.shortcode = '[growtype_post]'
     }
 
-    console.log(attributes, 'attributes')
-    console.log(blockProps, 'blockProps')
-
     return (
         <div {...blockProps}>
             <InspectorControls key={'inspector'}>

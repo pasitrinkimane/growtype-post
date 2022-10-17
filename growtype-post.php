@@ -14,11 +14,11 @@
  *
  * @wordpress-plugin
  * Plugin Name:       Growtype - Post
- * Plugin URI:        http://newcoolstudio.com/
- * Description:       Advanced wordpress post types functionality for modern websites.
+ * Plugin URI:        http://growtype.com/
+ * Description:       Advanced wp post types functionality for modern websites.
  * Version:           1.0.0
  * Author:            Growtype
- * Author URI:        http://newcoolstudio.com/
+ * Author URI:        http://growtype.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       growtype-post
