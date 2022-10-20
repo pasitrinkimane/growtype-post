@@ -46,9 +46,6 @@ export default function Edit({attributes, setAttributes}) {
     const inputId = `blocks-shortcode-input-${instanceId}`;
 
     const updateShortcode = (attribute_key, val, inputType) => {
-
-        console.log(val, 'val')
-
         if (inputType === 'custom') {
             setAttributes({[attribute_key]: val.selectedItem.value})
         } else {
@@ -93,7 +90,7 @@ export default function Edit({attributes, setAttributes}) {
             <InspectorControls key={'inspector'}>
                 <Panel>
                     <PanelBody
-                        title={__('Main settings', 'wholesome-plugin')}
+                        title={__('Main settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <PanelRow>
@@ -172,7 +169,7 @@ export default function Edit({attributes, setAttributes}) {
                         </PanelRow>
                     </PanelBody>
                     <PanelBody
-                        title={__('Preview settings', 'wholesome-plugin')}
+                        title={__('Preview settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <PanelRow>
@@ -249,7 +246,7 @@ export default function Edit({attributes, setAttributes}) {
                         </PanelRow>
                     </PanelBody>
                     <PanelBody
-                        title={__('Slider settings', 'wholesome-plugin')}
+                        title={__('Slider settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <PanelRow>

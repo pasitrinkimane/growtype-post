@@ -215,28 +215,28 @@ class Growtype_Post_Shortcode
                                     {
                                         breakpoint: 1000,
                                         settings: {
-                                            slidesToShow: 4,
+                                            slidesToShow: slidesToShow >= 4 ? 4 : slidesToShow,
                                             slidesToScroll: 1
                                         }
                                     },
                                     {
                                         breakpoint: 900,
                                         settings: {
-                                            slidesToShow: 3,
+                                            slidesToShow: slidesToShow >= 3 ? 3 : slidesToShow,
                                             slidesToScroll: 1
                                         }
                                     },
                                     {
                                         breakpoint: 700,
                                         settings: {
-                                            slidesToShow: 2,
+                                            slidesToShow: slidesToShow >= 2 ? 2 : slidesToShow,
                                             slidesToScroll: 1
                                         }
                                     },
                                     {
                                         breakpoint: 570,
                                         settings: {
-                                            slidesToShow: 1,
+                                            slidesToShow: slidesToShow >= 1 ? 1 : slidesToShow,
                                             slidesToScroll: 1
                                         }
                                     }
