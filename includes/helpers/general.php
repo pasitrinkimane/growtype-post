@@ -104,7 +104,7 @@ if (!function_exists('growtype_post_include_view')) {
 /**
  * Display posts
  */
-function growtype_post_render_all($posts, $parameters)
+function growtype_post_render_all($posts, $parameters = null)
 {
     return Growtype_Post_Shortcode::render_all($posts, $parameters);
 }

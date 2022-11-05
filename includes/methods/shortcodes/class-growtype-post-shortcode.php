@@ -7,7 +7,7 @@ class Growtype_Post_Shortcode
 {
     function __construct()
     {
-        if (!is_admin()) {
+        if (!is_admin() && !wp_is_json_request()) {
             add_shortcode('growtype_post', array ($this, 'growtype_post_shortcode'));
         }
     }
@@ -22,14 +22,17 @@ class Growtype_Post_Shortcode
         extract(shortcode_atts(array (
             'post_type' => 'post',
             'posts_per_page' => -1,
-            'slider' => 'false',
             'preview_style' => 'basic', //blog
             'preview_style_custom' => '', //blog
+            'slider_active' => 'false',
             'slider_slides_amount_to_show' => '4',
+            'slider_infinite' => 'false',
+            'slider_center_mode' => 'false',
+            'slider_overflow' => 'hidden',
             'post_link' => 'true',
             'category_name' => '', //use category slug
             'parent_class' => '',
-            'pagination' => false,
+            'pagination' => 'false',
             'post_status' => 'publish', //also active, expired
             'columns' => '3',
             'post__in' => [],
@@ -38,8 +41,16 @@ class Growtype_Post_Shortcode
             'order' => 'asc',
             'orderby' => 'menu_order',
             'parent_id' => '',
-            'intro_content_length' => '100'
+            'intro_content_length' => '100',
+            'show_all_posts' => 'false'
         ), $atts));
+
+        /**
+         * Show all posts
+         */
+        if ($show_all_posts === 'true') {
+            $posts_per_page = -1;
+        }
 
         /**
          * Preview style
@@ -86,7 +97,7 @@ class Growtype_Post_Shortcode
             }
         }
 
-        if (!empty(get_query_var('paged'))) {
+        if ($pagination === 'true' && !empty(get_query_var('paged'))) {
             $current_page = max(1, get_query_var('paged'));
             $offset = $current_page === 1 ? 0 : ($current_page - 1) * $posts_per_page;
 
@@ -118,7 +129,7 @@ class Growtype_Post_Shortcode
             /**
              * Total existing records for pagination
              */
-            if ($pagination) {
+            if ($pagination === 'true') {
                 $total_existing_records = get_sites([
                     'number' => 1000,
                     'site__not_in' => $site__not_in,
@@ -145,18 +156,16 @@ class Growtype_Post_Shortcode
                 );
             }
 
-            $args = apply_filters('growtype_post_shortcode_extend_args', $atts, $args);
+            $args = apply_filters('growtype_post_shortcode_extend_args', $args, $atts);
 
             $the_query = new WP_Query($args);
-
-            $posts_amount = $the_query->post_count;
 
             $posts = $the_query->get_posts();
 
             /**
              * Total existing records for pagination
              */
-            if ($pagination) {
+            if ($pagination === 'true') {
                 $total_existing_records = new WP_Query([
                     'posts_per_page' => -1,
                     'post_type' => $args['post_type'],
@@ -182,71 +191,80 @@ class Growtype_Post_Shortcode
                     'columns' => $columns,
                     'post_link' => $post_link,
                     'parent_class' => $parent_class,
-                    'slider' => $slider,
                     'parent_id' => $parent_id,
                     'pagination' => $pagination,
                     'intro_content_length' => $intro_content_length,
-                    'slider_id' => $slider_id
+                    'total_pages' => $total_pages ?? null,
+                    'slider_active' => $slider_active,
+                    'slider_id' => $slider_id,
+                    'slider_overflow' => $slider_overflow,
                 ]
             );
         }
+
+        $slider_parameters = [
+            'slider_slides_amount_to_show' => $slider_slides_amount_to_show,
+            'slider_infinite' => $slider_infinite,
+            'slider_center_mode' => $slider_center_mode,
+        ];
 
         /**
          * Add js scripts
          * slick slider
          */
-        if ($slider === 'true') {
-            if ($posts_amount > $slider_slides_amount_to_show) {
-                add_action('wp_footer', function ($arguments) use ($slider_id, $slider_slides_amount_to_show) { ?>
-                    <script type="text/javascript">
-                        jQuery(document).ready(function () {
-                            let slidesToShow = <?php echo $slider_slides_amount_to_show ?>;
-                            let sliderId = '<?php echo $slider_id ?>';
+        if ($slider_active === 'true') {
+            add_action('wp_footer', function ($arguments) use ($slider_id, $slider_parameters) { ?>
+                <script type="text/javascript">
+                    jQuery(document).ready(function () {
+                        let slidesToShow = <?php echo $slider_parameters['slider_slides_amount_to_show'] ?>;
+                        let sliderId = '<?php echo $slider_id ?>';
+                        let sliderInfinite = '<?php echo $slider_parameters['slider_infinite'] ?>';
+                        let sliderCenterMode = '<?php echo $slider_parameters['slider_center_mode'] ?>';
 
-                            jQuery('.growtype-post-container[data-slider-id="' + sliderId + '"]').slick({
-                                infinite: false,
-                                slidesToShow: slidesToShow,
-                                slidesToScroll: 1,
-                                autoplay: false,
-                                autoplaySpeed: 2000,
-                                arrows: true,
-                                dots: false,
-                                responsive: [
-                                    {
-                                        breakpoint: 1000,
-                                        settings: {
-                                            slidesToShow: slidesToShow >= 4 ? 4 : slidesToShow,
-                                            slidesToScroll: 1
-                                        }
-                                    },
-                                    {
-                                        breakpoint: 900,
-                                        settings: {
-                                            slidesToShow: slidesToShow >= 3 ? 3 : slidesToShow,
-                                            slidesToScroll: 1
-                                        }
-                                    },
-                                    {
-                                        breakpoint: 700,
-                                        settings: {
-                                            slidesToShow: slidesToShow >= 2 ? 2 : slidesToShow,
-                                            slidesToScroll: 1
-                                        }
-                                    },
-                                    {
-                                        breakpoint: 570,
-                                        settings: {
-                                            slidesToShow: slidesToShow >= 1 ? 1 : slidesToShow,
-                                            slidesToScroll: 1
-                                        }
+                        jQuery('.growtype-post-container[data-slider-id="' + sliderId + '"]').slick({
+                            infinite: sliderInfinite === 'true' ? true : false,
+                            slidesToShow: slidesToShow,
+                            slidesToScroll: 1,
+                            autoplay: false,
+                            autoplaySpeed: 2000,
+                            arrows: true,
+                            dots: false,
+                            centerMode: sliderCenterMode === 'true' ? true : false,
+                            responsive: [
+                                {
+                                    breakpoint: 1000,
+                                    settings: {
+                                        slidesToShow: slidesToShow >= 4 ? 4 : slidesToShow,
+                                        slidesToScroll: 1
                                     }
-                                ]
-                            });
+                                },
+                                {
+                                    breakpoint: 900,
+                                    settings: {
+                                        slidesToShow: slidesToShow >= 3 ? 3 : slidesToShow,
+                                        slidesToScroll: 1
+                                    }
+                                },
+                                {
+                                    breakpoint: 700,
+                                    settings: {
+                                        slidesToShow: slidesToShow >= 2 ? 2 : slidesToShow,
+                                        slidesToScroll: 1
+                                    }
+                                },
+                                {
+                                    breakpoint: 570,
+                                    settings: {
+                                        slidesToShow: slidesToShow >= 1 ? 1 : slidesToShow,
+                                        slidesToScroll: 1
+                                    }
+                                }
+                            ]
                         });
-                    </script>
-                    <?php
-                }, 100);
-            }
+                    });
+                </script>
+                <?php
+            }, 100);
         }
 
         return $render;
@@ -257,20 +275,22 @@ class Growtype_Post_Shortcode
      * @param $columns
      * @param $post_link
      * @param $parent_class
-     * @param $slider
+     * @param $slider_active
      * @return void
      * Render multiple posts
-     * //$parameters -> $preview_style, $columns, $post_link = true, $parent_class = '', $slider = false, $parent_id = '', $pagination = null
+     * //$parameters -> $preview_style, $columns, $post_link = true, $parent_class = '', $slider_active = false, $parent_id = '', $pagination = null
      */
     public static function render_all(
         $posts,
-        $parameters
+        $parameters = null
     ) {
         $post_classes_list = ['b-post-single'];
 
         $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
 
-        array_push($post_classes_list, 'b-post-' . $parameters['preview_style']);
+        $preview_style = isset($parameters['preview_style']) ? $parameters['preview_style'] : 'basic';
+
+        array_push($post_classes_list, 'b-post-' . $preview_style);
 
         if (!empty($post_type)) {
             array_push($post_classes_list, 'b-post-' . $post_type);
@@ -278,15 +298,16 @@ class Growtype_Post_Shortcode
 
         $post_classes = implode(' ', $post_classes_list);
 
-        $template_path = 'preview.' . $parameters['preview_style'] . '.index';
+        $template_path = 'preview.' . $preview_style . '.index';
 
         ob_start();
 
         if (!empty($posts)) : ?>
             <div <?php echo !empty($parameters['parent_id']) ? 'id="' . $parameters['parent_id'] . '"' : "" ?>
-                class="growtype-post-container <?php echo $parameters['parent_class'] ?> <?php echo $parameters['slider'] === 'true' ? 'is-slider' : '' ?>"
-                data-columns="<?php echo $parameters['columns'] ?>"
-                data-slider-id="<?php echo $parameters['slider_id'] ?>"
+                class="growtype-post-container <?php echo $parameters['parent_class'] ?? '' ?> <?php echo isset($parameters['slider_active']) && $parameters['slider_active'] === 'true' ? 'is-slider' : '' ?>"
+                data-columns="<?php echo $parameters['columns'] ?? '1' ?>"
+                data-slider-id="<?php echo $parameters['slider_id'] ?? '' ?>"
+                data-slider-overflow="<?php echo $parameters['slider_overflow'] ?? '' ?>"
             >
                 <?php
                 foreach ($posts as $post) {
@@ -294,9 +315,9 @@ class Growtype_Post_Shortcode
                         $template_path,
                         $post,
                         [
-                            'post_link' => $parameters['post_link'],
+                            'post_link' => $parameters['post_link'] ?? '',
                             'post_classes' => $post_classes,
-                            'intro_content_length' => $parameters['intro_content_length']
+                            'intro_content_length' => $parameters['intro_content_length'] ?? ''
                         ]
                     );
                 }
@@ -307,9 +328,9 @@ class Growtype_Post_Shortcode
         /**
          * Pagination
          */
-        if ($parameters['pagination']) { ?>
+        if (isset($parameters['pagination']) && $parameters['pagination'] === 'true') { ?>
             <div class="pagination">
-                <?php echo self::pagination($posts, $total_pages ?? null); ?>
+                <?php echo self::pagination($posts, $parameters['total_pages']); ?>
             </div>
             <?php
         }

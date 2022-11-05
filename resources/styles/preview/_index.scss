@@ -10,6 +10,12 @@
   padding-top: 0;
   padding-bottom: 0;
 
+  &[data-slider-overflow="initial"] {
+    .slick-list {
+      overflow: initial;
+    }
+  }
+
   &.slick-initialized {
     display: block;
   }

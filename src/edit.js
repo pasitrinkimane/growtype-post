@@ -13,7 +13,8 @@ import {
     CustomSelectControl,
     SelectControl,
     ToggleControl,
-    __experimentalNumberControl as NumberControl
+    __experimentalNumberControl as NumberControl,
+    RangeControl
 } from '@wordpress/components';
 
 /**
@@ -70,6 +71,10 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue ? 'true' : 'false'
                 }
 
+                if (propertyKey === 'posts_per_page' || propertyKey === 'slider_slides_amount_to_show') {
+                    propertyValue = propertyValue.toString()
+                }
+
                 if (propertyValue.length > 0) {
                     shortcodeTag += ' ' + propertyKey + '=' + '"' + propertyValue + '"'
                 }
@@ -99,6 +104,14 @@ export default function Edit({attributes, setAttributes}) {
                                 help={__('Enter which post type should be used.', 'growtype-post')}
                                 onChange={(val) => updateShortcode('post_type', val)}
                                 value={attributes.post_type}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <TextControl
+                                label="Post in"
+                                help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('post__in', val)}
+                                value={attributes.post__in}
                             />
                         </PanelRow>
                         <PanelRow>
@@ -181,12 +194,24 @@ export default function Edit({attributes, setAttributes}) {
                             />
                         </PanelRow>
                         <PanelRow>
-                            <TextControl
-                                label={__('Posts per page', 'growtype-post')}
-                                help={__('How many posts should be returned.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('posts_per_page', val)}
-                                value={attributes.posts_per_page}
+                            <ToggleControl
+                                label={__('Show all posts')}
+                                checked={attributes.show_all_posts}
+                                onChange={(val) => updateShortcode('show_all_posts', val)}
                             />
+                        </PanelRow>
+                        <PanelRow>
+                            {!attributes.show_all_posts && (
+                                <RangeControl
+                                    label={__('Posts per page')}
+                                    value={
+                                        attributes.posts_per_page
+                                    }
+                                    onChange={(val) => updateShortcode('posts_per_page', val)}
+                                    min={1}
+                                    max={50}
+                                />
+                            )}
                         </PanelRow>
                         <PanelRow>
                             <SelectControl
@@ -253,21 +278,68 @@ export default function Edit({attributes, setAttributes}) {
                             <ToggleControl
                                 label="Active"
                                 help={
-                                    attributes.slider
-                                        ? 'Showed in a slider.'
-                                        : 'Showed without slider.'
+                                    attributes.slider_active
+                                        ? 'Is a slider.'
+                                        : 'Is not a slider.'
                                 }
-                                checked={attributes.slider ? true : false}
-                                onChange={(val) => updateShortcode('slider', val)}
+                                checked={attributes.slider_active ? true : false}
+                                onChange={(val) => updateShortcode('slider_active', val)}
                             />
                         </PanelRow>
                         <PanelRow>
-                            <NumberControl
-                                label="Slides amount to show"
-                                isShiftStepEnabled={false}
+                            <RangeControl
+                                label={__('Slides amount to show')}
+                                value={
+                                    attributes.slider_slides_amount_to_show
+                                }
                                 onChange={(val) => updateShortcode('slider_slides_amount_to_show', val)}
-                                value={attributes.slider_slides_amount_to_show}
                                 min={1}
+                                max={10}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <div style={{marginBottom: "10px"}}>
+                                <SelectControl
+                                    label={__('Overflow')}
+                                    value={attributes.slider_overflow}
+                                    options={[
+                                        {value: 'hidden', label: __('Hidden')},
+                                        {value: 'initial', label: __('Initial')}
+                                    ]}
+                                    onChange={(val) => updateShortcode('slider_overflow', val)}
+                                    hideCancelButton={true}
+                                />
+                            </div>
+                        </PanelRow>
+                        <PanelRow>
+                            <ToggleControl
+                                label={__('Infinite')}
+                                checked={attributes.slider_infinite}
+                                onChange={(val) => updateShortcode('slider_infinite', val)}
+                            />
+                        </PanelRow>
+                        <PanelRow>
+                            <ToggleControl
+                                label={__('Center mode')}
+                                checked={attributes.slider_center_mode}
+                                onChange={(val) => updateShortcode('slider_center_mode', val)}
+                            />
+                        </PanelRow>
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Pagination settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
+                        <PanelRow>
+                            <ToggleControl
+                                label="Active"
+                                help={
+                                    attributes.pagination
+                                        ? 'Pagination is active.'
+                                        : 'Pagination is disabled.'
+                                }
+                                checked={attributes.pagination ? true : false}
+                                onChange={(val) => updateShortcode('pagination', val)}
                             />
                         </PanelRow>
                     </PanelBody>
