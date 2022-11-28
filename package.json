@@ -58,7 +58,6 @@
     "@wordpress/block-editor": "^10.1.0",
     "@wordpress/blocks": "^11.17.0",
     "@wordpress/components": "^21.1.0",
-    "@wordpress/scripts": "^24.2.0",
-    "slick-carousel": "^1.8.1"
+    "@wordpress/scripts": "^24.2.0"
   }
 }

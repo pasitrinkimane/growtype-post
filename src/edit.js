@@ -71,7 +71,7 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue ? 'true' : 'false'
                 }
 
-                if (propertyKey === 'posts_per_page' || propertyKey === 'slider_slides_amount_to_show') {
+                if (propertyKey === 'posts_per_page') {
                     propertyValue = propertyValue.toString()
                 }
 
@@ -98,233 +98,151 @@ export default function Edit({attributes, setAttributes}) {
                         title={__('Main settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
-                        <PanelRow>
-                            <TextControl
-                                label={__('Post type', 'growtype-post')}
-                                help={__('Enter which post type should be used.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('post_type', val)}
-                                value={attributes.post_type}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <TextControl
-                                label="Post in"
-                                help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('post__in', val)}
-                                value={attributes.post__in}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <SelectControl
-                                label="Order"
-                                help={__('How post should be ordered.', 'growtype-post')}
-                                options={[
-                                    {
-                                        label: 'ASC',
-                                        value: 'asc',
-                                    },
-                                    {
-                                        label: 'DESC',
-                                        value: 'desc',
-                                    }
-                                ]}
-                                value={attributes.order}
-                                onChange={(val) => updateShortcode('order', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <SelectControl
-                                label="Order by"
-                                help={__('According to what posts to should be ordered.', 'growtype-post')}
-                                options={[
-                                    {
-                                        label: 'Date',
-                                        value: 'date',
-                                    },
-                                    {
-                                        label: 'Menu order',
-                                        value: 'menu_order',
-                                    },
-                                    {
-                                        label: 'Name',
-                                        value: 'name',
-                                    },
-                                ]}
-                                value={attributes.orderby}
-                                onChange={(val) => updateShortcode('orderby', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label="Post link"
-                                help={
-                                    attributes.post_link
-                                        ? 'Post is a link.'
-                                        : 'Post is not a link.'
+                        <TextControl
+                            label={__('Post type', 'growtype-post')}
+                            help={__('Enter which post type should be used.', 'growtype-post')}
+                            onChange={(val) => updateShortcode('post_type', val)}
+                            value={attributes.post_type}
+                        />
+                        <TextControl
+                            label="Post in"
+                            help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
+                            onChange={(val) => updateShortcode('post__in', val)}
+                            value={attributes.post__in}
+                        />
+                        <SelectControl
+                            label="Order"
+                            help={__('How post should be ordered.', 'growtype-post')}
+                            options={[
+                                {
+                                    label: 'ASC',
+                                    value: 'asc',
+                                },
+                                {
+                                    label: 'DESC',
+                                    value: 'desc',
                                 }
-                                checked={attributes.post_link ? true : false}
-                                onChange={(val) => updateShortcode('post_link', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <TextControl
-                                label={__('Parent class', 'growtype-post')}
-                                onChange={(val) => updateShortcode('parent_class', val)}
-                                value={attributes.id}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <TextControl
-                                label={__('Parent ID', 'growtype-post')}
-                                onChange={(val) => updateShortcode('parent_id', val)}
-                                value={attributes.id}
-                            />
-                        </PanelRow>
+                            ]}
+                            value={attributes.order}
+                            onChange={(val) => updateShortcode('order', val)}
+                        />
+                        <SelectControl
+                            label="Order by"
+                            help={__('According to what posts to should be ordered.', 'growtype-post')}
+                            options={[
+                                {
+                                    label: 'Date',
+                                    value: 'date',
+                                },
+                                {
+                                    label: 'Menu order',
+                                    value: 'menu_order',
+                                },
+                                {
+                                    label: 'Name',
+                                    value: 'name',
+                                },
+                            ]}
+                            value={attributes.orderby}
+                            onChange={(val) => updateShortcode('orderby', val)}
+                        />
+                        <ToggleControl
+                            label="Post link"
+                            help={
+                                attributes.post_link
+                                    ? 'Post is a link.'
+                                    : 'Post is not a link.'
+                            }
+                            checked={attributes.post_link ? true : false}
+                            onChange={(val) => updateShortcode('post_link', val)}
+                        />
+                        <TextControl
+                            label={__('Parent class', 'growtype-post')}
+                            onChange={(val) => updateShortcode('parent_class', val)}
+                            value={attributes.id}
+                        />
+                        <TextControl
+                            label={__('Parent ID', 'growtype-post')}
+                            onChange={(val) => updateShortcode('parent_id', val)}
+                            value={attributes.id}
+                        />
                     </PanelBody>
                     <PanelBody
                         title={__('Preview settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
-                        <PanelRow>
-                            <TextControl
-                                label={__('Columns', 'growtype-post')}
-                                help={__('How many columns in grid.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('columns', val)}
-                                value={attributes.columns}
+                        <TextControl
+                            label={__('Columns', 'growtype-post')}
+                            help={__('How many columns in grid.', 'growtype-post')}
+                            onChange={(val) => updateShortcode('columns', val)}
+                            value={attributes.columns}
+                        />
+                        <ToggleControl
+                            label={__('Show all posts')}
+                            checked={attributes.show_all_posts}
+                            onChange={(val) => updateShortcode('show_all_posts', val)}
+                        />
+                        {!attributes.show_all_posts && (
+                            <RangeControl
+                                label={__('Posts per page')}
+                                value={
+                                    attributes.posts_per_page
+                                }
+                                onChange={(val) => updateShortcode('posts_per_page', val)}
+                                min={1}
+                                max={50}
                             />
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label={__('Show all posts')}
-                                checked={attributes.show_all_posts}
-                                onChange={(val) => updateShortcode('show_all_posts', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            {!attributes.show_all_posts && (
-                                <RangeControl
-                                    label={__('Posts per page')}
-                                    value={
-                                        attributes.posts_per_page
-                                    }
-                                    onChange={(val) => updateShortcode('posts_per_page', val)}
-                                    min={1}
-                                    max={50}
-                                />
-                            )}
-                        </PanelRow>
-                        <PanelRow>
-                            <SelectControl
-                                label="Post preview style"
-                                help={__('How post preview should look.', 'growtype-post')}
-                                options={[
-                                    {
-                                        label: 'Basic',
-                                        value: 'basic',
-                                    },
-                                    {
-                                        label: 'Blog',
-                                        value: 'blog',
-                                    },
-                                    {
-                                        label: 'Content',
-                                        value: 'content',
-                                    },
-                                    {
-                                        label: 'Review',
-                                        value: 'review',
-                                    },
-                                    {
-                                        label: 'Testimonial',
-                                        value: 'testimonial',
-                                    },
-                                    {
-                                        label: 'Custom',
-                                        value: 'custom',
-                                    }
-                                ]}
-                                value={attributes.preview_style}
-                                onChange={(val) => updateShortcode('preview_style', val)}
-                            />
-                        </PanelRow>
+                        )}
+                        <SelectControl
+                            label="Post preview style"
+                            help={__('How post preview should look.', 'growtype-post')}
+                            options={[
+                                {
+                                    label: 'Basic',
+                                    value: 'basic',
+                                },
+                                {
+                                    label: 'Blog',
+                                    value: 'blog',
+                                },
+                                {
+                                    label: 'Content',
+                                    value: 'content',
+                                },
+                                {
+                                    label: 'Review',
+                                    value: 'review',
+                                },
+                                {
+                                    label: 'Testimonial',
+                                    value: 'testimonial',
+                                },
+                                {
+                                    label: 'Custom',
+                                    value: 'custom',
+                                }
+                            ]}
+                            value={attributes.preview_style}
+                            onChange={(val) => updateShortcode('preview_style', val)}
+                        />
                         {attributes.preview_style === 'custom' ?
-                            <PanelRow>
-                                <TextControl
-                                    label={__('Custom preview style', 'growtype-post')}
-                                    help={__('Custom preview look.', 'growtype-post')}
-                                    onChange={(val) => updateShortcode('preview_style_custom', val)}
-                                    value={attributes.preview_style_custom}
-                                />
-                            </PanelRow>
+                            <TextControl
+                                label={__('Custom preview style', 'growtype-post')}
+                                help={__('Custom preview look.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('preview_style_custom', val)}
+                                value={attributes.preview_style_custom}
+                            />
                             :
                             ''
                         }
-                        <PanelRow>
-                            <NumberControl
-                                label="Intro content length"
-                                help={__('Post preview intro content text characters amount.', 'growtype-post')}
-                                isShiftStepEnabled={false}
-                                onChange={(val) => updateShortcode('intro_content_length', val)}
-                                value={attributes.intro_content_length}
-                                min={1}
-                            />
-                        </PanelRow>
-                    </PanelBody>
-                    <PanelBody
-                        title={__('Slider settings', 'growtype-post')}
-                        icon="admin-plugins"
-                    >
-                        <PanelRow>
-                            <ToggleControl
-                                label="Active"
-                                help={
-                                    attributes.slider_active
-                                        ? 'Is a slider.'
-                                        : 'Is not a slider.'
-                                }
-                                checked={attributes.slider_active ? true : false}
-                                onChange={(val) => updateShortcode('slider_active', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <RangeControl
-                                label={__('Slides amount to show')}
-                                value={
-                                    attributes.slider_slides_amount_to_show
-                                }
-                                onChange={(val) => updateShortcode('slider_slides_amount_to_show', val)}
-                                min={1}
-                                max={10}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <div style={{marginBottom: "10px"}}>
-                                <SelectControl
-                                    label={__('Overflow')}
-                                    value={attributes.slider_overflow}
-                                    options={[
-                                        {value: 'hidden', label: __('Hidden')},
-                                        {value: 'initial', label: __('Initial')}
-                                    ]}
-                                    onChange={(val) => updateShortcode('slider_overflow', val)}
-                                    hideCancelButton={true}
-                                />
-                            </div>
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label={__('Infinite')}
-                                checked={attributes.slider_infinite}
-                                onChange={(val) => updateShortcode('slider_infinite', val)}
-                            />
-                        </PanelRow>
-                        <PanelRow>
-                            <ToggleControl
-                                label={__('Center mode')}
-                                checked={attributes.slider_center_mode}
-                                onChange={(val) => updateShortcode('slider_center_mode', val)}
-                            />
-                        </PanelRow>
+                        <NumberControl
+                            label="Intro content length"
+                            help={__('Post preview intro content text characters amount.', 'growtype-post')}
+                            isShiftStepEnabled={false}
+                            onChange={(val) => updateShortcode('intro_content_length', val)}
+                            value={attributes.intro_content_length}
+                            min={1}
+                        />
                     </PanelBody>
                     <PanelBody
                         title={__('Pagination settings', 'growtype-post')}

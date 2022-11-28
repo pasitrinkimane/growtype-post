@@ -32,8 +32,6 @@ mix.js('resources/scripts/growtype-post-admin.js', 'scripts')
 /**
  * Plugins
  */
-mix
-    .copyDirectory('node_modules/slick-carousel', 'public/plugins/slick-carousel')
 
 mix
     .sourceMaps()

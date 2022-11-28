@@ -9,17 +9,17 @@
     list-style-type: none;
     display: flex;
     flex-wrap: wrap;
+    gap: 10px;
 
     li {
-      border: 1px solid #f0f0f0;
       font-weight: 300;
       background: white;
-      margin-right: 10px;
       border-radius: 50px;
       text-align: center;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin: 0;
 
       > a, > span {
         padding: 10px 18px;

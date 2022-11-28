@@ -80,16 +80,12 @@ if (!function_exists('growtype_post_include_view')) {
         }
 
         if (file_exists($template_path)) {
-            // Extract the variables to a local namespace
             extract($variables);
 
-            // Start output buffering
             ob_start();
 
-            // Include the template file
             include $template_path;
 
-            // End buffering and return its contents
             $output = ob_get_clean();
         }
 

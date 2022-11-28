@@ -41,26 +41,6 @@
       "type": "string",
       "default": ""
     },
-    "slider_active": {
-      "type": "boolean",
-      "default": false
-    },
-    "slider_slides_amount_to_show": {
-      "type": "number",
-      "default": 4
-    },
-    "slider_overflow": {
-      "type": "string",
-      "default": "hidden"
-    },
-    "slider_infinite": {
-      "type": "boolean",
-      "default": false
-    },
-    "slider_center_mode": {
-      "type": "boolean",
-      "default": false
-    },
     "parent_id": {
       "type": "string",
       "default": ""
