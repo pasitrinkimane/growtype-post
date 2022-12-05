@@ -139,7 +139,6 @@ class Growtype_Post_Shortcode
                 'offset' => $offset
             ]);
         } else {
-
             if ($post_status === 'active' || $post_status === 'expired') {
                 $args['meta_query'] = array (
                     'relation' => 'OR',
@@ -207,16 +206,16 @@ class Growtype_Post_Shortcode
         $posts,
         $parameters = null
     ) {
-        $post_classes_list = ['b-post-single'];
+        $post_classes_list = ['growtype-post-single'];
 
         $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
 
         $preview_style = isset($parameters['preview_style']) ? $parameters['preview_style'] : 'basic';
 
-        array_push($post_classes_list, 'b-post-' . $preview_style);
+        array_push($post_classes_list, 'growtype-post-' . $preview_style);
 
         if (!empty($post_type)) {
-            array_push($post_classes_list, 'b-post-' . $post_type);
+            array_push($post_classes_list, 'growtype-post-' . $post_type);
         }
 
         $post_classes = implode(' ', $post_classes_list);

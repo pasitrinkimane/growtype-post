@@ -1,5 +1,7 @@
-<div class="b-post-single-inner">
-    <div class="e-img" style="background: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
+<div class="growtype-post-single-inner">
+    <?php if (!empty(growtype_post_get_featured_image_url($post))) { ?>
+        <div class="e-img" style="background: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
+    <?php } ?>
     <div class="b-content">
 
         <?php
@@ -14,7 +16,7 @@
             <p class="e-date"><?php echo date_format(date_create($post->post_date), 'Y m d') ?></p>
         <?php } ?>
         <?php if (!empty($post->post_title)) { ?>
-            <h4><?php echo $post->post_title ?></h4>
+            <h4 class="e-title"><?php echo $post->post_title ?></h4>
         <?php } ?>
         <?php if (!empty($post->post_excerpt)) { ?>
             <p class="e-excerpt">
@@ -24,7 +26,7 @@
     </div>
     <div class="b-actions">
         <button class="btn btn-primary">
-            <?php echo isset($cta_label) ? $cta_label : __('Continue reading', 'growtype'); ?>
+            <?php echo isset($cta_label) ? $cta_label : __('Continue reading', 'growtype-post'); ?>
         </button>
     </div>
 </div>

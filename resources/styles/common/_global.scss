@@ -1,0 +1,19 @@
+.wp-block-growtype-post {
+  max-width: 1230px;
+  padding-left: 15px;
+  padding-right: 15px;
+  margin: auto;
+
+  &.alignfull {
+    max-width: initial;
+  }
+}
+
+.container .alignfull.wp-block-group:where(.has-background) {
+  .wp-block-growtype-post {
+    @include bp-phone-xl() {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+}

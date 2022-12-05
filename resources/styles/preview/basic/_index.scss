@@ -1,4 +1,4 @@
-.b-post-single {
+.growtype-post-single {
   border-radius: 5px;
   width: calc(100% / 3);
   overflow: hidden;
@@ -16,13 +16,14 @@
     color: $color-text;
   }
 
-  .b-post-single-inner {
+  .growtype-post-single-inner {
     color: black;
     text-align: center;
     position: relative;
     background-color: #fff;
     border-radius: 5px;
     overflow: hidden;
+    border: 1px solid $color-light-grey;
   }
 
   .e-img {
@@ -84,9 +85,13 @@
       font-weight: bold;
     }
   }
+
+  .e-title {
+    font-size: 16px;
+  }
 }
 
-.b-post-wrapper {
+.growtype-post-wrapper {
   width: calc(100% / 3);
   padding: 5px;
   @include bp-tablet-portrait() {
@@ -98,7 +103,7 @@
     padding-right: 0;
   }
 
-  .b-post-single {
+  .growtype-post-single {
     width: 100%;
   }
 }

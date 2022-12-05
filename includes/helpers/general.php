@@ -106,11 +106,18 @@ function growtype_post_render_all($posts, $parameters = null)
 }
 
 /**
- * Display post
+ * Display single post
+ *
+ * growtype_post_render_single('preview.basic.index', $post, [
+ * 'post_classes' => 'growtype-post-single growtype-post-basic growtype-post-location'
+ * ]);
+ *
  */
-function growtype_post_render_single($template_path, $post, $parameters)
-{
-    return Growtype_Post_Shortcode::render_single($template_path, $post, $parameters);
+if (!function_exists('growtype_post_render_single')) {
+    function growtype_post_render_single($template_path, $post, $parameters)
+    {
+        return Growtype_Post_Shortcode::render_single($template_path, $post, $parameters);
+    }
 }
 
 /**

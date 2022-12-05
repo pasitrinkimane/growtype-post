@@ -1,4 +1,4 @@
-.b-post-review {
+.growtype-post-review {
   border-radius: 10px;
   width: 100%;
   overflow: hidden;
@@ -16,7 +16,7 @@
     border: none;
   }
 
-  .b-post-single-header {
+  .growtype-post-single-header {
     display: flex;
     align-items: center;
 
@@ -27,7 +27,7 @@
     }
   }
 
-  .b-post-single-img {
+  .growtype-post-single-img {
     width: 100px;
     height: 100px;
     padding: 0;
@@ -35,7 +35,7 @@
     margin-right: 20px;
   }
 
-  .b-post-single-content {
+  .growtype-post-single-content {
     padding: 0;
     background: white;
     color: black;
@@ -48,7 +48,7 @@
     margin-bottom: 15px;
   }
 
-  .b-post-single-footer {
+  .growtype-post-single-footer {
     display: flex;
     justify-content: space-between;
 

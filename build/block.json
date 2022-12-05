@@ -22,8 +22,8 @@
       "default": ""
     },
     "columns": {
-      "type": "string",
-      "default": "3"
+      "type": "number",
+      "default": 3
     },
     "show_all_posts": {
       "type": "boolean",
@@ -71,7 +71,10 @@
     }
   },
   "supports": {
-    "html": false
+    "html": false,
+    "align": [
+      "full"
+    ]
   },
   "textdomain": "growtype-post",
   "editorScript": "file:./index.js",

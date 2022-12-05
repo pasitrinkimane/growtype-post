@@ -71,7 +71,7 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue ? 'true' : 'false'
                 }
 
-                if (propertyKey === 'posts_per_page') {
+                if (propertyKey === 'posts_per_page' || propertyKey === 'columns') {
                     propertyValue = propertyValue.toString()
                 }
 
@@ -171,11 +171,15 @@ export default function Edit({attributes, setAttributes}) {
                         title={__('Preview settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
-                        <TextControl
+                        <RangeControl
                             label={__('Columns', 'growtype-post')}
                             help={__('How many columns in grid.', 'growtype-post')}
+                            value={
+                                attributes.columns
+                            }
                             onChange={(val) => updateShortcode('columns', val)}
-                            value={attributes.columns}
+                            min={1}
+                            max={8}
                         />
                         <ToggleControl
                             label={__('Show all posts')}
