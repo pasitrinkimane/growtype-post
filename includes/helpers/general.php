@@ -57,23 +57,18 @@ function growtype_post_get_limited_content($initial_content, $length = 125)
 }
 
 /**
- * @param $path
- * @param null $data
- * @return mixed
- * Include view
+ * Include custom view
  */
 if (!function_exists('growtype_post_include_view')) {
-    function growtype_post_include_view($file_path, $variables = array (), $print = false)
+    function growtype_post_include_view($file_path, $variables = array ())
     {
-        $output = null;
-
         $fallback_view = GROWTYPE_POST_PATH . 'resources/views/' . str_replace('.', '/', $file_path) . '.php';
-        $child_blade_view = get_stylesheet_directory() . '/growtype-post/' . str_replace('.', '/', $file_path) . '.blade.php';
-        $child_view = get_stylesheet_directory() . '/growtype-post/' . str_replace('.', '/', $file_path) . '.php';
+        $child_blade_view = get_stylesheet_directory() . '/views/' . GROWTYPE_POST_TEXT_DOMAIN . '/' . str_replace('.', '/', $file_path) . '.blade.php';
+        $child_view = get_stylesheet_directory() . '/views/' . GROWTYPE_POST_TEXT_DOMAIN . '/' . str_replace('.', '/', $file_path) . '.php';
 
         $template_path = $fallback_view;
 
-        if (file_exists($child_blade_view)) {
+        if (file_exists($child_blade_view) && function_exists('App\template')) {
             return App\template($child_blade_view, $variables);
         } elseif (file_exists($child_view)) {
             $template_path = $child_view;
@@ -81,19 +76,12 @@ if (!function_exists('growtype_post_include_view')) {
 
         if (file_exists($template_path)) {
             extract($variables);
-
             ob_start();
-
             include $template_path;
-
             $output = ob_get_clean();
         }
 
-        if ($print) {
-            print $output;
-        }
-
-        return $output;
+        return isset($output) ? $output : '';
     }
 }
 
@@ -140,4 +128,14 @@ function growtype_post_array_pluck($array, $key)
     return array_map(function ($v) use ($key) {
         return is_object($v) ? $v->$key : $v[$key];
     }, $array);
+}
+
+/**
+ * mainly for ajax translations
+ */
+if (!function_exists('growtype_post_load_textdomain')) {
+    function growtype_post_load_textdomain($lang)
+    {
+        load_textdomain('growtype-post', GROWTYPE_POST_PATH . 'languages/growtype-post-' . $lang . '_LT.mo');
+    }
 }

@@ -181,6 +181,18 @@ class Growtype_Post
          */
         require_once GROWTYPE_POST_PATH . 'includes/helpers/general.php';
 
+        /**
+         * Shortcode
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-shortcode.php';
+        $this->loader = new Growtype_Post_Shortcode();
+
+        /**
+         * block
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/blocks/class-growtype-post-block.php';
+        $this->loader = new Growtype_Post_Block();
+
         $this->loader = new Growtype_Post_Loader();
 
     }

@@ -40,7 +40,7 @@ define('Growtype_Post_Version', '1.0.0');
 /**
  * Plugin base name
  */
-define('GROWTYPE_POST_BASE_NAME', 'growtype-post');
+define('GROWTYPE_POST_TEXT_DOMAIN', 'growtype-post');
 
 /**
  * Plugin dir path

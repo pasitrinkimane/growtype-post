@@ -53,11 +53,8 @@ class Growtype_Post_Loader
      */
     public function __construct()
     {
-
         $this->actions = array ();
         $this->filters = array ();
-
-        $this->load_methods();
     }
 
     /**
@@ -135,24 +132,5 @@ class Growtype_Post_Loader
             add_action($hook['hook'], array ($hook['component'], $hook['callback']), $hook['priority'], $hook['accepted_args']);
         }
 
-    }
-
-    /**
-     * Load the required methods for this plugin.
-     *
-     */
-    private function load_methods()
-    {
-        /**
-         * shortcode
-         */
-        require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-shortcode.php';
-        $this->loader = new Growtype_Post_Shortcode();
-
-        /**
-         * block
-         */
-        require_once GROWTYPE_POST_PATH . 'includes/methods/blocks/class-growtype-post-block.php';
-        $this->loader = new Growtype_Post_Block();
     }
 }
