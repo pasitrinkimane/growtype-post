@@ -9,6 +9,13 @@
   }
 }
 
+.container {
+  .wp-block-growtype-post {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
 .container .alignfull.wp-block-group:where(.has-background) {
   .wp-block-growtype-post {
     @include bp-phone-xl() {
