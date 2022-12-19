@@ -10,6 +10,11 @@
   padding-top: 0;
   padding-bottom: 0;
 
+  .alignfull & {
+    margin-left: 5px;
+    width: calc(100% - 10px);
+  }
+
   &.slick-initialized {
     display: block;
   }

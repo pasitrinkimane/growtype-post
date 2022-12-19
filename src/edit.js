@@ -7,6 +7,7 @@ import {__} from '@wordpress/i18n';
  */
 import {
     TextControl,
+    TextareaControl,
     Panel,
     PanelBody,
     PanelRow,
@@ -23,7 +24,13 @@ import {
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import {PlainText, useBlockProps, ColorPalette, InspectorControls} from '@wordpress/block-editor';
+import {
+    PlainText,
+    useBlockProps,
+    ColorPalette,
+    InspectorControls,
+    InspectorAdvancedControls
+} from '@wordpress/block-editor';
 
 import {useInstanceId} from '@wordpress/compose';
 
@@ -73,6 +80,10 @@ export default function Edit({attributes, setAttributes}) {
 
                 if (propertyKey === 'posts_per_page' || propertyKey === 'columns') {
                     propertyValue = propertyValue.toString()
+                }
+
+                if (propertyKey === 'meta_query') {
+                    return;
                 }
 
                 if (propertyValue.length > 0) {
@@ -267,6 +278,15 @@ export default function Edit({attributes, setAttributes}) {
                     </PanelBody>
                 </Panel>
             </InspectorControls>
+
+            <InspectorAdvancedControls>
+                <TextareaControl
+                    label={__('Meta Query', 'growtype-post')}
+                    help={<a href="https://wtools.io/convert-php-array-to-json" target="_blank">Convert array to json here.</a>}
+                    onChange={(val) => setAttributes({meta_query: val})}
+                    value={attributes.meta_query}
+                />
+            </InspectorAdvancedControls>
 
             <div {...useBlockProps({className: 'components-placeholder'})}>
                 <label

@@ -37,7 +37,8 @@ class Growtype_Post_Shortcode
             'orderby' => 'menu_order',
             'parent_id' => '',
             'intro_content_length' => '100',
-            'show_all_posts' => 'false'
+            'show_all_posts' => 'false',
+            'meta_query' => '',
         ), $attr));
 
         /**
@@ -139,15 +140,11 @@ class Growtype_Post_Shortcode
                 'offset' => $offset
             ]);
         } else {
-            if ($post_status === 'active' || $post_status === 'expired') {
-                $args['meta_query'] = array (
-                    'relation' => 'OR',
-                    array (
-                        'key' => 'event_start_date',
-                        'value' => current_time('Ymd'),
-                        'compare' => ($post_status === 'expired' ? '<' : '>')
-                    ),
-                );
+            /**
+             * Include custom meta query
+             */
+            if (!empty($meta_query)) {
+                $args['meta_query'] = str_replace("'", '"', json_decode(urldecode($meta_query), true));
             }
 
             $args = apply_filters('growtype_post_shortcode_extend_args', $args, $attr);

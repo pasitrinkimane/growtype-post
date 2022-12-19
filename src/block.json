@@ -63,11 +63,15 @@
     },
     "intro_content_length": {
       "type": "string",
-      "default": "100"
+      "default": "1000"
     },
     "pagination": {
       "type": "boolean",
       "default": false
+    },
+    "meta_query": {
+      "type": "string",
+      "default": ""
     }
   },
   "supports": {
