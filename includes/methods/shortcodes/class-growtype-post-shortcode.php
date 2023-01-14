@@ -27,7 +27,6 @@ class Growtype_Post_Shortcode
             'post_link' => 'true',
             'category_name' => '', //use category slug
             'parent_class' => '',
-            'pagination' => 'false',
             'post_status' => 'publish', //also active, expired
             'columns' => '3',
             'post__in' => [],
@@ -37,14 +36,16 @@ class Growtype_Post_Shortcode
             'orderby' => 'menu_order',
             'parent_id' => '',
             'intro_content_length' => '100',
-            'show_all_posts' => 'false',
             'meta_query' => '',
         ), $attr));
+
+        $pagination = isset($attr['pagination']) && $attr['pagination'] ? true : false;
+        $show_all_posts = isset($attr['show_all_posts']) && $attr['show_all_posts'] ? true : false;
 
         /**
          * Show all posts
          */
-        if ($show_all_posts === 'true') {
+        if ($show_all_posts) {
             $posts_per_page = -1;
         }
 
@@ -93,7 +94,7 @@ class Growtype_Post_Shortcode
             }
         }
 
-        if ($pagination === 'true' && !empty(get_query_var('paged'))) {
+        if ($pagination && !empty(get_query_var('paged'))) {
             $current_page = max(1, get_query_var('paged'));
             $offset = $current_page === 1 ? 0 : ($current_page - 1) * $posts_per_page;
 
@@ -125,7 +126,7 @@ class Growtype_Post_Shortcode
             /**
              * Total existing records for pagination
              */
-            if ($pagination === 'true') {
+            if ($pagination) {
                 $total_existing_records = get_sites([
                     'number' => 1000,
                     'site__not_in' => $site__not_in,
@@ -156,12 +157,10 @@ class Growtype_Post_Shortcode
             /**
              * Total existing records for pagination
              */
-            if ($pagination === 'true') {
-                $total_existing_records = new WP_Query([
-                    'posts_per_page' => -1,
-                    'post_type' => $args['post_type'],
-                    'meta_query' => $args['meta_query'] ?? [],
-                ]);
+            if ($pagination) {
+                $args['posts_per_page'] = -1;
+
+                $total_existing_records = new WP_Query($args);
 
                 $total_pages = round($total_existing_records->post_count / $posts_per_page);
             }
@@ -245,7 +244,7 @@ class Growtype_Post_Shortcode
         /**
          * Pagination
          */
-        if (isset($parameters['pagination']) && $parameters['pagination'] === 'true') { ?>
+        if (isset($parameters['pagination']) && $parameters['pagination']) { ?>
             <div class="pagination">
                 <?php echo self::pagination($posts, $parameters['total_pages']); ?>
             </div>
