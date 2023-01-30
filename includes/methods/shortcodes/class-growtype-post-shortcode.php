@@ -24,7 +24,6 @@ class Growtype_Post_Shortcode
             'posts_per_page' => -1,
             'preview_style' => 'basic', //blog
             'preview_style_custom' => '', //blog
-            'post_link' => 'true',
             'category_name' => '', //use category slug
             'parent_class' => '',
             'post_status' => 'publish', //also active, expired
@@ -36,11 +35,14 @@ class Growtype_Post_Shortcode
             'orderby' => 'menu_order',
             'parent_id' => '',
             'intro_content_length' => '100',
-            'meta_query' => '',
         ), $attr));
 
+        $post_link = isset($attr['post_link']) && $attr['post_link'] ? true : false;
+        $post_in_modal = isset($attr['post_in_modal']) && $attr['post_in_modal'] ? true : false;
         $pagination = isset($attr['pagination']) && $attr['pagination'] ? true : false;
         $show_all_posts = isset($attr['show_all_posts']) && $attr['show_all_posts'] ? true : false;
+        $meta_query = isset($attr['meta_query']) && !empty($attr['meta_query']) ? $attr['meta_query'] : null;
+        $tax_query = isset($attr['tax_query']) && !empty($attr['tax_query']) ? $attr['tax_query'] : null;
 
         /**
          * Show all posts
@@ -148,6 +150,13 @@ class Growtype_Post_Shortcode
                 $args['meta_query'] = str_replace("'", '"', json_decode(urldecode($meta_query), true));
             }
 
+            /**
+             * Include custom tax query
+             */
+            if (!empty($tax_query)) {
+                $args['tax_query'] = str_replace("'", '"', json_decode(urldecode($tax_query), true));
+            }
+
             $args = apply_filters('growtype_post_shortcode_extend_args', $args, $attr);
 
             $the_query = new WP_Query($args);
@@ -182,7 +191,8 @@ class Growtype_Post_Shortcode
                     'parent_id' => $parent_id,
                     'pagination' => $pagination,
                     'intro_content_length' => $intro_content_length,
-                    'total_pages' => $total_pages ?? null
+                    'total_pages' => $total_pages ?? null,
+                    'post_in_modal' => $post_in_modal
                 ]
             );
         }
@@ -214,7 +224,7 @@ class Growtype_Post_Shortcode
             array_push($post_classes_list, 'growtype-post-' . $post_type);
         }
 
-        $post_classes = implode(' ', $post_classes_list);
+        $parameters['post_classes'] = implode(' ', $post_classes_list);
 
         $template_path = 'preview.' . $preview_style . '.index';
 
@@ -225,20 +235,33 @@ class Growtype_Post_Shortcode
                 class="growtype-post-container <?php echo $parameters['parent_class'] ?? '' ?>"
                 data-columns="<?php echo $parameters['columns'] ?? '1' ?>"
             >
-                <?php
-                foreach ($posts as $post) {
+                <?php foreach ($posts as $post) {
                     echo self::render_single(
                         $template_path,
                         $post,
-                        [
-                            'post_link' => $parameters['post_link'] ?? '',
-                            'post_classes' => $post_classes,
-                            'intro_content_length' => $parameters['intro_content_length'] ?? ''
-                        ]
+                        $parameters
                     );
                 }
                 ?>
             </div>
+
+            <?php if (isset($parameters['post_in_modal']) && $parameters['post_in_modal']) { ?>
+                <?php foreach ($posts as $post) { ?>
+                    <div class="modal modal-growtype-post fade" id="<?php echo 'growtypePostModal-' . $post->ID . '"' ?>" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <?php echo growtype_post_include_view(
+                                    'modal.content',
+                                    [
+                                        'post' => $post
+                                    ]
+                                ); ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+
         <?php endif;
 
         /**

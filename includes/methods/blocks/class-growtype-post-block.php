@@ -12,6 +12,13 @@ class Growtype_Post_Block
             'formatting' => [
                 'decode' => false,
             ],
+        ],
+        'tax_query' => [
+            'skip' => false,
+            'get_value' => 'tax_query',
+            'formatting' => [
+                'decode' => false,
+            ],
         ]
     ];
 

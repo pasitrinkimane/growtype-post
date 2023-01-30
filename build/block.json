@@ -51,7 +51,11 @@
     },
     "post_link": {
       "type": "boolean",
-      "default": "true"
+      "default": true
+    },
+    "post_in_modal": {
+      "type": "boolean",
+      "default": false
     },
     "order": {
       "type": "string",
@@ -70,6 +74,10 @@
       "default": false
     },
     "meta_query": {
+      "type": "string",
+      "default": ""
+    },
+    "tax_query": {
       "type": "string",
       "default": ""
     }

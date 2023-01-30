@@ -103,3 +103,29 @@
     }
   }
 }
+
+/*Open post in modal*/
+.modal-growtype-post {
+  .modal-header {
+    padding: 0;
+    margin: 0;
+    border: none;
+
+    button.btn-close {
+      background: white;
+      padding: 10px;
+      border-radius: 0;
+      z-index: 2;
+
+      &:before {
+        margin: auto;
+        width: 30px;
+        font-size: 30px;
+      }
+    }
+  }
+
+  .modal-dialog {
+    max-width: 1230px;
+  }
+}

@@ -82,7 +82,7 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue.toString()
                 }
 
-                if (propertyKey === 'meta_query') {
+                if (propertyKey === 'meta_query' || propertyKey === 'tax_query') {
                     return;
                 }
 
@@ -115,14 +115,8 @@ export default function Edit({attributes, setAttributes}) {
                             onChange={(val) => updateShortcode('post_type', val)}
                             value={attributes.post_type}
                         />
-                        <TextControl
-                            label="Post in"
-                            help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
-                            onChange={(val) => updateShortcode('post__in', val)}
-                            value={attributes.post__in}
-                        />
                         <SelectControl
-                            label="Order"
+                            label={__('Order', 'growtype-post')}
                             help={__('How post should be ordered.', 'growtype-post')}
                             options={[
                                 {
@@ -138,7 +132,7 @@ export default function Edit({attributes, setAttributes}) {
                             onChange={(val) => updateShortcode('order', val)}
                         />
                         <SelectControl
-                            label="Order by"
+                            label={__('Order by', 'growtype-post')}
                             help={__('According to what posts to should be ordered.', 'growtype-post')}
                             options={[
                                 {
@@ -157,8 +151,19 @@ export default function Edit({attributes, setAttributes}) {
                             value={attributes.orderby}
                             onChange={(val) => updateShortcode('orderby', val)}
                         />
+                        <TextControl
+                            label={__('Post in', 'growtype-post')}
+                            help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
+                            onChange={(val) => updateShortcode('post__in', val)}
+                            value={attributes.post__in}
+                        />
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Post settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
                         <ToggleControl
-                            label="Post link"
+                            label={__('Post is a link', 'growtype-post')}
                             help={
                                 attributes.post_link
                                     ? 'Post is a link.'
@@ -167,15 +172,15 @@ export default function Edit({attributes, setAttributes}) {
                             checked={attributes.post_link ? true : false}
                             onChange={(val) => updateShortcode('post_link', val)}
                         />
-                        <TextControl
-                            label={__('Parent class', 'growtype-post')}
-                            onChange={(val) => updateShortcode('parent_class', val)}
-                            value={attributes.id}
-                        />
-                        <TextControl
-                            label={__('Parent ID', 'growtype-post')}
-                            onChange={(val) => updateShortcode('parent_id', val)}
-                            value={attributes.id}
+                        <ToggleControl
+                            label={__('Open post in modal window', 'growtype-post')}
+                            help={
+                                attributes.post_in_modal
+                                    ? 'Modal is enabled.'
+                                    : 'Modal is disabled.'
+                            }
+                            checked={attributes.post_in_modal ? true : false}
+                            onChange={(val) => updateShortcode('post_in_modal', val)}
                         />
                     </PanelBody>
                     <PanelBody
@@ -193,13 +198,13 @@ export default function Edit({attributes, setAttributes}) {
                             max={8}
                         />
                         <ToggleControl
-                            label={__('Show all posts')}
+                            label={__('Show all posts', 'growtype-post')}
                             checked={attributes.show_all_posts}
                             onChange={(val) => updateShortcode('show_all_posts', val)}
                         />
                         {!attributes.show_all_posts && (
                             <RangeControl
-                                label={__('Posts per page')}
+                                label={__('Posts per page', 'growtype-post')}
                                 value={
                                     attributes.posts_per_page
                                 }
@@ -209,7 +214,7 @@ export default function Edit({attributes, setAttributes}) {
                             />
                         )}
                         <SelectControl
-                            label="Post preview style"
+                            label={__('Post preview style', 'growtype-post')}
                             help={__('How post preview should look.', 'growtype-post')}
                             options={[
                                 {
@@ -251,7 +256,7 @@ export default function Edit({attributes, setAttributes}) {
                             ''
                         }
                         <NumberControl
-                            label="Intro content length"
+                            label={__('Post Intro content length', 'growtype-post')}
                             help={__('Post preview intro content text characters amount.', 'growtype-post')}
                             isShiftStepEnabled={false}
                             onChange={(val) => updateShortcode('intro_content_length', val)}
@@ -281,10 +286,28 @@ export default function Edit({attributes, setAttributes}) {
 
             <InspectorAdvancedControls>
                 <TextareaControl
-                    label={__('Meta Query', 'growtype-post')}
-                    help={<a href="https://wtools.io/convert-php-array-to-json" target="_blank">Convert array to json here.</a>}
+                    label={__('Meta Query (WP_Query meta_query details)', 'growtype-post')}
+                    help={<a href="https://wtools.io/convert-php-array-to-json" target="_blank">Convert array to json
+                        here.</a>}
                     onChange={(val) => setAttributes({meta_query: val})}
                     value={attributes.meta_query}
+                />
+                <TextareaControl
+                    label={__('Tax Query (WP_Query tax_query details)', 'growtype-post')}
+                    help={<a href="https://wtools.io/convert-php-array-to-json" target="_blank">Convert array to json
+                        here.</a>}
+                    onChange={(val) => setAttributes({tax_query: val})}
+                    value={attributes.tax_query}
+                />
+                <TextControl
+                    label={__('Parent class', 'growtype-post')}
+                    onChange={(val) => updateShortcode('parent_class', val)}
+                    value={attributes.id}
+                />
+                <TextControl
+                    label={__('Parent ID', 'growtype-post')}
+                    onChange={(val) => updateShortcode('parent_id', val)}
+                    value={attributes.id}
                 />
             </InspectorAdvancedControls>
 
