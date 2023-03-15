@@ -36,7 +36,7 @@ function growtype_post_get_limited_content($initial_content, $length = 125)
         $length = apply_filters('growtype_post_limited_content_length', 125);
     }
 
-    $content = $initial_content;
+    $content = __($initial_content);
 
     if (strlen($initial_content) > $length) {
 
