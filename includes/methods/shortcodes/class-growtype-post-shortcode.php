@@ -97,10 +97,7 @@ class Growtype_Post_Shortcode
         }
 
         if ($pagination && !empty(get_query_var('paged'))) {
-            $current_page = max(1, get_query_var('paged'));
-            $offset = $current_page === 1 ? 0 : ($current_page - 1) * $posts_per_page;
-
-            $args['offset'] = $offset;
+            $args['offset'] = growtype_post_get_pagination_offset($posts_per_page);
         }
 
         /**
@@ -137,10 +134,10 @@ class Growtype_Post_Shortcode
                 $total_pages = round(count($total_existing_records) / $posts_per_page);
             }
 
-            $posts = get_sites([
+            $wp_query = new WP_Site_Query([
                 'number' => $posts_per_page === -1 ? 100 : $posts_per_page,
                 'site__not_in' => $site__not_in,
-                'offset' => $offset
+                'offset' => growtype_post_get_pagination_offset($posts_per_page)
             ]);
         } else {
             /**
@@ -159,19 +156,13 @@ class Growtype_Post_Shortcode
 
             $args = apply_filters('growtype_post_shortcode_extend_args', $args, $attr);
 
-            $the_query = new WP_Query($args);
-
-            $posts = $the_query->get_posts();
+            $wp_query = new WP_Query($args);
 
             /**
              * Total existing records for pagination
              */
             if ($pagination) {
-                $args['posts_per_page'] = -1;
-
-                $total_existing_records = new WP_Query($args);
-
-                $total_pages = round($total_existing_records->post_count / $posts_per_page);
+                $total_pages = round(wp_count_posts($args['post_type'])->publish / $posts_per_page);
             }
         }
 
@@ -180,9 +171,9 @@ class Growtype_Post_Shortcode
          */
         $render = '';
 
-        if (!empty($posts)) {
+        if ($wp_query->have_posts()) {
             $render = self::render_all(
-                $posts,
+                $wp_query,
                 [
                     'preview_style' => $preview_style,
                     'columns' => $columns,
@@ -192,7 +183,8 @@ class Growtype_Post_Shortcode
                     'pagination' => $pagination,
                     'intro_content_length' => $intro_content_length,
                     'total_pages' => $total_pages ?? null,
-                    'post_in_modal' => $post_in_modal
+                    'post_in_modal' => $post_in_modal,
+                    'post_type' => isset($args['post_type']) ? $args['post_type'] : null,
                 ]
             );
         }
@@ -209,14 +201,29 @@ class Growtype_Post_Shortcode
      * Render multiple posts
      */
     public static function render_all(
-        $posts,
-        $parameters = null
+        $wp_query = null,
+        $args = null
     ) {
+        /**
+         * Prepare default wp_query if empty wp_query is passed
+         */
+        if (empty($wp_query)) {
+            $args['pagination'] = isset($args['pagination']) ? $args['pagination'] : true;
+            $args['posts_per_page'] = isset($args['posts_per_page']) ? $args['posts_per_page'] : 12;
+            $args['post_type'] = isset($args['post_type']) ? $args['post_type'] : get_post_type();
+            $args['offset'] = isset($args['offset']) ? $args['offset'] : growtype_post_get_pagination_offset($args['posts_per_page']);
+
+            $wp_query = new WP_Query($args);
+
+            $args['columns'] = isset($args['columns']) ? $args['columns'] : 3;
+            $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : round(wp_count_posts($args['post_type'])->publish / $args['posts_per_page']);
+        }
+
         $post_classes_list = ['growtype-post-single'];
 
-        $post_type = isset($posts[0]) ? $posts[0]->post_type : null;
+        $post_type = isset($args['post_type']) && !empty($args['post_type']) ? $args['post_type'] : null;
 
-        $preview_style = isset($parameters['preview_style']) ? $parameters['preview_style'] : 'basic';
+        $preview_style = isset($args['preview_style']) ? $args['preview_style'] : 'basic';
 
         array_push($post_classes_list, 'growtype-post-' . $preview_style);
 
@@ -224,42 +231,43 @@ class Growtype_Post_Shortcode
             array_push($post_classes_list, 'growtype-post-' . $post_type);
         }
 
-        $parameters['post_classes'] = implode(' ', $post_classes_list);
+        $args['post_classes'] = implode(' ', $post_classes_list);
 
         $template_path = 'preview.' . $preview_style . '.index';
 
         ob_start();
 
-        if (!empty($posts)) : ?>
-            <div <?php echo !empty($parameters['parent_id']) ? 'id="' . $parameters['parent_id'] . '"' : "" ?>
-                class="growtype-post-container <?php echo $parameters['parent_class'] ?? '' ?>"
-                data-columns="<?php echo $parameters['columns'] ?? '1' ?>"
+        if ($wp_query->have_posts()) : ?>
+            <div <?php echo !empty($args['parent_id']) ? 'id="' . $args['parent_id'] . '"' : "" ?>
+                class="growtype-post-container <?php echo $args['parent_class'] ?? '' ?>"
+                data-columns="<?php echo $args['columns'] ?? '1' ?>"
             >
-                <?php foreach ($posts as $post) {
+                <?php
+                while ($wp_query->have_posts()) : $wp_query->the_post();
                     echo self::render_single(
                         $template_path,
-                        $post,
-                        $parameters
+                        get_post(),
+                        $args
                     );
-                }
+                endwhile;
                 ?>
             </div>
 
-            <?php if (isset($parameters['post_in_modal']) && $parameters['post_in_modal']) { ?>
-                <?php foreach ($posts as $post) { ?>
-                    <div class="modal modal-growtype-post fade" id="<?php echo 'growtypePostModal-' . $post->ID . '"' ?>" tabindex="-1" aria-hidden="true">
+            <?php if (isset($args['post_in_modal']) && $args['post_in_modal']) { ?>
+                <?php while ($wp_query->have_posts()) : $wp_query->the_post(); ?>
+                    <div class="modal modal-growtype-post fade" id="<?php echo 'growtypePostModal-' . get_the_ID() . '"' ?>" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <?php echo growtype_post_include_view(
                                     'modal.content',
                                     [
-                                        'post' => $post
+                                        'post' => get_post()
                                     ]
                                 ); ?>
                             </div>
                         </div>
                     </div>
-                <?php } ?>
+                <?php endwhile; ?>
             <?php } ?>
 
         <?php endif;
@@ -267,12 +275,14 @@ class Growtype_Post_Shortcode
         /**
          * Pagination
          */
-        if (isset($parameters['pagination']) && $parameters['pagination']) { ?>
+        if (isset($args['pagination']) && $args['pagination']) { ?>
             <div class="pagination">
-                <?php echo self::pagination($posts, $parameters['total_pages']); ?>
+                <?php echo self::pagination($wp_query, $args['total_pages']); ?>
             </div>
             <?php
         }
+
+        wp_reset_postdata();
 
         return ob_get_clean();
     }
@@ -280,16 +290,16 @@ class Growtype_Post_Shortcode
     /**
      * @param $template_path
      * @param $post
-     * @param $parameters
+     * @param $args
      * @return false|string|null
      */
     public static function render_single(
         $template_path,
         $post,
-        $parameters
+        $args
     ) {
 
-        $variables = array_merge(['post' => $post], $parameters);
+        $variables = array_merge(['post' => $post], $args);
 
         return growtype_post_include_view($template_path, $variables);
     }
@@ -297,7 +307,7 @@ class Growtype_Post_Shortcode
     /**
      * @param null $custom_query
      */
-    public static function pagination($custom_query = null, $total_pages = null)
+    public static function pagination($wp_query = null, $total_pages = null)
     {
         if (empty($custom_query)) {
             global $wp_query;
@@ -309,7 +319,6 @@ class Growtype_Post_Shortcode
 
         if ($total_pages > 1) {
             $current_page = max(1, get_query_var('paged'));
-
             echo paginate_links(array (
                 'prev_text' => '<span class="dashicons dashicons-arrow-left-alt2"></span>',
                 'next_text' => '<span class="dashicons dashicons-arrow-right-alt2"></span>',

@@ -86,11 +86,22 @@ if (!function_exists('growtype_post_include_view')) {
 }
 
 /**
+ * Include custom view
+ */
+if (!function_exists('growtype_post_get_pagination_offset')) {
+    function growtype_post_get_pagination_offset($posts_per_page)
+    {
+        $current_page = max(1, get_query_var('paged'));
+        return $current_page === 1 ? 0 : ($current_page - 1) * $posts_per_page;
+    }
+}
+
+/**
  * Display posts
  */
-function growtype_post_render_all($posts, $parameters = null)
+function growtype_post_render_all($the_query = null, $parameters = null)
 {
-    return Growtype_Post_Shortcode::render_all($posts, $parameters);
+    return Growtype_Post_Shortcode::render_all($the_query, $parameters);
 }
 
 /**

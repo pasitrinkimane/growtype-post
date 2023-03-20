@@ -15,7 +15,7 @@
  * @wordpress-plugin
  * Plugin Name:       Growtype - Post
  * Plugin URI:        http://growtype.com/
- * Description:       Advanced wp post types functionality for modern websites.
+ * Description:       Extended wp post functionality.
  * Version:           1.0.0
  * Author:            Growtype
  * Author URI:        http://growtype.com/

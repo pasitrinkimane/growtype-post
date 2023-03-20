@@ -55,6 +55,8 @@ class Growtype_Post_Loader
     {
         $this->actions = array ();
         $this->filters = array ();
+
+        $this->load_methods();
     }
 
     /**
@@ -132,5 +134,17 @@ class Growtype_Post_Loader
             add_action($hook['hook'], array ($hook['component'], $hook['callback']), $hook['priority'], $hook['accepted_args']);
         }
 
+    }
+
+    /**
+     * Load the required methods for this plugin.
+     *
+     */
+    private function load_methods()
+    {
+        /**
+         * Content
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/content/post.php';
     }
 }
