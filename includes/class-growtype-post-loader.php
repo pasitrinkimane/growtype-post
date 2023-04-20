@@ -125,7 +125,6 @@ class Growtype_Post_Loader
      */
     public function run()
     {
-
         foreach ($this->filters as $hook) {
             add_filter($hook['hook'], array ($hook['component'], $hook['callback']), $hook['priority'], $hook['accepted_args']);
         }
@@ -133,7 +132,6 @@ class Growtype_Post_Loader
         foreach ($this->actions as $hook) {
             add_action($hook['hook'], array ($hook['component'], $hook['callback']), $hook['priority'], $hook['accepted_args']);
         }
-
     }
 
     /**
@@ -143,8 +141,26 @@ class Growtype_Post_Loader
     private function load_methods()
     {
         /**
+         * Autoload vendor
+         */
+        require_once GROWTYPE_POST_PATH . '/vendor/autoload.php';
+
+        /**
+         * Ajax
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/ajax/class-growtype-post-ajax.php';
+        new Growtype_Post_Ajax();
+
+        /**
          * Content
          */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/content/archive.php';
         require_once GROWTYPE_POST_PATH . 'includes/methods/content/post.php';
+
+        /**
+         * Customizer
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/customizer/Growtype_Post_Customizer.php';
+        new Growtype_Post_Customizer();
     }
 }

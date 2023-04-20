@@ -74,6 +74,15 @@ if (!function_exists('growtype_post_include_view')) {
             $template_path = $child_view;
         }
 
+        if (str_contains($template_path, 'index') && !file_exists($template_path)) {
+            $path_parts = explode('/', $template_path);
+            $preview_type = !empty($path_parts) && isset(array_reverse($path_parts)[1]) ? array_reverse($path_parts)[1] : null;
+
+            if (!empty($preview_type)) {
+                $template_path = str_replace($preview_type, 'basic', $template_path);
+            }
+        }
+
         if (file_exists($template_path)) {
             extract($variables);
             ob_start();
@@ -130,18 +139,6 @@ function growtype_post_get_featured_image_url($post, $size = 'medium')
 }
 
 /**
- * @param $array
- * @param $key
- * @return array
- */
-function growtype_post_array_pluck($array, $key)
-{
-    return array_map(function ($v) use ($key) {
-        return is_object($v) ? $v->$key : $v[$key];
-    }, $array);
-}
-
-/**
  * mainly for ajax translations
  */
 if (!function_exists('growtype_post_load_textdomain')) {
@@ -150,3 +147,39 @@ if (!function_exists('growtype_post_load_textdomain')) {
         load_textdomain('growtype-post', GROWTYPE_POST_PATH . 'languages/growtype-post-' . $lang . '_LT.mo');
     }
 }
+
+
+/**
+ * mainly for ajax translations
+ */
+if (!function_exists('growtype_post_date_format')) {
+    function growtype_post_date_format()
+    {
+        return get_option('growtype_post_date_format', 'Y m d');
+    }
+}
+
+/**
+ * Post reading time
+ */
+if (!function_exists('growtype_post_reading_time')) {
+    function growtype_post_reading_time($post_id)
+    {
+        if (empty($post_id)) {
+            return false;
+        }
+
+        $content = get_post_field('post_content', $post_id);
+        $word_count = str_word_count(strip_tags($content));
+        $reading_time = ceil($word_count / 200);
+
+        if ($reading_time == 1) {
+            $timer = " min";
+        } else {
+            $timer = " min";
+        }
+
+        return $reading_time . $timer . ' ' . __('read', 'growtype');
+    }
+}
+

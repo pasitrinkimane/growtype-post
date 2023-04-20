@@ -4,14 +4,14 @@
     <?php } ?>
     <div class="b-content">
         <?php
-        $terms = wp_get_post_terms($post->ID, get_post_type($post) . '_tax');
-        $terms = !is_wp_error($terms) && !empty($terms) ? implode(', ', growtype_post_array_pluck($terms, 'name')) : '';
-
+        $taxonomy = get_post_type($post) === 'post' ? 'category' : get_post_type($post) . '_tax';
+        $terms = wp_get_post_terms($post->ID, $taxonomy);
+        $terms = !is_wp_error($terms) && !empty($terms) ? implode(', ', array_pluck($terms, 'name')) : '';
         if (!empty($terms)) { ?>
             <p class="e-terms"><?php echo $terms ?></p>
         <?php } ?>
         <?php if (!empty($post->post_date)) { ?>
-            <p class="e-date"><?php echo date_format(date_create($post->post_date), 'Y m d') ?></p>
+            <p class="e-date"><?php echo date_format(date_create($post->post_date), growtype_post_date_format()) ?></p>
         <?php } ?>
         <?php if (!empty($post->post_title)) { ?>
             <h4 class="e-title"><?php echo $post->post_title ?></h4>
@@ -21,6 +21,7 @@
                 <?php echo growtype_post_get_limited_content($post->post_excerpt, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
             </div>
         <?php } ?>
+        <?php echo growtype_post_render_cta(); ?>
     </div>
     <div class="b-actions">
         <button class="btn btn-primary">

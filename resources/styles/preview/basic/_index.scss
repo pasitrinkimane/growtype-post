@@ -53,7 +53,6 @@
   .b-content {
     padding: 20px;
     margin: auto;
-    border-radius: 20px;
     text-align: left;
   }
 
@@ -61,6 +60,11 @@
     padding-bottom: 5px;
     padding-top: 5px;
     color: $color-dark-grey;
+  }
+
+  .e-terms {
+    padding-bottom: 10px;
+    margin-bottom: 0;
   }
 
   .b-date {

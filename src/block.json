@@ -53,6 +53,10 @@
       "type": "boolean",
       "default": true
     },
+    "sticky_post": {
+      "type": "string",
+      "default": "none"
+    },
     "post_in_modal": {
       "type": "boolean",
       "default": false

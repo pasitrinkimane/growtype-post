@@ -1,0 +1,48 @@
+.single {
+  .section-back {
+    padding-bottom: 40px;
+
+    .btn-back {
+      color: black;
+    }
+  }
+
+  .section-title {
+    h1 {
+      @include bp-phone-xl() {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .section-taxonomy {
+    padding-bottom: 30px;
+  }
+
+  .section-readingtime {
+    padding-bottom: 30px;
+  }
+
+  .section-featuredimg {
+    padding-bottom: 30px;
+    padding-top: 45%;
+
+    & + .content-wrapper {
+      padding-top: 50px;
+      @include bp-phone-xl() {
+        padding-top: 30px;
+      }
+    }
+  }
+
+  .cta-wrapper {
+    justify-content: center;
+
+    & + .content-wrapper {
+      padding-top: 50px;
+      @include bp-phone-xl() {
+        padding-top: 30px;
+      }
+    }
+  }
+}

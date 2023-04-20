@@ -43,6 +43,7 @@ class Growtype_Post_Shortcode
         $show_all_posts = isset($attr['show_all_posts']) && $attr['show_all_posts'] ? true : false;
         $meta_query = isset($attr['meta_query']) && !empty($attr['meta_query']) ? $attr['meta_query'] : null;
         $tax_query = isset($attr['tax_query']) && !empty($attr['tax_query']) ? $attr['tax_query'] : null;
+        $sticky_post = isset($attr['sticky_post']) && !empty($attr['sticky_post']) ? $attr['sticky_post'] : 'none';
 
         /**
          * Show all posts
@@ -56,6 +57,10 @@ class Growtype_Post_Shortcode
          */
         if ($preview_style === 'custom' && !empty($preview_style_custom)) {
             $preview_style = $preview_style_custom;
+        }
+
+        if ($preview_style === 'product' && !class_exists('woocommerce')) {
+            return 'Please enable WooCommerce plugin to use this preview style!';
         }
 
         $args = array (
@@ -77,9 +82,27 @@ class Growtype_Post_Shortcode
             $args['post__in'] = explode(',', $post__in);
         }
 
-        if (empty($parent_id)) {
-            $parent_id = 'growtype-post-' . $post_type;
+        /**
+         * Display sticky posts
+         */
+        if ($sticky_post !== 'none') {
+            if ($sticky_post === 'visible') {
+                $parent_class = explode(',', $parent_class);
+                $parent_class = array_filter($parent_class);
+                array_push($parent_class, 'has-sticky-post');
+                $parent_class = implode(' ', $parent_class);
+                $args['post__in'] = !empty(get_option('sticky_posts')) ? get_option('sticky_posts') : ['0'];
+            } elseif ($sticky_post === 'hidden' && !empty(get_option('sticky_posts'))) {
+                $args['post__not_in'] = get_option('sticky_posts');
+            }
         }
+
+        /**
+         * Set default parent id
+         */
+//        if (empty($parent_id)) {
+//            $parent_id = 'growtype-post-' . $post_type;
+//        }
 
         if (!empty($category_name)) {
             if (in_array($post_type, ['product'])) {
@@ -213,10 +236,26 @@ class Growtype_Post_Shortcode
             $args['post_type'] = isset($args['post_type']) ? $args['post_type'] : get_post_type();
             $args['offset'] = isset($args['offset']) ? $args['offset'] : growtype_post_get_pagination_offset($args['posts_per_page']);
 
+            $queried_object = get_queried_object();
+
+            if (!empty($queried_object)) {
+                $queried_object_slug = $queried_object->slug;
+                if (!empty($queried_object_slug)) {
+                    $args['category_name'] = $queried_object_slug;
+                }
+            }
+
             $wp_query = new WP_Query($args);
 
             $args['columns'] = isset($args['columns']) ? $args['columns'] : 3;
-            $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : round(wp_count_posts($args['post_type'])->publish / $args['posts_per_page']);
+
+            $pages_amount = 0;
+
+            if (isset($args['post_type']) && $args['post_type']) {
+                $pages_amount = round(wp_count_posts($args['post_type'])->publish / $args['posts_per_page']);
+            }
+
+            $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : $pages_amount;
         }
 
         $post_classes_list = ['growtype-post-single'];

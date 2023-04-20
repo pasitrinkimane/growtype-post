@@ -151,12 +151,16 @@ export default function Edit({attributes, setAttributes}) {
                             value={attributes.orderby}
                             onChange={(val) => updateShortcode('orderby', val)}
                         />
-                        <TextControl
-                            label={__('Post in', 'growtype-post')}
-                            help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
-                            onChange={(val) => updateShortcode('post__in', val)}
-                            value={attributes.post__in}
-                        />
+                        {!attributes.sticky_post ?
+                            <TextControl
+                                label={__('Post in', 'growtype-post')}
+                                help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('post__in', val)}
+                                value={attributes.post__in}
+                            />
+                            :
+                            ''
+                        }
                     </PanelBody>
                     <PanelBody
                         title={__('Post settings', 'growtype-post')}
@@ -171,6 +175,26 @@ export default function Edit({attributes, setAttributes}) {
                             }
                             checked={attributes.post_link ? true : false}
                             onChange={(val) => updateShortcode('post_link', val)}
+                        />
+                        <SelectControl
+                            label={__('Sticky post', 'growtype-post')}
+                            help={__('Sticky post visibility.', 'growtype-post')}
+                            options={[
+                                {
+                                    label: 'None',
+                                    value: 'none',
+                                },
+                                {
+                                    label: 'Visible',
+                                    value: 'visible',
+                                },
+                                {
+                                    label: 'Hidden',
+                                    value: 'hidden',
+                                },
+                            ]}
+                            value={attributes.sticky_post}
+                            onChange={(val) => updateShortcode('sticky_post', val)}
                         />
                         <ToggleControl
                             label={__('Open post in modal window', 'growtype-post')}
@@ -236,6 +260,10 @@ export default function Edit({attributes, setAttributes}) {
                                 {
                                     label: 'Testimonial',
                                     value: 'testimonial',
+                                },
+                                {
+                                    label: 'Product',
+                                    value: 'product',
                                 },
                                 {
                                     label: 'Custom',
