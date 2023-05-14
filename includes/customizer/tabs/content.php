@@ -62,6 +62,24 @@ $wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_custom
 ));
 
 /**
+ * Date
+ */
+$wp_customize->add_setting('growtype_post_single_page_date_enabled',
+    array (
+        'default' => 1,
+        'transport' => 'refresh',
+    )
+);
+
+$wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_customize, 'growtype_post_single_page_date_enabled',
+    array (
+        'label' => esc_html__('Date'),
+        'section' => 'post_single_page',
+        'description' => __('Post date enabled.', 'growtype'),
+    )
+));
+
+/**
  * Image
  */
 $wp_customize->add_setting('growtype_post_single_page_featured_image_enabled',

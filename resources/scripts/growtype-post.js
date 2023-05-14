@@ -1,7 +1,8 @@
 $ = jQuery;
 
 $('.btn-like').click(function () {
-    let link = $(this).find('a');
+    let btn = $(this);
+    let link = btn.find('a');
 
     if ($(this).attr('data-type') === undefined && (link.attr('data-type') === undefined || (link.attr('href') !== undefined && link.attr('href').length > 0))) {
         return;
@@ -23,7 +24,11 @@ $('.btn-like').click(function () {
             data_type: dataType
         },
         success: function (response) {
-            console.log(response.likes)
+            btn.find('.e-amount').remove();
+
+            if (response['likes'] > 0) {
+                btn.prepend('<span class="e-amount">' + response['likes'] + '</span>');
+            }
         }
     });
 })
@@ -60,30 +65,3 @@ $('.btn-share').click(function () {
         }
     });
 })
-
-/**
- * Get likes for single page
- */
-// if ($('.single .btn-like').length > 0) {
-//     $('.single .btn-like').each(function (index, element) {
-//
-//         let link = $(this).find('a');
-//         let dataType = link !== undefined ? link.attr('data-type') : $(this).attr('data-type');
-//         let postId = $(element).attr('data-id') !== undefined ? $(element).attr('data-id') : growtypePost.postId;
-//
-//         jQuery.ajax({
-//             url: growtypePost.ajaxUrl,
-//             type: 'post',
-//             data: {
-//                 action: 'get_post_likes',
-//                 post_id: postId,
-//                 data_type: dataType
-//             },
-//             success: function (response) {
-//                 if (response.liked) {
-//                     $(element).addClass('is-active');
-//                 }
-//             }
-//         });
-//     })
-// }

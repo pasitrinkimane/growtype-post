@@ -183,3 +183,15 @@ if (!function_exists('growtype_post_reading_time')) {
     }
 }
 
+/**
+ * Post reading time
+ */
+if (!function_exists('growtype_post_get_ip_key')) {
+    function growtype_post_get_ip_key()
+    {
+        $HTTP_X_FORWARDED_FOR = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : '';
+        $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+
+        return $HTTP_X_FORWARDED_FOR . $REMOTE_ADDR;
+    }
+}

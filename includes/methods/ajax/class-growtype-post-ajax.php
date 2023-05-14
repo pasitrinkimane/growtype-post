@@ -31,7 +31,7 @@ class Growtype_Post_Ajax
         $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : null;
         $data_type = isset($_POST['data_type']) ? $_POST['data_type'] : null;
 
-        $ip_key = $this->get_ip_key();
+        $ip_key = growtype_post_get_ip_key();
 
         $likes = $this->growtype_post_likes_data($post_id);
 
@@ -56,7 +56,7 @@ class Growtype_Post_Ajax
         $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : null;
         $data_type = isset($_POST['data_type']) ? $_POST['data_type'] : null;
 
-        $ip_key = $this->get_ip_key();
+        $ip_key = growtype_post_get_ip_key();
 
         $likes = $this->growtype_post_likes_data($post_id);
 
@@ -75,13 +75,5 @@ class Growtype_Post_Ajax
         }
 
         return $likes;
-    }
-
-    function get_ip_key()
-    {
-        $HTTP_X_FORWARDED_FOR = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : '';
-        $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-
-        return $HTTP_X_FORWARDED_FOR . $REMOTE_ADDR;
     }
 }

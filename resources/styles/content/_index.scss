@@ -26,12 +26,19 @@
   .section-featuredimg {
     padding-bottom: 30px;
     padding-top: 45%;
+    position: relative;
 
     & + .content-wrapper {
       padding-top: 50px;
       @include bp-phone-xl() {
         padding-top: 30px;
       }
+    }
+
+    .section-featuredimg-caption {
+      position: absolute;
+      right: 0;
+      bottom: -47px;
     }
   }
 

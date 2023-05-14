@@ -8,11 +8,20 @@ function growtype_post_growtype_single_post_title()
     }
 }
 
+add_action('growtype_single_post_date', 'growtype_post_growtype_single_post_date');
+function growtype_post_growtype_single_post_date()
+{
+    if (get_theme_mod('growtype_post_single_page_date_enabled', true)) {
+        echo '<div class="container section-date"><h1>' . get_the_title() . '</h1></div>';
+    }
+}
+
 add_action('growtype_single_post_featured_image', 'growtype_post_growtype_single_post_featured_image');
 function growtype_post_growtype_single_post_featured_image()
 {
     if (get_theme_mod('growtype_post_single_page_featured_image_enabled', true)) {
-        echo sprintf('<div class="container section-featuredimg" style="background: url(%s);background-size:cover;background-position:center;"></div>', get_the_post_thumbnail_url(get_the_ID(), 'full'));
+        $caption = get_the_post_thumbnail_caption(get_the_ID());
+        echo sprintf('<div class="container section-featuredimg" style="background: url(%s);background-size:cover;background-position:center;">%s</div>', get_the_post_thumbnail_url(get_the_ID(), 'full'), '<span class="section-featuredimg-caption e-caption">' . $caption . '</span>');
     }
 }
 
@@ -28,7 +37,7 @@ function growtype_post_render_cta()
 {
     $likes = Growtype_Post_Ajax::growtype_post_likes_data(get_the_ID());
 
-    return '<div class="cta-wrapper"><div class="btn-like ' . (!empty($likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . __('Love', 'growtype-post') . '</div><div class="btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
+    return '<div class="cta-wrapper"><div class="btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
 }
 
 add_action('growtype_single_post_related_posts', 'growtype_post_growtype_single_post_related_posts');

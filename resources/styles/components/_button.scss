@@ -7,7 +7,7 @@
 
 .btn-like, .btn-share {
   display: flex;
-  gap: 10px;
+  gap: 7px;
   background: none;
   color: black;
 
@@ -34,15 +34,28 @@
   display: flex !important;
   align-items: center !important;
 
-  &:before {
-    content: '\e808';
-    font-family: 'growtype-icons';
+  .e-amount {
+    font-size: 10px;
+    position: relative;
+    bottom: 1px;
+  }
+
+  .e-text {
+    position: relative;
+
+    &:before {
+      content: '\e808';
+      font-family: 'growtype-icons';
+      margin-right: 6px;
+    }
   }
 
   &.is-active {
-    &:before {
-      content: '\e801';
-      font-family: 'growtype-icons';
+    .e-text {
+      &:before {
+        content: '\e801';
+        font-family: 'growtype-icons';
+      }
     }
   }
 }
