@@ -33,6 +33,7 @@ class Growtype_Post_Shortcode
             'category__in' => [],
             'order' => 'asc',
             'orderby' => 'menu_order',
+            'meta_key' => '',
             'parent_id' => '',
             'intro_content_length' => '100',
         ), $attr));
@@ -69,6 +70,10 @@ class Growtype_Post_Shortcode
             'orderby' => $orderby,
             'order' => $order
         );
+
+        if (!empty($meta_key)) {
+            $args['meta_key'] = $meta_key;
+        }
 
         if (!empty($category__not_in)) {
             $args['category__not_in'] = explode(',', $category__not_in);
@@ -167,14 +172,14 @@ class Growtype_Post_Shortcode
              * Include custom meta query
              */
             if (!empty($meta_query)) {
-                $args['meta_query'] = str_replace("'", '"', json_decode(urldecode($meta_query), true));
+                $args['meta_query'] = json_decode(urldecode($meta_query), true);
             }
 
             /**
              * Include custom tax query
              */
             if (!empty($tax_query)) {
-                $args['tax_query'] = str_replace("'", '"', json_decode(urldecode($tax_query), true));
+                $args['tax_query'] = json_decode(urldecode($tax_query), true);
             }
 
             $args = apply_filters('growtype_post_shortcode_extend_args', $args, $attr);

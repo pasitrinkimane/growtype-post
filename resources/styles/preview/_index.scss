@@ -103,6 +103,14 @@
       }
     }
   }
+
+  .growtype-post-single {
+    &.growtype-post-product {
+      @include bp-phone-xl() {
+        width: 50%;
+      }
+    }
+  }
 }
 
 /*Open post in modal*/

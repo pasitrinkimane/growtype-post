@@ -78,8 +78,13 @@ if (!function_exists('growtype_post_include_view')) {
             $path_parts = explode('/', $template_path);
             $preview_type = !empty($path_parts) && isset(array_reverse($path_parts)[1]) ? array_reverse($path_parts)[1] : null;
 
+            /**
+             * Replace template with default 'basic' template, replace only plugin path part
+             */
             if (!empty($preview_type)) {
-                $template_path = str_replace($preview_type, 'basic', $template_path);
+                $template_path_split = explode('growtype-post', $template_path);
+                $template_path_split_plugin_part = str_replace($preview_type, 'basic', $template_path_split[1]);
+                $template_path = $template_path_split[0] . 'growtype-post' . $template_path_split_plugin_part;
             }
         }
 
