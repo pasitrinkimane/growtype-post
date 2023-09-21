@@ -1,5 +1,5 @@
 <div class="growtype-post-single-inner">
-    <div class="b-content" style="background: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;">
+    <div class="b-content" style="background-image: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;">
         <?php
         $terms = wp_get_post_terms($post->ID, get_post_type($post) . '_tax');
         $terms = !is_wp_error($terms) && !empty($terms) ? implode(', ', array_pluck($terms, 'name')) : '';

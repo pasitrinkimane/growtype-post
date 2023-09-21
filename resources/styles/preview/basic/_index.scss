@@ -4,6 +4,17 @@
   overflow: hidden;
   display: inline-block;
   padding: 10px;
+  text-decoration: none;
+  color: black;
+
+  &.is-hidden {
+    display: none;
+  }
+
+  &:hover {
+    color: black;
+  }
+
   @include bp-tablet-medium() {
     width: 50%;
   }

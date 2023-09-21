@@ -25,7 +25,7 @@
       "type": "number",
       "default": 3
     },
-    "show_all_posts": {
+    "load_all_posts": {
       "type": "boolean",
       "default": false
     },
@@ -76,6 +76,10 @@
     "pagination": {
       "type": "boolean",
       "default": false
+    },
+    "loading_type": {
+      "type": "string",
+      "default": "initial"
     },
     "meta_query": {
       "type": "string",

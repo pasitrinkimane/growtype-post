@@ -3,7 +3,7 @@
     "description": "growtype-post - 1.0.0",
     "type": "wordpress-plugin",
     "require": {
-        "php": "^7.2",
+        "php": "^7.0|^8.0",
         "rappasoft/laravel-helpers": "^2.0"
     }
 }

@@ -211,6 +211,43 @@ export default function Edit({attributes, setAttributes}) {
                         title={__('Preview settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
+                        <ToggleControl
+                            label={__('Load all posts', 'growtype-post')}
+                            checked={attributes.load_all_posts}
+                            onChange={(val) => updateShortcode('load_all_posts', val)}
+                        />
+                        {attributes.load_all_posts && (
+                            <SelectControl
+                                label={__('Loading type', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Initial',
+                                        value: 'initial',
+                                    },
+                                    {
+                                        label: 'Limited',
+                                        value: 'limited',
+                                    },
+                                    {
+                                        label: 'Ajax',
+                                        value: 'ajax',
+                                    }
+                                ]}
+                                value={attributes.loading_type}
+                                onChange={(val) => updateShortcode('loading_type', val)}
+                            />
+                        )}
+                        {(!attributes.load_all_posts || attributes.loading_type !== 'initial') && (
+                            <RangeControl
+                                label={__('Visible posts', 'growtype-post')}
+                                value={
+                                    attributes.posts_per_page
+                                }
+                                onChange={(val) => updateShortcode('posts_per_page', val)}
+                                min={1}
+                                max={50}
+                            />
+                        )}
                         <RangeControl
                             label={__('Columns', 'growtype-post')}
                             help={__('How many columns in grid.', 'growtype-post')}
@@ -221,22 +258,6 @@ export default function Edit({attributes, setAttributes}) {
                             min={1}
                             max={8}
                         />
-                        <ToggleControl
-                            label={__('Show all posts', 'growtype-post')}
-                            checked={attributes.show_all_posts}
-                            onChange={(val) => updateShortcode('show_all_posts', val)}
-                        />
-                        {!attributes.show_all_posts && (
-                            <RangeControl
-                                label={__('Posts per page', 'growtype-post')}
-                                value={
-                                    attributes.posts_per_page
-                                }
-                                onChange={(val) => updateShortcode('posts_per_page', val)}
-                                min={1}
-                                max={50}
-                            />
-                        )}
                         <SelectControl
                             label={__('Post preview style', 'growtype-post')}
                             help={__('How post preview should look.', 'growtype-post')}

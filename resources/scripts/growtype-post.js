@@ -1,5 +1,8 @@
 $ = jQuery;
 
+/**
+ * Like post
+ */
 $('.btn-like').click(function () {
     let btn = $(this);
     let link = btn.find('a');
@@ -33,6 +36,9 @@ $('.btn-like').click(function () {
     });
 })
 
+/**
+ * Share post
+ */
 $('.btn-share').click(function () {
     let link = $(this).find('a');
 
@@ -64,4 +70,22 @@ $('.btn-share').click(function () {
             }
         }
     });
+})
+
+/**
+ * Load more posts
+ */
+$('a[data-growtype-post-load-more]').click(function () {
+    $(this).hide();
+
+    let id = $(this).attr('data-growtype-post-load-more')
+    let container = $('#' + id + '.growtype-post-container');
+    if (container) {
+        let loadingType = container.attr('data-loading-type');
+        if (loadingType === 'limited') {
+            container.find('.is-hidden').fadeIn().promise().done(function () {
+                $(this).removeClass('is-hidden');
+            })
+        }
+    }
 })

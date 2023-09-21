@@ -1,6 +1,6 @@
 <div class="growtype-post-single-inner">
     <?php if (!empty(growtype_post_get_featured_image_url($post))) { ?>
-        <div class="e-img" style="background: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
+        <div class="e-img" style="background-image: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
     <?php } ?>
     <div class="b-content">
         <?php
