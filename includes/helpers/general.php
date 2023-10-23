@@ -14,12 +14,18 @@ function growtype_post_is_front_post()
  */
 function growtype_post_get_id($post)
 {
-    $post_id = $post->ID ?? null;
+    if (empty($post)) {
+        return null;
+    }
+
+    $post_id = $post->ID;
 
     if (empty($post_id)) {
-        $post_name = $post->post_name ?? null;
-        $post = get_page_by_path($post_name);
-        $post_id = $post->ID ?? null;
+        $post_name = $post->post_name;
+        if (!empty($post_name)) {
+            $post = get_page_by_path($post_name);
+            $post_id = $post->ID;
+        }
     }
 
     return $post_id;
@@ -87,6 +93,8 @@ if (!function_exists('growtype_post_include_view')) {
                 $template_path = $template_path_split[0] . 'growtype-post' . $template_path_split_plugin_part;
             }
         }
+
+//        d($template_path);
 
         if (file_exists($template_path)) {
             extract($variables);

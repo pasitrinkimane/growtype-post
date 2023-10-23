@@ -106,15 +106,68 @@ export default function Edit({attributes, setAttributes}) {
             <InspectorControls key={'inspector'}>
                 <Panel>
                     <PanelBody
-                        title={__('Main settings', 'growtype-post')}
+                        title={__('Source settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
-                        <TextControl
-                            label={__('Post type', 'growtype-post')}
-                            help={__('Enter which post type should be used.', 'growtype-post')}
-                            onChange={(val) => updateShortcode('post_type', val)}
-                            value={attributes.post_type}
+                        <SelectControl
+                            label={__('Source', 'growtype-post')}
+                            help={__('Which content source should be used.', 'growtype-post')}
+                            options={[
+                                {
+                                    label: 'Internal',
+                                    value: 'internal',
+                                },
+                                {
+                                    label: 'Wp Json',
+                                    value: 'wp_json',
+                                },
+                                {
+                                    label: 'Other',
+                                    value: 'other',
+                                },
+                            ]}
+                            value={attributes.content_source}
+                            onChange={(val) => updateShortcode('content_source', val)}
                         />
+                        {attributes.content_source === 'internal' ?
+                            <TextControl
+                                label={__('Post type', 'growtype-post')}
+                                help={__('Enter which post type should be used.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('post_type', val)}
+                                value={attributes.post_type}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.content_source !== 'internal' ?
+                            <TextControl
+                                label={__('Url', 'growtype-post')}
+                                help={__('Content url.', 'growtype-post')}
+                                onChange={(val) => updateShortcode('content_url', val)}
+                                value={attributes.content_url}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.content_source !== 'internal' ?
+                            <ToggleControl
+                                label={__('Cache Url', 'growtype-post')}
+                                help={
+                                    attributes.content_url_cache
+                                        ? 'Urs is cached.'
+                                        : 'Urs is not cached.'
+                                }
+                                checked={attributes.content_url_cache ? true : false}
+                                onChange={(val) => updateShortcode('content_url_cache', val)}
+                            />
+                            :
+                            ''
+                        }
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Preview settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
                         <SelectControl
                             label={__('Order', 'growtype-post')}
                             help={__('How post should be ordered.', 'growtype-post')}
@@ -161,20 +214,15 @@ export default function Edit({attributes, setAttributes}) {
                             :
                             ''
                         }
-                    </PanelBody>
-                    <PanelBody
-                        title={__('Post settings', 'growtype-post')}
-                        icon="admin-plugins"
-                    >
                         <ToggleControl
                             label={__('Post is a link', 'growtype-post')}
                             help={
-                                attributes.post_link
+                                attributes.post_is_a_link
                                     ? 'Post is a link.'
                                     : 'Post is not a link.'
                             }
-                            checked={attributes.post_link ? true : false}
-                            onChange={(val) => updateShortcode('post_link', val)}
+                            checked={attributes.post_is_a_link ? true : false}
+                            onChange={(val) => updateShortcode('post_is_a_link', val)}
                         />
                         <SelectControl
                             label={__('Sticky post', 'growtype-post')}
@@ -206,11 +254,6 @@ export default function Edit({attributes, setAttributes}) {
                             checked={attributes.post_in_modal ? true : false}
                             onChange={(val) => updateShortcode('post_in_modal', val)}
                         />
-                    </PanelBody>
-                    <PanelBody
-                        title={__('Preview settings', 'growtype-post')}
-                        icon="admin-plugins"
-                    >
                         <ToggleControl
                             label={__('Load all posts', 'growtype-post')}
                             checked={attributes.load_all_posts}
@@ -314,21 +357,39 @@ export default function Edit({attributes, setAttributes}) {
                         />
                     </PanelBody>
                     <PanelBody
-                        title={__('Pagination settings', 'growtype-post')}
+                        title={__('Navigation settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
-                        <PanelRow>
-                            <ToggleControl
-                                label="Active"
-                                help={
-                                    attributes.pagination
-                                        ? 'Pagination is active.'
-                                        : 'Pagination is disabled.'
-                                }
-                                checked={attributes.pagination ? true : false}
-                                onChange={(val) => updateShortcode('pagination', val)}
+                        <ToggleControl
+                            label="Terms navigation"
+                            help={
+                                attributes.terms_navigation
+                                    ? 'Is active.'
+                                    : 'Is disabled.'
+                            }
+                            checked={attributes.terms_navigation ? true : false}
+                            onChange={(val) => updateShortcode('terms_navigation', val)}
+                        />
+                        {attributes.terms_navigation ?
+                            <TextControl
+                                label={__('Terms navigation taxonomy', 'growtype-post')}
+                                help={__('', 'growtype-post')}
+                                onChange={(val) => updateShortcode('terms_navigation_taxonomy', val)}
+                                value={attributes.terms_navigation_taxonomy}
                             />
-                        </PanelRow>
+                            :
+                            ''
+                        }
+                        <ToggleControl
+                            label="Pagination"
+                            help={
+                                attributes.pagination
+                                    ? 'Is active.'
+                                    : 'Is disabled.'
+                            }
+                            checked={attributes.pagination ? true : false}
+                            onChange={(val) => updateShortcode('pagination', val)}
+                        />
                     </PanelBody>
                 </Panel>
             </InspectorControls>

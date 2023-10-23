@@ -89,7 +89,7 @@ require plugin_dir_path(__FILE__) . 'includes/class-growtype-post.php';
 /**
  * @return mixed
  */
-function GROWTYPE_POST()
+function growtype_post()
 {
     return GROWTYPE_POST::instance();
 }
@@ -103,12 +103,12 @@ function GROWTYPE_POST()
  *
  * @since    1.0.0
  */
-function RUN_GROWTYPE_POST()
+function run_growtype_post()
 {
 
-    $plugin = new GROWTYPE_POST();
+    $plugin = new growtype_post();
     $plugin->run();
 
 }
 
-RUN_GROWTYPE_POST();
+run_growtype_post();

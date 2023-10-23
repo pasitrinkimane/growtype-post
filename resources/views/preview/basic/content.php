@@ -4,9 +4,7 @@
     <?php } ?>
     <div class="b-content">
         <?php
-        $taxonomy = get_post_type($post) === 'post' ? 'category' : get_post_type($post) . '_tax';
-        $terms = wp_get_post_terms($post->ID, $taxonomy);
-        $terms = !is_wp_error($terms) && !empty($terms) ? implode(', ', array_pluck($terms, 'name')) : '';
+        $terms = !empty($post_terms) ? implode(', ', array_pluck($post_terms, 'name')) : '';
         if (!empty($terms)) { ?>
             <p class="e-terms"><?php echo $terms ?></p>
         <?php } ?>

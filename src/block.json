@@ -13,6 +13,26 @@
       "source": "text",
       "selector": "div"
     },
+    "content_source": {
+      "type": "string",
+      "default": "internal"
+    },
+    "content_url": {
+      "type": "string",
+      "default": ""
+    },
+    "content_url_cache": {
+      "type": "boolean",
+      "default": true
+    },
+    "terms_navigation": {
+      "type": "boolean",
+      "default": false
+    },
+    "terms_navigation_taxonomy": {
+      "type": "string",
+      "default": "category"
+    },
     "post_type": {
       "type": "string",
       "default": "post"
@@ -49,7 +69,7 @@
       "type": "string",
       "default": ""
     },
-    "post_link": {
+    "post_is_a_link": {
       "type": "boolean",
       "default": true
     },

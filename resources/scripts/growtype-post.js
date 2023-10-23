@@ -1,6 +1,32 @@
 $ = jQuery;
 
 /**
+ * Filter posts
+ */
+$('.growtype-post-terms-filter-btn').click(function () {
+    if (!$(this).hasClass('is-active')) {
+        $('.growtype-post-terms-filter-btn').removeClass('is-active');
+        $(this).addClass('is-active');
+
+        let container = $(this).closest('.wp-block-growtype-post');
+        let cat = $(this).attr('data-cat');
+
+        if (cat === 'all' || cat === undefined || cat === '') {
+            container.find('.growtype-post-single').fadeIn();
+            return;
+        }
+
+        let id = $(this).closest('.wp-block-growtype-post').find('.growtype-post-container').attr('id');
+
+        $('a[data-growtype-post-load-more="' + id + '"]').hide();
+
+        container.find('.growtype-post-single').fadeOut().promise().done(function () {
+            container.find('.growtype-post-single[data-cat^="' + cat + '"]').fadeIn();
+        })
+    }
+});
+
+/**
  * Like post
  */
 $('.btn-like').click(function () {
