@@ -35,7 +35,7 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('Growtype_Post_Version', '1.0.2');
+define('Growtype_Post_Version', '1.0.31');
 
 /**
  * Plugin base name

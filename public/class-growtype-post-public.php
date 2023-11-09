@@ -96,9 +96,9 @@ class Growtype_Post_Public
          */
         wp_enqueue_script($this->Growtype_Post, GROWTYPE_POST_URL_PUBLIC . 'scripts/growtype-post.js', array ('jquery'), $this->version, true);
 
-        wp_localize_script($this->Growtype_Post, 'growtypePost', array (
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'postId' => get_the_ID()
+        wp_localize_script($this->Growtype_Post, 'growtype_post', array (
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'post_id' => get_the_ID()
             )
         );
     }

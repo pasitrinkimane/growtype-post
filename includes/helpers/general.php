@@ -94,8 +94,6 @@ if (!function_exists('growtype_post_include_view')) {
             }
         }
 
-//        d($template_path);
-
         if (file_exists($template_path)) {
             extract($variables);
             ob_start();
@@ -146,9 +144,12 @@ if (!function_exists('growtype_post_render_single')) {
  * @param $size
  * @return mixed|null
  */
-function growtype_post_get_featured_image_url($post, $size = 'medium')
+function growtype_post_get_featured_image_url($post, $size = 'medium', $default_img_id = null)
 {
-    return isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
+    $feat_img_url = isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
+    $feat_img_url = empty($feat_img_url) && !empty($default_img_id) ? wp_get_attachment_image_url($default_img_id) : $feat_img_url;
+
+    return $feat_img_url;
 }
 
 /**

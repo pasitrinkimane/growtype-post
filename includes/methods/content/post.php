@@ -37,14 +37,46 @@ function growtype_post_render_cta()
 {
     $likes = Growtype_Post_Ajax::growtype_post_likes_data(get_the_ID());
 
-    return '<div class="cta-wrapper"><div class="btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
+    return '<div class="cta-wrapper"><div class="growtype-post-btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="growtype-post-btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
 }
 
 add_action('growtype_single_post_related_posts', 'growtype_post_growtype_single_post_related_posts');
 function growtype_post_growtype_single_post_related_posts()
 {
-    if (get_theme_mod('growtype_post_related_posts_enabled', true)) {
-        echo growtype_post_include_view('section.related-posts');
+    $enabled = get_theme_mod('growtype_post_related_posts_enabled', true);
+
+    if ($enabled) {
+        $first_tag = !empty(wp_get_post_tags(get_the_id())) ? wp_get_post_tags(get_the_id())[0]->term_id : '';
+
+        $args = array (
+            'post_type' => get_post_type(),
+            'post__not_in' => array (get_the_id()),
+            'posts_per_page' => 3,
+            'orderby' => 'menu_order',
+            'order' => 'DESC',
+        );
+
+        if (!empty($first_tag)) {
+            $args['tag__in'] = array ($first_tag);
+        }
+
+        $posts = new WP_Query($args);
+
+        $posts_args = [
+            'posts' => $posts,
+            'section_title' => __('Read more', 'growtype'),
+            'params' => [
+                'columns' => 3,
+            ]
+        ];
+
+        $posts_args = apply_filters('growtype_post_related_posts_args', $posts_args);
+
+        if (!empty($posts_args['posts'])) {
+            echo growtype_post_include_view('section.related-posts', $posts_args);
+        }
+
+        wp_reset_query();
     }
 }
 

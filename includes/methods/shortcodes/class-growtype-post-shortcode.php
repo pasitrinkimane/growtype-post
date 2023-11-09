@@ -48,7 +48,7 @@ class Growtype_Post_Shortcode
             'sticky_post' => isset($attr['sticky_post']) && !empty($attr['sticky_post']) ? $attr['sticky_post'] : 'none',
             'content_url_cache' => isset($attr['content_url_cache']) && $attr['content_url_cache'] ? true : false,
             'terms_navigation' => isset($attr['terms_navigation']) && $attr['terms_navigation'] ? true : false,
-            'terms_navigation_taxonomy' => isset($attr['terms_navigation_taxonomy']) ? $attr['terms_navigation_taxonomy'] : 'category',
+            'terms_navigation_taxonomy' => isset($attr['terms_navigation_taxonomy']) ? explode(',', $attr['terms_navigation_taxonomy']) : ['category'],
         ];
 
         /**
@@ -357,30 +357,38 @@ class Growtype_Post_Shortcode
 
         $template_path = 'preview.' . $preview_style . '.index';
 
-        $terms_navigation_taxonomy = isset($args['terms_navigation_taxonomy']) ? $args['terms_navigation_taxonomy'] : 'category';
+        $terms_navigation_taxonomies = isset($args['terms_navigation_taxonomy']) ? $args['terms_navigation_taxonomy'] : ['category'];
 
-        $terms = get_terms(array (
-            'taxonomy' => $terms_navigation_taxonomy,
-            'hide_empty' => true,
-            'exclude' => 1
-        ));
+        foreach ($terms_navigation_taxonomies as $terms_navigation_taxonomy) {
+            $terms = get_terms(array (
+                'taxonomy' => $terms_navigation_taxonomy,
+                'hide_empty' => true,
+                'exclude' => 1
+            ));
 
-        $existing_terms = apply_filters('growtype_post_shortcode_extend_terms', $terms, $wp_query, $args);
+            $terms = [
+                $terms_navigation_taxonomy => $terms
+            ];
+        }
+
+        $existing_terms_groups = apply_filters('growtype_post_shortcode_extend_terms', $terms, $wp_query, $args);
 
         ob_start();
 
         if ($wp_query->have_posts()) : ?>
 
-            <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] && !empty($existing_terms)) { ?>
-                <div class="growtype-post-terms-filter">
-                    <?php
-                    $counter = 0;
-                    foreach ($existing_terms as $key => $existing_term) { ?>
-                        <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $counter === 0 ? 'is-active' : '' ?>" data-cat="<?php echo $existing_term->slug ?>"><?php echo $existing_term->name ?></div>
-                        <?php
-                        $counter++;
-                    }
-                    ?>
+            <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] && !empty($existing_terms_groups)) { ?>
+                <div class="growtype-post-terms-filters">
+                    <?php foreach ($existing_terms_groups as $key => $existing_terms) { ?>
+                        <div class="growtype-post-terms-filter">
+                            <?php
+                            $counter = 0;
+                            foreach ($existing_terms as $existing_term) { ?>
+                                <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $counter === 0 ? 'is-active' : '' ?>" data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"><?php echo $existing_term->name ?></div>
+                                <?php $counter++; ?>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
                 </div>
             <?php } ?>
 
@@ -392,8 +400,9 @@ class Growtype_Post_Shortcode
             >
                 <?php
                 $counter = 0;
-                $existing_args = $args;
                 while ($wp_query->have_posts()) : $wp_query->the_post();
+                    $existing_args = $args;
+
                     if (!empty($counter) && isset($existing_args['posts_per_page']) && $existing_args['posts_per_page'] > 0 && $counter >= $existing_args['posts_per_page']) {
                         $existing_classes = explode(' ', $existing_args['post_classes']);
                         array_push($existing_classes, 'is-hidden');
@@ -411,21 +420,26 @@ class Growtype_Post_Shortcode
                     if (isset($current_post->post_permalink)) {
                         $existing_args['post_permalink'] = $current_post->post_permalink;
                     } else {
-                        $existing_args['post_permalink'] = isset($existing_args['post_permalink']) ? $existing_args['post_permalink'] : get_permalink();
+                        $existing_args['post_permalink'] = get_permalink();
                     }
 
                     if (isset($current_post->post_terms)) {
                         $existing_args['post_terms'] = $current_post->post_terms;
                     } else {
-                        $existing_args['post_terms'] = wp_get_post_terms(get_the_ID(), $terms_navigation_taxonomy);
-                        $existing_args['post_terms'] = is_wp_error($existing_args['post_terms']) ? [] : $existing_args['post_terms'];
+                        foreach ($terms_navigation_taxonomies as $terms_navigation_taxonomy) {
+                            $existing_args['post_terms'][$terms_navigation_taxonomy] = wp_get_post_terms(get_the_ID(), $terms_navigation_taxonomy);
+                            $existing_args['post_terms'][$terms_navigation_taxonomy] = is_wp_error($existing_args['post_terms']) ? [] : $existing_args['post_terms'];
+                        }
                     }
+
+                    $existing_args['post_terms_html'] = self::format_post_terms_html($existing_args['post_terms']);
 
                     echo self::render_single(
                         $template_path,
                         $current_post,
                         $existing_args
                     );
+
                     $counter++;
                 endwhile;
                 ?>
@@ -433,7 +447,7 @@ class Growtype_Post_Shortcode
 
             <?php if (isset($args['post_in_modal']) && $args['post_in_modal']) { ?>
                 <?php while ($wp_query->have_posts()) : $wp_query->the_post(); ?>
-                    <div class="modal modal-growtype-post fade" id="<?php echo 'growtypePostModal-' . get_the_ID() . '"' ?>" tabindex="-1" aria-hidden="true">
+                    <div class="modal modal-growtype-post fade" id="<?php echo 'growtype-post-modal-' . get_the_ID() . '"' ?>" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <?php echo growtype_post_include_view(
@@ -465,6 +479,16 @@ class Growtype_Post_Shortcode
         return ob_get_clean();
     }
 
+    public static function format_post_terms_html($terms)
+    {
+        $html = '';
+        foreach ($terms as $key => $term) {
+            $html .= 'data-cat-' . $key . '="' . implode(',', array_pluck($term, 'slug')) . '" ';
+        }
+
+        return $html;
+    }
+
     /**
      * @param $template_path
      * @param $post
@@ -476,9 +500,7 @@ class Growtype_Post_Shortcode
         $post,
         $args
     ) {
-
         $variables = array_merge(['post' => $post], $args);
-
         return growtype_post_include_view($template_path, $variables);
     }
 

@@ -5,7 +5,7 @@
   gap: 20px;
 }
 
-.btn-like, .btn-share {
+.growtype-post-btn-like, .growtype-post-btn-share {
   display: flex;
   gap: 7px;
   background: none;
@@ -29,7 +29,7 @@
   }
 }
 
-.btn-like {
+.growtype-post-btn-like {
   width: initial !important;
   display: flex !important;
   align-items: center !important;
@@ -60,7 +60,7 @@
   }
 }
 
-.btn-share {
+.growtype-post-btn-share {
   font-weight: 300;
   position: relative;
   top: 0;
