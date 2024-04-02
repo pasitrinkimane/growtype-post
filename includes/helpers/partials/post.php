@@ -36,7 +36,7 @@ function growtype_post_get_id($post)
  * @param int $length
  * @return string
  */
-function growtype_post_get_limited_content($initial_content, $length = 125)
+function growtype_post_get_limited_content($initial_content, $length = 125, $sentences_amount = null)
 {
     if (empty($length)) {
         $length = apply_filters('growtype_post_limited_content_length', 125);
@@ -44,8 +44,12 @@ function growtype_post_get_limited_content($initial_content, $length = 125)
 
     $content = __($initial_content);
 
-    if (strlen($initial_content) > $length) {
-
+    if (!empty($sentences_amount)) {
+        $text_only = strip_tags($content);
+        $sentence_pattern = '/(?<=[.!?])\s+/';
+        $sentences = preg_split($sentence_pattern, $text_only, ((int)$sentences_amount + 1), PREG_SPLIT_NO_EMPTY);
+        $content = implode(' ', array_slice($sentences, 0, (int)$sentences_amount));
+    } elseif (strlen($initial_content) > $length) {
         $removed_content = str_replace(substr($content, 0, $length), '', $content);
 
         if (preg_match("/<[^<]+>/", $removed_content, $m) != 0) {
@@ -207,5 +211,44 @@ if (!function_exists('growtype_post_get_ip_key')) {
         $REMOTE_ADDR = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 
         return $HTTP_X_FORWARDED_FOR . $REMOTE_ADDR;
+    }
+}
+
+/**
+ * Post like
+ */
+if (!function_exists('growtype_post_like_post')) {
+    function growtype_post_like_post($post_id, $dislike_enabled = true)
+    {
+        $ip_key = growtype_post_get_ip_key();
+        $likes = growtype_post_get_post_likes($post_id);
+
+        if (!empty($post_id)) {
+            if (!in_array($ip_key, $likes)) {
+                array_push($likes, $ip_key);
+                update_post_meta($post_id, 'growtype_post_likes', $likes);
+            } elseif ($dislike_enabled) {
+                $likes = array_diff($likes, [$ip_key]);
+                update_post_meta($post_id, 'growtype_post_likes', $likes);
+            }
+        }
+
+        return $likes;
+    }
+}
+
+/**
+ * Post likes
+ */
+if (!function_exists('growtype_post_get_post_likes')) {
+    function growtype_post_get_post_likes($post_id)
+    {
+        $likes = get_post_meta($post_id, 'growtype_post_likes', true);
+
+        if (empty($likes)) {
+            $likes = [];
+        }
+
+        return $likes;
     }
 }

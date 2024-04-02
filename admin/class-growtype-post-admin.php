@@ -24,7 +24,7 @@ class Growtype_Post_Admin
 {
     use AdminSettingsGeneralTrait;
 
-    const GROWTYPE_WC_SETTINGS_DEFAULT_TAB = 'general';
+    const GROWTYPE_POST_SETTINGS_DEFAULT_TAB = 'general';
     const SETTINGS_PAGE_SLUG = 'growtype-post-settings';
 
     /**

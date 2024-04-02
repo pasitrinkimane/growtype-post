@@ -179,7 +179,7 @@ class Growtype_Post
         /**
          * Helper functions
          */
-        require_once GROWTYPE_POST_PATH . 'includes/helpers/general.php';
+        require_once GROWTYPE_POST_PATH . 'includes/helpers/index.php';
 
         /**
          * Shortcode

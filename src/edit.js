@@ -106,7 +106,7 @@ export default function Edit({attributes, setAttributes}) {
             <InspectorControls key={'inspector'}>
                 <Panel>
                     <PanelBody
-                        title={__('Source settings', 'growtype-post')}
+                        title={__('Content settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <SelectControl
@@ -163,6 +163,16 @@ export default function Edit({attributes, setAttributes}) {
                             :
                             ''
                         }
+                        <ToggleControl
+                            label={__('Ajax load content', 'growtype-post')}
+                            help={
+                                attributes.ajax_load_content
+                                    ? 'Ajax is enabled.'
+                                    : 'Ajax is disabled.'
+                            }
+                            checked={attributes.ajax_load_content ? true : false}
+                            onChange={(val) => updateShortcode('ajax_load_content', val)}
+                        />
                     </PanelBody>
                     <PanelBody
                         title={__('Preview settings', 'growtype-post')}
@@ -204,16 +214,12 @@ export default function Edit({attributes, setAttributes}) {
                             value={attributes.orderby}
                             onChange={(val) => updateShortcode('orderby', val)}
                         />
-                        {!attributes.sticky_post ?
-                            <TextControl
-                                label={__('Post in', 'growtype-post')}
-                                help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
-                                onChange={(val) => updateShortcode('post__in', val)}
-                                value={attributes.post__in}
-                            />
-                            :
-                            ''
-                        }
+                        <TextControl
+                            label={__('Post in', 'growtype-post')}
+                            help={__('Show only these posts. Enter ids separated by comma.', 'growtype-post')}
+                            onChange={(val) => updateShortcode('post__in', val)}
+                            value={attributes.post__in}
+                        />
                         <ToggleControl
                             label={__('Post is a link', 'growtype-post')}
                             help={

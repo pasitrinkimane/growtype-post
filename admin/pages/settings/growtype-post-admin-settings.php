@@ -20,7 +20,7 @@ class Growtype_Post_Admin_Settings
             __('Growtype - Post', 'growtype-post'),
             __('Growtype - Post', 'growtype-post'),
             'manage_options',
-            'growtype-post-settings',
+            Growtype_Post_Admin::SETTINGS_PAGE_SLUG,
             array ($this, 'options_page_content'),
             1
         );
@@ -28,7 +28,7 @@ class Growtype_Post_Admin_Settings
 
     function options_page_content()
     {
-        if (isset($_GET['page']) && $_GET['page'] == 'growtype-post-settings') { ?>
+        if (isset($_GET['page']) && $_GET['page'] === Growtype_Post_Admin::SETTINGS_PAGE_SLUG) { ?>
 
             <div class="wrap">
 
@@ -52,7 +52,7 @@ class Growtype_Post_Admin_Settings
                     if (isset ($_GET['tab'])) {
                         $tab = $_GET['tab'];
                     } else {
-                        $tab = Growtype_Post_Admin::GROWTYPE_WC_SETTINGS_DEFAULT_TAB;
+                        $tab = Growtype_Post_Admin::GROWTYPE_POST_SETTINGS_DEFAULT_TAB;
                     }
 
                     switch ($tab) {
@@ -94,7 +94,7 @@ class Growtype_Post_Admin_Settings
         return apply_filters('growtype_post_admin_settings_tabs', []);
     }
 
-    function render_settings_tab_render($current = Growtype_Post_Admin::GROWTYPE_WC_SETTINGS_DEFAULT_TAB)
+    function render_settings_tab_render($current = Growtype_Post_Admin::GROWTYPE_POST_SETTINGS_DEFAULT_TAB)
     {
         $tabs = $this->settings_tabs();
 

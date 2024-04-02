@@ -25,6 +25,10 @@
       "type": "boolean",
       "default": true
     },
+    "ajax_load_content": {
+      "type": "boolean",
+      "default": false
+    },
     "terms_navigation": {
       "type": "boolean",
       "default": false

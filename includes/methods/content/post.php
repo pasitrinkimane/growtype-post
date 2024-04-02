@@ -12,7 +12,7 @@ add_action('growtype_single_post_date', 'growtype_post_growtype_single_post_date
 function growtype_post_growtype_single_post_date()
 {
     if (get_theme_mod('growtype_post_single_page_date_enabled', true)) {
-        echo '<div class="container section-date"><h1>' . get_the_title() . '</h1></div>';
+        echo '<div class="container section-date">' . get_the_date() . '</div>';
     }
 }
 
@@ -21,7 +21,10 @@ function growtype_post_growtype_single_post_featured_image()
 {
     if (get_theme_mod('growtype_post_single_page_featured_image_enabled', true)) {
         $caption = get_the_post_thumbnail_caption(get_the_ID());
-        echo sprintf('<div class="container section-featuredimg" style="background: url(%s);background-size:cover;background-position:center;">%s</div>', get_the_post_thumbnail_url(get_the_ID(), 'full'), '<span class="section-featuredimg-caption e-caption">' . $caption . '</span>');
+        $thumbnail_url = get_the_post_thumbnail_url(get_the_ID(), 'full');
+        if (!empty($thumbnail_url)) {
+            echo sprintf('<div class="container section-featuredimg" style="background: url(%s);background-size:cover;background-position:center;">%s</div>', get_the_post_thumbnail_url(get_the_ID(), 'full'), '<span class="section-featuredimg-caption e-caption">' . $caption . '</span>');
+        }
     }
 }
 
@@ -35,7 +38,7 @@ function growtype_post_growtype_single_post_cta()
 
 function growtype_post_render_cta()
 {
-    $likes = Growtype_Post_Ajax::growtype_post_likes_data(get_the_ID());
+    $likes = growtype_post_get_post_likes(get_the_ID());
 
     return '<div class="cta-wrapper"><div class="growtype-post-btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="growtype-post-btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
 }
@@ -72,7 +75,7 @@ function growtype_post_growtype_single_post_related_posts()
 
         $posts_args = apply_filters('growtype_post_related_posts_args', $posts_args);
 
-        if (!empty($posts_args['posts'])) {
+        if (isset($posts_args['posts']) && !empty($posts_args['posts']->posts)) {
             echo growtype_post_include_view('section.related-posts', $posts_args);
         }
 
@@ -114,3 +117,20 @@ function growtype_post_growtype_single_post_taxonomy()
         echo '<div class="container section-taxonomy">' . $category . '</div>';
     }
 }
+
+add_action('wp_loaded', function () {
+    /**
+     * Like post
+     */
+    if (isset($_GET['growtype-post-action']) && $_GET['growtype-post-action'] === 'like') {
+        $post_id = isset($_GET['post_id']) && !empty($_GET['post_id']) ? $_GET['post_id'] : null;
+
+        if (!empty($post_id)) {
+            growtype_post_like_post($post_id, false);
+
+            add_action('wp_footer', function () {
+                echo '<script>window.history.pushState({}, document.title, "' . get_permalink($post_id) . '" );</script>';
+            });
+        }
+    }
+});

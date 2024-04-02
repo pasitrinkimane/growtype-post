@@ -152,6 +152,12 @@ class Growtype_Post_Loader
         new Growtype_Post_Ajax();
 
         /**
+         * Api
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/methods/api/class-growtype-post-api.php';
+        new Growtype_Post_Api();
+
+        /**
          * Content
          */
         require_once GROWTYPE_POST_PATH . 'includes/methods/content/archive.php';

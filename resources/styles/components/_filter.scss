@@ -16,3 +16,27 @@
     }
   }
 }
+
+.growtype-post-terms-filters {
+  .chosen-container {
+    margin-bottom: 20px;
+  }
+}
+
+div.growtype-post-terms-filter {
+  @include bp-phone-xl() {
+    display: none;
+  }
+}
+
+select.growtype-post-terms-filter {
+  & + .chosen-container {
+    @include bp-phone-xl-reverse() {
+      display: none;
+    }
+  }
+
+  @include bp-phone-xl-reverse() {
+    display: none;
+  }
+}
