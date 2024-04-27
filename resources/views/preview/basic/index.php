@@ -5,8 +5,8 @@
         <?php echo isset($post_attributes) ? $post_attributes : '' ?>
     >
         <?php echo growtype_post_include_view(
-            $preview_file_path,
-            $variables
+            'preview.' . $args['preview_style'] . '.content',
+            $args
         ); ?>
     </div>
 <?php } else { ?>
@@ -18,8 +18,8 @@
 
     >
         <?php echo growtype_post_include_view(
-            $preview_file_path,
-            $variables
+            'preview.' . $args['preview_style'] . '.content',
+            $args
         ); ?>
     </a>
 <?php } ?>

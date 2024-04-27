@@ -235,15 +235,15 @@ export default function Edit({attributes, setAttributes}) {
                             help={__('Sticky post visibility.', 'growtype-post')}
                             options={[
                                 {
-                                    label: 'None',
+                                    label: 'Show all posts',
                                     value: 'none',
                                 },
                                 {
-                                    label: 'Visible',
+                                    label: 'Show only sticky posts',
                                     value: 'visible',
                                 },
                                 {
-                                    label: 'Hidden',
+                                    label: 'Show posts without sticky',
                                     value: 'hidden',
                                 },
                             ]}
@@ -265,9 +265,18 @@ export default function Edit({attributes, setAttributes}) {
                             checked={attributes.load_all_posts}
                             onChange={(val) => updateShortcode('load_all_posts', val)}
                         />
+                        {attributes.load_all_posts ?
+                            <ToggleControl
+                                label={__('Show "load more" posts btn', 'growtype-post')}
+                                checked={attributes.show_load_more_posts_btn}
+                                onChange={(val) => updateShortcode('show_load_more_posts_btn', val)}
+                            />
+                            :
+                            ''
+                        }
                         {attributes.load_all_posts && (
                             <SelectControl
-                                label={__('Loading type', 'growtype-post')}
+                                label={__('Posts loading method', 'growtype-post')}
                                 options={[
                                     {
                                         label: 'Initial',
@@ -363,7 +372,7 @@ export default function Edit({attributes, setAttributes}) {
                         />
                     </PanelBody>
                     <PanelBody
-                        title={__('Navigation settings', 'growtype-post')}
+                        title={__('Terms settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <ToggleControl
@@ -386,6 +395,35 @@ export default function Edit({attributes, setAttributes}) {
                             :
                             ''
                         }
+                        {attributes.terms_navigation ?
+                            <ToggleControl
+                                label={__('"Show all" option visible', 'growtype-post')}
+                                help={
+                                    attributes.terms_navigation_show_all_option_visible
+                                        ? 'Is visible.'
+                                        : 'Is hidden.'
+                                }
+                                checked={attributes.terms_navigation_show_all_option_visible ? true : false}
+                                onChange={(val) => updateShortcode('terms_navigation_show_all_option_visible', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation ?
+                            <TextControl
+                                label={__('Default term selected', 'growtype-post')}
+                                help={__('', 'growtype-post')}
+                                onChange={(val) => updateShortcode('default_term_selected', val)}
+                                value={attributes.default_term_selected}
+                            />
+                            :
+                            ''
+                        }
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Pagination settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
                         <ToggleControl
                             label="Pagination"
                             help={

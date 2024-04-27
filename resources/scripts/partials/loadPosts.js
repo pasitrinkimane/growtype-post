@@ -20,7 +20,17 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
                 return;
             }
 
-            if ($(post).attr('data-cat-' + key) !== value) {
+            let exists = false;
+
+            if ($(post).attr('data-cat-' + key) !== undefined) {
+                $(post).attr('data-cat-' + key).split(',').forEach(function (item) {
+                    if (item.trim() === value) {
+                        exists = true;
+                    }
+                });
+            }
+
+            if (!exists) {
                 postIsVisible = false;
             }
         });
@@ -48,10 +58,14 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
         loadMoreBtn = postsContainer.find('.wp-block-button')
     }
 
+    if (loadMoreBtn.length === 0) {
+        loadMoreBtn = postsContainer.find('.gp-actions-wrapper .btn-loadmore')
+    }
+
     if (validPosts === availablePosts) {
-        loadMoreBtn.closest('.wp-block-button').hide();
+        loadMoreBtn.closest('.wp-block-button,.gp-actions-wrapper').hide();
     } else {
-        loadMoreBtn.closest('.wp-block-button').fadeIn();
+        loadMoreBtn.closest('.wp-block-button,.gp-actions-wrapper').fadeIn();
     }
 
     document.dispatchEvent(growtypePostLoadPostsEvent);

@@ -10,7 +10,8 @@ window.growtype_post.terms_filter = [];
 /**
  * Load more posts
  */
-growtypePostLoadMore();
+growtypePostLoadMore($('a[data-growtype-post-load-more]'));
+growtypePostLoadMore($('.gp-actions-wrapper .btn-loadmore'));
 
 /**
  * Filter posts
@@ -41,7 +42,14 @@ function termsTrigger() {
         });
     });
 
+    /**
+     * Filter posts
+     */
     $('.growtype-post-terms-filter-btn').click(function () {
+        if ($(this).attr('data-disabled')) {
+            return;
+        }
+
         let triggerType = $(this).attr('data-trigger-type');
         let multipleSelect = $(this).attr('data-multiple-select');
 
@@ -92,6 +100,9 @@ function termsTrigger() {
         });
     });
 
+    /**
+     *
+     */
     $('.growtype-post-terms-filter').each(function (index, element) {
         if ($(this).attr('data-init-cat') !== '' && $(element).is(':visible')) {
             if ($(element).is('select')) {
@@ -154,8 +165,8 @@ function postCta() {
             success: function (response) {
                 btn.find('.e-amount').remove();
 
-                if (response['likes'] > 0) {
-                    btn.prepend('<span class="e-amount">' + response['likes'] + '</span>');
+                if (response.data['likes'] > 0) {
+                    btn.prepend('<span class="e-amount">' + response.data['likes'] + '</span>');
                 }
             }
         });
@@ -187,7 +198,7 @@ function postCta() {
                 data_type: dataType
             },
             success: function (response) {
-                let newUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + response.share_url;
+                let newUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + response.data.share_url;
                 setTimeout(() => {
                     window.open(newUrl, "_blank");
                 })
@@ -220,15 +231,25 @@ $(document).ready(function () {
                 url: growtype_post.ajax_url,
                 type: 'post',
                 data: {
-                    action: 'ajax_load_content',
+                    action: 'growtype_post_ajax_load_content',
                     args: args
                 },
                 success: function (response) {
-                    container.html(response.render);
-                    $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').show();
-                    termsTrigger();
-                    postCta();
-                    document.dispatchEvent(growtypePostAjaxLoadContent(response));
+                    if (response.data.render) {
+                        let content = $(response.data.render);
+
+                        container.html(content);
+
+                        termsTrigger();
+
+                        postCta();
+
+                        growtypePostLoadMore(content.find('.btn-loadmore'));
+
+                        $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').show();
+
+                        document.dispatchEvent(growtypePostAjaxLoadContent(response));
+                    }
                 }
             });
         }

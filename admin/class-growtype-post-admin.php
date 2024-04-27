@@ -89,6 +89,12 @@ class Growtype_Post_Admin
     private function load_methods()
     {
         /**
+         * Share
+         */
+        require GROWTYPE_POST_PATH . '/admin/methods/growtype-post-admin-post-settings-meta.php';
+        new Growtype_Post_Admin_Post_Settings_Meta();
+
+        /**
          * Plugin settings
          */
         require GROWTYPE_POST_PATH . '/admin/pages/growtype-post-admin-pages.php';

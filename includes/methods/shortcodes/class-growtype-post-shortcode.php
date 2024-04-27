@@ -19,6 +19,36 @@ class Growtype_Post_Shortcode
      */
     public static function init($attr)
     {
+        $args = self::format_args($attr);
+
+        if ($args['preview_style'] === 'product' && !class_exists('woocommerce')) {
+            return __('Please enable WooCommerce plugin to use this preview style!', 'growtype-post');
+        }
+
+        if ($args['ajax_load_content']) {
+            $args['ajax_load_content'] = false;
+            return sprintf("<div class='growtype-post-ajax-load-content' data-args='%s'><div class='spinner-wrapper'><span class='spinner-border'></span></div></div>", json_encode($args));
+        }
+
+        $wp_query_response = self::query_posts($args);
+        $args = array_merge($args, $wp_query_response['args'] ?? []);
+        $wp_query = $wp_query_response['wp_query'] ?? [];
+
+        /**
+         * Show posts
+         */
+        if ($wp_query->have_posts()) {
+            $render = self::render_all(
+                $wp_query,
+                $args
+            );
+        }
+
+        return $render ?? '';
+    }
+
+    public static function format_args($attr = [])
+    {
         $args = [
             'post_type' => isset($attr['post_type']) ? $attr['post_type'] : 'post',
             'content_source' => isset($attr['content_source']) ? $attr['content_source'] : 'internal',
@@ -31,6 +61,7 @@ class Growtype_Post_Shortcode
             'post_status' => isset($attr['post_status']) ? $attr['post_status'] : 'publish', //also active, expired
             'columns' => isset($attr['columns']) ? $attr['columns'] : '3',
             'post__in' => isset($attr['post__in']) ? $attr['post__in'] : [],
+            'post__not_in' => isset($attr['post__not_in']) ? $attr['post__not_in'] : [],
             'category__not_in' => isset($attr['category__not_in']) ? $attr['category__not_in'] : [],
             'category__in' => isset($attr['category__in']) ? $attr['category__in'] : [],
             'order' => isset($attr['order']) ? $attr['order'] : 'asc',
@@ -50,13 +81,37 @@ class Growtype_Post_Shortcode
             'content_url_cache' => isset($attr['content_url_cache']) ? filter_var($attr['content_url_cache'], FILTER_VALIDATE_BOOLEAN) : false,
             'terms_navigation' => isset($attr['terms_navigation']) ? filter_var($attr['terms_navigation'], FILTER_VALIDATE_BOOLEAN) : false,
             'ajax_load_content' => isset($attr['ajax_load_content']) ? filter_var($attr['ajax_load_content'], FILTER_VALIDATE_BOOLEAN) : false,
+            'terms_navigation_show_all_option_visible' => isset($attr['terms_navigation_show_all_option_visible']) ? filter_var($attr['terms_navigation_show_all_option_visible'], FILTER_VALIDATE_BOOLEAN) : false,
+            'default_term_selected' => isset($attr['default_term_selected']) ? $attr['default_term_selected'] : '',
+            'show_load_more_posts_btn' => isset($attr['show_load_more_posts_btn']) ? filter_var($attr['show_load_more_posts_btn'], FILTER_VALIDATE_BOOLEAN) : false,
         ];
 
-        if ($args['ajax_load_content']) {
-            $args['ajax_load_content'] = false;
-            return sprintf("<div class='growtype-post-ajax-load-content' data-args='%s'><div class='spinner-wrapper'><span class='spinner-border'></span></div></div>", json_encode($args));
+        $args['post_type'] = !is_array($args['post_type']) ? explode(',', $args['post_type']) : $args['post_type'];
+
+        /**
+         * Preview style
+         */
+        if ($args['preview_style'] === 'custom' && !empty($args['preview_style_custom'])) {
+            $args['preview_style'] = $args['preview_style_custom'];
         }
 
+        $args['template_slug'] = isset($attr['template_slug']) ? $attr['template_slug'] : 'preview.' . $args['preview_style'] . '.index';
+
+        $post_classes_list = ['growtype-post-single'];
+
+        array_push($post_classes_list, 'growtype-post-' . $args['preview_style']);
+
+        if (!empty($post_type)) {
+            array_push($post_classes_list, 'growtype-post-' . implode('-', $args['post_type']));
+        }
+
+        $args['post_classes'] = isset($attr['post_classes']) && !empty($attr['post_classes']) ? implode(' ', $post_classes_list) . ' ' . $attr['post_classes'] : implode(' ', $post_classes_list);
+
+        return apply_filters('growtype_post_shortcode_format_args', $args, $attr);
+    }
+
+    public static function query_posts($args)
+    {
         $posts_per_page = $args['posts_per_page'];
 
         /**
@@ -64,15 +119,6 @@ class Growtype_Post_Shortcode
          */
         if ($args['load_all_posts'] && in_array($args['loading_type'], ['initial', 'limited'])) {
             $posts_per_page = -1;
-        }
-
-        /**
-         * Preview style
-         */
-        if ($args['preview_style'] === 'custom' && !empty($args['preview_style_custom'])) {
-            $args['preview_style'] = $args['preview_style_custom'];
-        } elseif ($args['preview_style'] === 'product' && !class_exists('woocommerce')) {
-            return __('Please enable WooCommerce plugin to use this preview style!', 'growtype-post');
         }
 
         $query_args = array (
@@ -98,6 +144,10 @@ class Growtype_Post_Shortcode
             $query_args['post__in'] = explode(',', $args['post__in']);
         }
 
+        if (!empty($args['post__not_in'])) {
+            $query_args['post__not_in'] = explode(',', $args['post__not_in']);
+        }
+
         /**
          * Display sticky posts
          */
@@ -107,14 +157,17 @@ class Growtype_Post_Shortcode
                 $parent_class = array_filter($parent_class);
                 array_push($parent_class, 'has-sticky-post');
                 $parent_class = implode(' ', $parent_class);
-                $query_args['post__in'] = !empty(get_option('sticky_posts')) ? get_option('sticky_posts') : ['0'];
+                $sticky_posts_ids = !empty(get_option('sticky_posts')) ? get_option('sticky_posts') : ['0'];
+                $sticky_posts_ids = apply_filters('growtype_post_shortcode_sticky_posts_ids', $sticky_posts_ids, $args);
+                $query_args['post__in'] = $sticky_posts_ids;
             } elseif ($args['sticky_post'] === 'hidden' && !empty(get_option('sticky_posts'))) {
-                $query_args['post__not_in'] = get_option('sticky_posts');
+                $post__not_in = !empty($query_args['post__not_in']) ? $query_args['post__not_in'] : [];
+                $query_args['post__not_in'] = array_merge($post__not_in, get_option('sticky_posts'));
             }
         }
 
         if (!empty($args['category_name'])) {
-            if (in_array($args['post_type'], ['product'])) {
+            if (in_array('product', $args['post_type'])) {
                 $query_args['tax_query'] = array (
                     array (
                         'taxonomy' => 'product_cat',
@@ -140,7 +193,7 @@ class Growtype_Post_Shortcode
             /**
              * For multisite sites
              */
-            if ($args['post_type'] === 'multisite_sites') {
+            if (in_array('multisite_sites', $args['post_type'])) {
                 $site__not_in = [get_main_site_id()];
 
                 if ($args['post_status'] === 'active' || $args['post_status'] === 'expired') {
@@ -168,7 +221,7 @@ class Growtype_Post_Shortcode
                         'site__not_in' => $site__not_in,
                     ]);
 
-                    $total_pages = round(count($total_existing_records) / $posts_per_page);
+                    $args['total_pages'] = round(count($total_existing_records) / $posts_per_page);
                 }
 
                 $wp_query = new WP_Site_Query([
@@ -181,7 +234,7 @@ class Growtype_Post_Shortcode
                  * Include custom meta query
                  */
                 if (!empty($args['meta_query'])) {
-                    $query_args['meta_query'] = json_decode(urldecode($args['meta_query']), true);
+                    $query_args['meta_query'] = is_array($args['meta_query']) ? $args['meta_query'] : json_decode(urldecode($args['meta_query']), true);
                 }
 
                 /**
@@ -199,7 +252,11 @@ class Growtype_Post_Shortcode
                  * Total existing records for pagination
                  */
                 if ($args['pagination']) {
-                    $args['total_pages'] = round(wp_count_posts($query_args['post_type'])->publish / $posts_per_page);
+                    $total_pages = 0;
+                    foreach ($query_args['post_type'] as $post_type) {
+                        $total_pages += round(wp_count_posts($post_type)->publish / $posts_per_page);
+                    }
+                    $args['total_pages'] = $total_pages;
                 }
             }
         } else {
@@ -216,6 +273,9 @@ class Growtype_Post_Shortcode
             $transient_name = apply_filters('growtype_post_shortcode_transient_name', $transient_name, $args);
             $transient_name = substr($transient_name, 0, 150);
 
+            /**
+             * Check if custom source exists
+             */
             if (has_filter('growtype_post_content_sourced')) {
                 $posts = apply_filters('growtype_post_content_sourced', $args);
             } else {
@@ -248,6 +308,21 @@ class Growtype_Post_Shortcode
                 }
             }
 
+            /**
+             * Exclude posts
+             */
+            if (isset($args['post__not_in']) && !empty($args['post__not_in'])) {
+                foreach ($posts as $key => $post) {
+                    if (in_array($post['id'], $args['post__not_in'])) {
+                        unset($posts[$key]);
+                    }
+                }
+            }
+
+            if (isset($args['load_all_posts']) && !$args['load_all_posts']) {
+                $posts = array_slice($posts, growtype_post_get_pagination_offset($posts_per_page), $posts_per_page);
+            }
+
             $formatted_posts = self::format_posts_as_wp_posts($posts);
 
             $wp_query = new WP_Query;
@@ -257,19 +332,10 @@ class Growtype_Post_Shortcode
             $wp_query->post_count = count($formatted_posts);
         }
 
-        /**
-         * Show posts
-         */
-        $render = '';
-
-        if ($wp_query->have_posts()) {
-            $render = self::render_all(
-                $wp_query,
-                $args
-            );
-        }
-
-        return $render;
+        return [
+            'wp_query' => $wp_query,
+            'args' => $args
+        ];
     }
 
     public static function format_posts_as_wp_posts($posts)
@@ -328,8 +394,13 @@ class Growtype_Post_Shortcode
      */
     public static function render_all(
         $wp_query = null,
-        $args = null
+        $args = []
     ) {
+        /**
+         * Fill args with default values
+         */
+        $args = self::format_args($args);
+
         /**
          * Prepare default wp_query if empty wp_query is passed
          */
@@ -361,24 +432,6 @@ class Growtype_Post_Shortcode
             $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : $pages_amount;
         }
 
-        $post_classes_list = ['growtype-post-single'];
-
-        $post_type = isset($args['post_type']) && !empty($args['post_type']) ? $args['post_type'] : null;
-
-        $preview_style = isset($args['preview_style']) ? $args['preview_style'] : 'basic';
-
-        $args['preview_file_path'] = 'preview.' . $preview_style . '.content';
-
-        array_push($post_classes_list, 'growtype-post-' . $preview_style);
-
-        if (!empty($post_type)) {
-            array_push($post_classes_list, 'growtype-post-' . $post_type);
-        }
-
-        $args['post_classes'] = isset($args['post_classes']) && !empty($args['post_classes']) ? implode(' ', $post_classes_list) . ' ' . $args['post_classes'] : implode(' ', $post_classes_list);
-
-        $template_path = 'preview.' . $preview_style . '.index';
-
         $terms_navigation_taxonomies = isset($args['terms_navigation_taxonomy']) ? $args['terms_navigation_taxonomy'] : ['category'];
 
         foreach ($terms_navigation_taxonomies as $terms_navigation_taxonomy) {
@@ -400,26 +453,37 @@ class Growtype_Post_Shortcode
             ];
         }
 
-        $existing_terms_groups = apply_filters('growtype_post_shortcode_extend_terms', $terms, $wp_query, $args);
+        $terms = apply_filters('growtype_post_shortcode_extend_terms', $terms, $wp_query, $args);
 
         ob_start();
 
         if ($wp_query->have_posts()) : ?>
 
-            <div class="growtype-post-container-wrapper"
-                 data-post-style="<?php echo $preview_style ?>"
-            >
-                <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] && !empty($existing_terms_groups)) { ?>
+            <div class="growtype-post-container-wrapper" data-preview-style="<?php echo $args['preview_style'] ?>">
+                <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] && !empty($terms)) { ?>
                     <div class="growtype-post-terms-filters">
-                        <?php foreach ($existing_terms_groups as $key => $existing_terms) { ?>
+                        <?php foreach ($terms as $key => $existing_terms) {
+
+                            $js_init_cat = isset($existing_terms['settings']['js_init_cat']) ? $existing_terms['settings']['js_init_cat'] : '';
+
+                            if (isset($args['default_term_selected']) && !empty($args['default_term_selected'])) {
+                                $js_init_cat = $args['default_term_selected'];
+                            }
+
+                            ?>
                             <div class="growtype-post-terms-filter"
                                  data-type="<?php echo $key ?>"
-                                 data-init-cat="<?php echo isset($existing_terms['settings']['js_init_cat']) ? $existing_terms['settings']['js_init_cat'] : '' ?>"
+                                 data-init-cat="<?php echo $js_init_cat ?>"
                             >
                                 <?php if (isset($existing_terms['values'])) {
                                     $counter = 0;
                                     $toggle_trigger_exists = false;
                                     foreach ($existing_terms['values'] as $existing_term) {
+
+                                        if (!$args['terms_navigation_show_all_option_visible'] && isset($existing_term->slug) && $existing_term->slug === 'all') {
+                                            continue;
+                                        }
+
                                         $trigger_type = isset($existing_terms['settings']['trigger_type']) ? $existing_terms['settings']['trigger_type'] : 'click';
                                         $multiple_select = isset($existing_terms['settings']['multiple_select']) && $existing_terms['settings']['multiple_select'] === true ? 'true' : 'false';
 
@@ -428,11 +492,18 @@ class Growtype_Post_Shortcode
                                             if ($existing_terms['settings']['default_value'] === $existing_term->slug) {
                                                 $is_selected = true;
                                             }
-                                        } elseif ($counter === 0) {
+                                        } elseif (empty($js_init_cat) && $counter === 0) {
                                             $is_selected = true;
                                         }
                                         ?>
-                                        <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $is_selected ? 'is-active' : '' ?>" data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>" data-trigger-type="<?php echo $trigger_type ?>" data-multiple-select="<?php echo $multiple_select ?>"><?php echo $existing_term->name ?></div>
+                                        <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $is_selected ? 'is-active' : '' ?>"
+                                             data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"
+                                             data-trigger-type="<?php echo $trigger_type ?>"
+                                             data-multiple-select="<?php echo $multiple_select ?>"
+                                             data-disabled="<?php echo isset($existing_term->disabled) ? $existing_term->disabled : false ?>"
+                                        >
+                                            <?php echo $existing_term->name ?>
+                                        </div>
                                         <?php $counter++; ?>
                                     <?php }
                                 } ?>
@@ -440,7 +511,7 @@ class Growtype_Post_Shortcode
                             <select name="<?php echo $key ?>"
                                     class="growtype-post-terms-filter"
                                     data-type="<?php echo $key ?>"
-                                    data-init-cat="<?php echo isset($existing_terms['settings']['js_init_cat']) ? $existing_terms['settings']['js_init_cat'] : '' ?>"
+                                    data-init-cat="<?php echo $js_init_cat ?>"
                             >
                                 <?php if (isset($existing_terms['values'])) {
                                     foreach ($existing_terms['values'] as $existing_term) {
@@ -479,51 +550,7 @@ class Growtype_Post_Shortcode
                     data-loading-type="<?php echo isset($args['loading_type']) ? $args['loading_type'] : 'initial' ?>"
                     style="--growtype-post-posts-grid-columns-count:<?php echo isset($args['columns']) ? $args['columns'] : '1' ?>;"
                 >
-                    <?php
-                    $counter = 0;
-                    while ($wp_query->have_posts()) : $wp_query->the_post();
-                        $current_post = get_post();
-
-                        $existing_args = apply_filters('growtype_post_shortcode_extend_post_args', $args, $current_post);
-
-                        if (isset($args['loading_type']) && $args['loading_type'] === 'limited' && !empty($counter) && isset($existing_args['posts_per_page']) && $existing_args['posts_per_page'] > 0 && $counter >= $existing_args['posts_per_page']) {
-                            $existing_classes = explode(' ', $existing_args['post_classes']);
-                            array_push($existing_classes, 'is-hidden');
-                            $existing_args['post_classes'] = implode(' ', $existing_classes);
-                        }
-
-                        $current_post = apply_filters('growtype_post_shortcode_extend_post', $current_post, $args);
-
-                        if (isset($current_post->post_is_a_link)) {
-                            $existing_args['post_is_a_link'] = $current_post->post_is_a_link;
-                        }
-
-                        if (isset($current_post->post_permalink)) {
-                            $existing_args['post_permalink'] = $current_post->post_permalink;
-                        } else {
-                            $existing_args['post_permalink'] = get_permalink();
-                        }
-
-                        if (isset($current_post->post_terms)) {
-                            $existing_args['post_terms'] = $current_post->post_terms;
-                        } else {
-                            foreach ($terms_navigation_taxonomies as $terms_navigation_taxonomy) {
-                                $existing_args['post_terms'][$terms_navigation_taxonomy] = wp_get_post_terms(get_the_ID(), $terms_navigation_taxonomy);
-                                $existing_args['post_terms'][$terms_navigation_taxonomy] = is_wp_error($existing_args['post_terms'][$terms_navigation_taxonomy]) ? [] : $existing_args['post_terms'][$terms_navigation_taxonomy];
-                            }
-                        }
-
-                        $existing_args['post_terms_html'] = self::format_post_terms_html($existing_args['post_terms']);
-
-                        echo self::render_single(
-                            $template_path,
-                            $current_post,
-                            $existing_args
-                        );
-
-                        $counter++;
-                    endwhile;
-                    ?>
+                    <?php echo self::render_posts($wp_query, $args, $terms) ?>
                 </div>
 
                 <?php if (isset($args['post_in_modal']) && $args['post_in_modal']) { ?>
@@ -542,8 +569,14 @@ class Growtype_Post_Shortcode
                         </div>
                     <?php endwhile; ?>
                 <?php } ?>
-            </div>
 
+                <?php if (isset($args['show_load_more_posts_btn']) && $args['show_load_more_posts_btn']) { ?>
+                    <div class="gp-actions-wrapper">
+                        <button class="btn btn-primary btn-loadmore"><?php echo apply_filters('growtype_post_load_more_posts_btn_label', __('Load more', 'growtype-post')) ?></button>
+                    </div>
+                <?php } ?>
+
+            </div>
         <?php endif;
 
         /**
@@ -563,6 +596,66 @@ class Growtype_Post_Shortcode
         return $html;
     }
 
+    public static function render_posts($wp_query, $args, $terms = [])
+    {
+        ob_start();
+
+        $counter = 0;
+        while ($wp_query->have_posts()) : $wp_query->the_post();
+            $current_post = get_post();
+
+            $existing_args = apply_filters('growtype_post_shortcode_extend_post_args', $args, [
+                'post' => $current_post,
+                'terms' => $terms
+            ]);
+
+            if (!empty($counter) && isset($existing_args['posts_per_page']) && $existing_args['posts_per_page'] > 0 && $counter >= $existing_args['posts_per_page'] && isset($args['loading_type'])) {
+                if ($args['loading_type'] === 'limited') {
+                    $existing_classes = explode(' ', $existing_args['post_classes']);
+                    array_push($existing_classes, 'is-hidden');
+                    $existing_args['post_classes'] = implode(' ', $existing_classes);
+                }
+
+                if ($args['loading_type'] === 'ajax') {
+                    continue;
+                }
+            }
+
+            $current_post = apply_filters('growtype_post_shortcode_extend_post', $current_post, $args);
+
+            if (isset($current_post->post_is_a_link)) {
+                $existing_args['post_is_a_link'] = $current_post->post_is_a_link;
+            }
+
+            if (isset($current_post->post_permalink)) {
+                $existing_args['post_permalink'] = $current_post->post_permalink;
+            } else {
+                $existing_args['post_permalink'] = get_permalink();
+            }
+
+            if (!isset($existing_args['post_terms']) || empty($existing_args['post_terms'])) {
+                if (isset($current_post->post_terms)) {
+                    $existing_args['post_terms'] = $current_post->post_terms;
+                } else {
+                    foreach ($terms as $key => $term) {
+                        $existing_args['post_terms'][$key] = wp_get_post_terms(get_the_ID(), $key);
+                        $existing_args['post_terms'][$key] = is_wp_error($existing_args['post_terms'][$key]) ? [] : $existing_args['post_terms'][$key];
+                    }
+                }
+            }
+
+            $existing_args['counter'] = $counter;
+
+            $existing_args['post_terms_html'] = self::format_post_terms_html($existing_args['post_terms']);
+
+            echo self::render_single_post($current_post, $existing_args);
+
+            $counter++;
+        endwhile;
+
+        return ob_get_clean();
+    }
+
     public static function format_post_terms_html($terms)
     {
         $html = '';
@@ -574,18 +667,19 @@ class Growtype_Post_Shortcode
     }
 
     /**
-     * @param $template_path
      * @param $post
      * @param $args
      * @return false|string|null
      */
-    public static function render_single(
-        $template_path,
-        $post,
-        $args
-    ) {
-        $variables = array_merge(['post' => $post], $args);
-        return growtype_post_include_view($template_path, $variables);
+    public static function render_single_post($post, $args)
+    {
+        $args = array_merge(['post' => $post], $args);
+
+        if (!isset($args['template_slug']) || empty($args['template_slug'])) {
+            $args['template_slug'] = 'preview.' . $args['preview_style'] . '.index';
+        }
+
+        return growtype_post_include_view($args['template_slug'], $args);
     }
 
     /**

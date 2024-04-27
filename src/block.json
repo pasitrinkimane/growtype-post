@@ -37,6 +37,14 @@
       "type": "string",
       "default": "category"
     },
+    "terms_navigation_show_all_option_visible": {
+      "type": "boolean",
+      "default": false
+    },
+    "default_term_selected": {
+      "type": "string",
+      "default": ""
+    },
     "post_type": {
       "type": "string",
       "default": "post"
@@ -50,6 +58,10 @@
       "default": 3
     },
     "load_all_posts": {
+      "type": "boolean",
+      "default": false
+    },
+    "show_load_more_posts_btn": {
       "type": "boolean",
       "default": false
     },

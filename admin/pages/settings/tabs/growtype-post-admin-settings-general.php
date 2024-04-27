@@ -19,7 +19,7 @@ class Growtype_Post_Admin_Settings_General
     function admin_settings()
     {
         /**
-         * Woocommerce main menu title
+         * Date format
          */
         register_setting(
             'growtype_post_settings_general', // settings group name
@@ -34,6 +34,23 @@ class Growtype_Post_Admin_Settings_General
             Growtype_Post_Admin::SETTINGS_PAGE_SLUG,
             'growtype_post_settings_general_render'
         );
+
+        /**
+         * Date format
+         */
+        register_setting(
+            'growtype_post_settings_general', // settings group name
+            'growtype_post_admin_edit_post_show_meta_boxes', // option name
+//            'sanitize_text_field' // sanitization function
+        );
+
+        add_settings_field(
+            'growtype_post_admin_edit_post_show_meta_boxes',
+            'Show meta boxes in admin edit post',
+            array ($this, 'growtype_post_admin_edit_post_show_meta_boxes_callback'),
+            Growtype_Post_Admin::SETTINGS_PAGE_SLUG,
+            'growtype_post_settings_general_render'
+        );
     }
 
     /**
@@ -43,5 +60,19 @@ class Growtype_Post_Admin_Settings_General
     {
         $html = '<input type="text" name="growtype_post_date_format" style="min-width:400px;" value="' . get_option('growtype_post_date_format') . '" />';
         echo $html;
+    }
+
+    /**
+     * Woocommerce mian menu title
+     */
+    function growtype_post_admin_edit_post_show_meta_boxes_callback()
+    {
+        ?>
+        <input type='checkbox' name='growtype_post_admin_edit_post_show_meta_boxes' value='1'
+            <?php if (1 == get_option('growtype_post_admin_edit_post_show_meta_boxes')) {
+                echo 'checked="checked"';
+            } ?> />
+
+        <?php
     }
 }

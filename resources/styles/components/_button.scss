@@ -73,3 +73,16 @@
     font-size: 24px;
   }
 }
+
+a[data-growtype-post-load-more] {
+  position: relative;
+  min-height: 53px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .spinner-border {
+    position: relative;
+    border-color: white;
+  }
+}

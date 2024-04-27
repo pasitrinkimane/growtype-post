@@ -67,3 +67,18 @@
     max-width: 1230px;
   }
 }
+
+/**
+ Actions
+ */
+.gp-actions-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+
+  .btn {
+    @include bp-phone-xl() {
+      width: 100%;
+    }
+  }
+}

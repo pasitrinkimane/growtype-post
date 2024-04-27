@@ -1,4 +1,24 @@
 .single {
+  .content {
+    padding-bottom: 40px;
+
+    p {
+      & + h3 {
+        padding-top: 20px;
+      }
+    }
+  }
+
+  .s-content {
+    margin-top: 0;
+    margin-bottom: 10px;
+
+    .container {
+      margin: auto;
+      max-width: 768px;
+    }
+  }
+
   .section-back {
     padding-bottom: 40px;
 
