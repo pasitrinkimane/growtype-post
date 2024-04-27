@@ -1,6 +1,6 @@
 <?php
 
-class Growtype_Post_Admin_Post_Settings_Meta
+class Growtype_Post_Admin_Methods_Meta
 {
     public function __construct()
     {
@@ -17,17 +17,12 @@ class Growtype_Post_Admin_Post_Settings_Meta
             $post_id = intval($_POST['post_id']);
 
             if (isset($_POST['custom_data']['share_platform'])) {
-                $this->share_post($_POST['custom_data']['share_platform'], $post_id);
+                Growtype_Post_Admin_Methods_Share::share_post($_POST['custom_data']['share_platform'], $post_id);
             }
 
         } else {
             wp_send_json_error('Invalid data.');
         }
-    }
-
-    public function share_post($platform, $post_id)
-    {
-
     }
 
     function custom_admin_footer_script()

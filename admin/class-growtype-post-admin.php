@@ -91,8 +91,8 @@ class Growtype_Post_Admin
         /**
          * Share
          */
-        require GROWTYPE_POST_PATH . '/admin/methods/growtype-post-admin-post-settings-meta.php';
-        new Growtype_Post_Admin_Post_Settings_Meta();
+        require GROWTYPE_POST_PATH . '/admin/methods/growtype-post-admin-methods.php';
+        new Growtype_Post_Admin_Methods();
 
         /**
          * Plugin settings
