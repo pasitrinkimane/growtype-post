@@ -8,22 +8,25 @@
         if (!empty($terms)) { ?>
             <p class="e-terms"><?php echo $terms ?></p>
         <?php } ?>
-        <?php if (!empty($post->post_date)) { ?>
+        <?php if (get_theme_mod('growtype_post_preview_date_enabled', true) && !empty($post->post_date)) { ?>
             <p class="e-date"><?php echo date_format(date_create($post->post_date), growtype_post_date_format()) ?></p>
         <?php } ?>
         <?php if (!empty($post->post_title)) { ?>
             <h4 class="e-title"><?php echo $post->post_title ?></h4>
         <?php } ?>
-        <?php if (!empty($post->post_excerpt)) { ?>
+        <?php if (!empty(growtype_post_get_excerpt($post->ID))) { ?>
             <div class="e-excerpt">
-                <?php echo growtype_post_get_limited_content($post->post_excerpt, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
+                <?php echo growtype_post_get_excerpt($post->ID, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
             </div>
         <?php } ?>
         <?php echo growtype_post_render_cta(); ?>
     </div>
-    <div class="b-actions">
-        <button class="btn btn-primary">
-            <?php echo isset($cta_label) ? $cta_label : __('Continue reading', 'growtype-post'); ?>
-        </button>
-    </div>
+
+    <?php if (get_theme_mod('growtype_post_preview_actions_enabled', true)) { ?>
+        <div class="b-actions">
+            <button class="btn btn-primary">
+                <?php echo isset($cta_label) ? $cta_label : __('Continue reading', 'growtype-post'); ?>
+            </button>
+        </div>
+    <?php } ?>
 </div>

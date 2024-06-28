@@ -23,20 +23,21 @@ class Growtype_Post_Ajax
     function growtype_post_load_more_posts_callback()
     {
         $existing_posts_ids = isset($_POST['existing_posts_ids']) && !empty($_POST['existing_posts_ids']) ? json_decode(stripslashes($_POST['existing_posts_ids']), true) : [];
-        $amount_to_show = isset($_POST['amount_to_show']) ? $_POST['amount_to_show'] : [];
         $amount_to_load = isset($_POST['amount_to_load']) ? $_POST['amount_to_load'] : [];
-        $filter_params = isset($_POST['filter_params']) && !empty($_POST['filter_params']) ? json_decode(stripslashes($_POST['filter_params']), true) : [];
         $preview_style = isset($_POST['preview_style']) ? $_POST['preview_style'] : 'basic';
 
-        $args = Growtype_Post_Shortcode::format_args([
+        $external_args = array_merge($_POST, [
             'post__not_in' => $existing_posts_ids,
             'posts_per_page' => $amount_to_load,
             'preview_style' => $preview_style,
         ]);
 
+        $args = Growtype_Post_Shortcode::format_args($external_args);
+
         $args = apply_filters('growtype_post_load_more_posts_args', $args);
 
         $wp_query_response = Growtype_Post_Shortcode::query_posts($args);
+
         $args = array_merge($args, $wp_query_response['args'] ?? []);
         $wp_query = $wp_query_response['wp_query'] ?? [];
 
@@ -46,7 +47,8 @@ class Growtype_Post_Ajax
         );
 
         wp_send_json_success([
-            'render' => $render
+            'render' => $render,
+            'posts_amount' => count($wp_query->posts)
         ], 200);
     }
 
@@ -54,10 +56,20 @@ class Growtype_Post_Ajax
     {
         $args = isset($_POST['args']) ? $_POST['args'] : [];
 
-        $render = Growtype_Post_Shortcode::init($args);
+        $transient_name = 'growtype_post_ajax_load_content_callback_transient_' . md5(json_encode($args));
+
+        $render = get_transient($transient_name);
+
+        if (empty($render)) {
+            $init = Growtype_Post_Shortcode::init($args);
+            $render = $init['render'];
+            $posts_amount = count($init['wp_query']->posts);
+//            set_transient($transient_name, $render, 60 * 60);
+        }
 
         wp_send_json_success([
-            'render' => $render
+            'render' => $render,
+            'posts_amount' => $posts_amount,
         ], 200);
     }
 

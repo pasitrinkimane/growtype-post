@@ -54,7 +54,7 @@ class Growtype_Post_Admin_Settings_General
     }
 
     /**
-     * Woocommerce mian menu title
+     * Input
      */
     function growtype_post_date_format_callback()
     {
@@ -63,7 +63,7 @@ class Growtype_Post_Admin_Settings_General
     }
 
     /**
-     * Woocommerce mian menu title
+     * Input checkbox
      */
     function growtype_post_admin_edit_post_show_meta_boxes_callback()
     {

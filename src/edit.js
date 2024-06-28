@@ -370,9 +370,14 @@ export default function Edit({attributes, setAttributes}) {
                             value={attributes.intro_content_length}
                             min={1}
                         />
+                        <ToggleControl
+                            label={__('Show elements if no posts found', 'growtype-post')}
+                            checked={attributes.show_if_no_posts}
+                            onChange={(val) => updateShortcode('show_if_no_posts', val)}
+                        />
                     </PanelBody>
                     <PanelBody
-                        title={__('Terms settings', 'growtype-post')}
+                        title={__('Terms navigation settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <ToggleControl
@@ -410,11 +415,64 @@ export default function Edit({attributes, setAttributes}) {
                             ''
                         }
                         {attributes.terms_navigation ?
+                            <ToggleControl
+                                label={__('Selections included in url', 'growtype-post')}
+                                help={
+                                    attributes.terms_navigation_selections_included_in_url
+                                        ? 'Included'
+                                        : 'Excluded'
+                                }
+                                checked={attributes.terms_navigation_selections_included_in_url ? true : false}
+                                onChange={(val) => updateShortcode('terms_navigation_selections_included_in_url', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation ?
                             <TextControl
                                 label={__('Default term selected', 'growtype-post')}
                                 help={__('', 'growtype-post')}
                                 onChange={(val) => updateShortcode('default_term_selected', val)}
                                 value={attributes.default_term_selected}
+                            />
+                            :
+                            ''
+                        }
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Custom filters settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
+                        <ToggleControl
+                            label="Custom filters"
+                            help={
+                                attributes.custom_filters
+                                    ? 'Is active.'
+                                    : 'Is disabled.'
+                            }
+                            checked={attributes.custom_filters ? true : false}
+                            onChange={(val) => updateShortcode('custom_filters', val)}
+                        />
+                        {attributes.custom_filters ?
+                            <ToggleControl
+                                label={__('Search input', 'growtype-post')}
+                                help={
+                                    attributes.custom_filters_search_input_active
+                                        ? 'Is visible.'
+                                        : 'Is hidden.'
+                                }
+                                checked={attributes.custom_filters_search_input_active ? true : false}
+                                onChange={(val) => updateShortcode('custom_filters_search_input_active', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.custom_filters ?
+                            <TextControl
+                                label={__('Included filters', 'growtype-post')}
+                                help={__('', 'growtype-post')}
+                                onChange={(val) => updateShortcode('custom_filters_included', val)}
+                                value={attributes.custom_filters_included}
                             />
                             :
                             ''
@@ -456,12 +514,12 @@ export default function Edit({attributes, setAttributes}) {
                 <TextControl
                     label={__('Parent class', 'growtype-post')}
                     onChange={(val) => updateShortcode('parent_class', val)}
-                    value={attributes.id}
+                    value={attributes.parent_class}
                 />
                 <TextControl
                     label={__('Parent ID', 'growtype-post')}
                     onChange={(val) => updateShortcode('parent_id', val)}
-                    value={attributes.id}
+                    value={attributes.parent_id}
                 />
             </InspectorAdvancedControls>
 

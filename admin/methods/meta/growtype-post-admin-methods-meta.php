@@ -5,83 +5,49 @@ class Growtype_Post_Admin_Methods_Meta
     public function __construct()
     {
         if (get_option('growtype_post_admin_edit_post_show_meta_boxes')) {
-            add_action('add_meta_boxes', array ($this, 'growtype_post_settings_meta_box'));
             add_action('admin_print_footer_scripts', array ($this, 'custom_admin_footer_script'));
-            add_action('wp_ajax_growtype_post_admin_save_data', array ($this, 'growtype_post_admin_save_data'));
+
+            $this->load_partials();
         }
     }
 
-    function growtype_post_admin_save_data()
+    public function load_partials()
     {
-        if (isset($_POST['custom_data']) && !empty($_POST['custom_data'])) {
-            $post_id = intval($_POST['post_id']);
+        require_once GROWTYPE_POST_PATH . 'admin/methods/meta/partials/growtype-post-admin-methods-meta-image.php';
+        $this->loader = new Growtype_Post_Admin_Methods_Meta_Image();
 
-            if (isset($_POST['custom_data']['share_platform'])) {
-                Growtype_Post_Admin_Methods_Share::share_post($_POST['custom_data']['share_platform'], $post_id);
-            }
+        require_once GROWTYPE_POST_PATH . 'admin/methods/meta/partials/growtype-post-admin-methods-meta-share.php';
+        $this->loader = new Growtype_Post_Admin_Methods_Meta_Share();
 
-        } else {
-            wp_send_json_error('Invalid data.');
-        }
+        require_once GROWTYPE_POST_PATH . 'admin/methods/meta/partials/growtype-post-admin-methods-meta-content.php';
+        $this->loader = new Growtype_Post_Admin_Methods_Meta_Content();
     }
 
     function custom_admin_footer_script()
     {
         ?>
         <script type="text/javascript">
-            jQuery(document).ready(function ($) {
-                $('#growtype-post-share').click(function () {
-                    let postId = $('#post_ID').val();
-                    let customData = {};
-                    $(this).closest('.form').find('input,select').each(function () {
-                        var name = $(this).attr('name');
-                        var value = $(this).val();
-                        customData[name] = value;
-                    });
+            function growtype_post_admin_show_notice(data) {
+                let message = data.message && data.message.length > 0 ? data.message : 'Data was updated.';
 
-                    $.ajax({
-                        type: 'POST',
-                        url: ajaxurl, // WordPress AJAX handler URL
-                        data: {
-                            action: 'growtype_post_admin_save_data',
-                            custom_data: customData,
-                            post_id: postId
-                        },
-                        success: function (response) {
-                            console.log('Data submitted successfully!')
-                        },
-                        error: function (xhr, status, error) {
-                            console.error(error);
-                        }
-                    });
-                });
-            });
+                if (data.url) {
+                    message = message + ' <a href="' + data.url + '" target="_blank">View</a>';
+                }
+
+                $('body').append('<div class="notice ' + (data.success === false ? 'notice-error' : 'notice-success') + ' is-dismissible" style="position: fixed;top: 5%;right: 5%;z-index: 9999999;padding-top: 10px;padding-bottom: 10px;">' + message + '</div>')
+
+                setTimeout(function () {
+                    $('body .notice.is-dismissible').remove();
+                }, 6000);
+
+                if (data.redirectURL) {
+                    console.log(data.redirectURL)
+                    if (window.confirm('Auth is required. Do you want to proceed?')) {
+                        window.location.href = data.redirectURL;
+                    }
+                }
+            }
         </script>
-        <?php
-    }
-
-    function growtype_post_settings_meta_box()
-    {
-        add_meta_box(
-            'growtype-post-settings-meta-box',
-            __('Growtype post', 'growtype-post'),
-            array ($this, 'growtype_post_settings_meta_box_callback'),
-            'post',
-            'side',
-            'default'
-        );
-    }
-
-    function growtype_post_settings_meta_box_callback($post)
-    {
-        ?>
-        <div class="form">
-            <label for="">Share post on platform:</label>
-            <select name="share_platform">
-                <option value="medium">Medium</option>
-            </select>
-            <button class="button button-primary" id="growtype-post-share">Submit Data</button>
-        </div>
         <?php
     }
 }

@@ -41,6 +41,10 @@
       "type": "boolean",
       "default": false
     },
+    "terms_navigation_selections_included_in_url": {
+      "type": "boolean",
+      "default": true
+    },
     "default_term_selected": {
       "type": "string",
       "default": ""
@@ -109,6 +113,10 @@
       "type": "string",
       "default": "1000"
     },
+    "show_if_no_posts": {
+      "type": "boolean",
+      "default": false
+    },
     "pagination": {
       "type": "boolean",
       "default": false
@@ -122,6 +130,18 @@
       "default": ""
     },
     "tax_query": {
+      "type": "string",
+      "default": ""
+    },
+    "custom_filters": {
+      "type": "boolean",
+      "default": false
+    },
+    "custom_filters_search_input_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "custom_filters_included": {
       "type": "string",
       "default": ""
     }

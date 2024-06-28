@@ -6,8 +6,7 @@
 
 const growtypePostLoadPostsEvent = new Event('growtypePostLoadPosts');
 
-export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) {
-    let loadingType = postsContainer.find('.growtype-post-container').attr('data-loading-type')
+export function growtypePostEvaluatePosts(postsContainer, filterParams, postsLimit) {
     let validPosts = 0;
     let availablePosts = 0;
     postsContainer.find('.growtype-post-single').each(function (index, post) {
@@ -21,18 +20,15 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
                 return;
             }
 
-            var attr = $(post).attr('data-cat-' + key);
-            if (typeof attr === 'undefined' || attr === false) {
-                return;
-            }
-
             let exists = false;
 
-            $(post).attr('data-cat-' + key).split(',').forEach(function (item) {
-                if (item.trim() === value) {
-                    exists = true;
-                }
-            });
+            if ($(post).attr('data-cat-' + key) !== undefined) {
+                $(post).attr('data-cat-' + key).split(',').forEach(function (item) {
+                    if (item.trim() === value) {
+                        exists = true;
+                    }
+                });
+            }
 
             if (!exists) {
                 postIsVisible = false;
@@ -43,12 +39,9 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
             availablePosts++;
         }
 
-        let shouldBeVisible = loadingType === 'ajax' ? true : validPosts < postsLimit;
-
-        if (shouldBeVisible) {
+        if (validPosts < postsLimit) {
             if (postIsVisible) {
                 validPosts++;
-
                 $(post).fadeIn();
             }
         }
@@ -69,12 +62,10 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
         loadMoreBtn = postsContainer.find('.gp-actions-wrapper .btn-loadmore')
     }
 
-    if (loadingType !== 'ajax') {
-        if (validPosts === availablePosts) {
-            loadMoreBtn.closest('.wp-block-button, .gp-actions-wrapper').hide();
-        } else {
-            loadMoreBtn.closest('.wp-block-button, .gp-actions-wrapper').fadeIn();
-        }
+    if (validPosts === availablePosts) {
+        loadMoreBtn.closest('.wp-block-button, .gp-actions-wrapper').hide();
+    } else {
+        loadMoreBtn.closest('.wp-block-button, .gp-actions-wrapper').fadeIn();
     }
 
     document.dispatchEvent(growtypePostLoadPostsEvent);

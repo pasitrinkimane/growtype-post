@@ -1,10 +1,35 @@
 .single {
+
+  article {
+    .b-info {
+      &:empty {
+        display: none;
+      }
+    }
+  }
+
   .content {
     padding-bottom: 40px;
 
     p {
-      & + h3 {
+      & + h2,
+      & + h3,
+      & + h4,
+      & + h5 {
         padding-top: 20px;
+      }
+
+      & + figure {
+        padding-top: 20px;
+      }
+    }
+
+    figure {
+      & + h2,
+      & + h3,
+      & + h4,
+      & + h5 {
+        padding-top: 10px;
       }
     }
   }
@@ -49,10 +74,7 @@
     position: relative;
 
     & + .content-wrapper {
-      padding-top: 50px;
-      @include bp-phone-xl() {
-        padding-top: 30px;
-      }
+      padding-top: 30px;
     }
 
     .section-featuredimg-caption {
@@ -62,14 +84,15 @@
     }
   }
 
-  .cta-wrapper {
+  .growtype-post-cta-wrapper {
     justify-content: center;
 
     & + .content-wrapper {
-      padding-top: 50px;
-      @include bp-phone-xl() {
-        padding-top: 30px;
-      }
+      padding-top: 30px;
     }
+  }
+
+  article .section-featuredimg {
+    margin-top: 33px;
   }
 }

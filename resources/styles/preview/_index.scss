@@ -24,11 +24,6 @@
     width: 100%;
   }
 
-  .alignfull & {
-    margin-left: 5px;
-    width: calc(100% - 10px);
-  }
-
   &.slick-initialized {
     display: block;
   }
@@ -80,5 +75,40 @@
     @include bp-phone-xl() {
       width: 100%;
     }
+
+    &.is-loading {
+      background: none;
+      border: none;
+    }
   }
+}
+
+.s-posts-related {
+  padding-top: 50px;
+  padding-bottom: 50px;
+  @include bp-phone-xl() {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+
+  .b-post-single {
+    @include bp-phone-xl() {
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  .container {
+    position: relative;
+  }
+
+  .block-title {
+    & + .growtype-post-container-wrapper {
+      padding-top: 10px;
+    }
+  }
+}
+
+.content-wrapper + .s-posts-related {
+  margin-top: 20px;
 }

@@ -40,7 +40,8 @@ function growtype_post_render_cta()
 {
     $likes = growtype_post_get_post_likes(get_the_ID());
 
-    return '<div class="cta-wrapper"><div class="growtype-post-btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="growtype-post-btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share', 'growtype-post') . '</div></div>';
+    return '<div class="growtype-post-cta-wrapper"><div class="growtype-post-btn-like ' . (in_array(growtype_post_get_ip_key(), $likes) ? 'is-active' : '') . '" data-type="post" data-id="' . get_the_ID() . '">' . (!empty(count($likes)) ? '<span class="e-amount">' . count($likes) . '</span>' : '') . '<span class="e-text">' . __('Love', 'growtype-post') . '</span></div><div class="growtype-post-btn-share" data-type="post" data-id="' . get_the_ID() . '">' . __('Share',
+            'growtype-post') . '</div></div>';
 }
 
 add_action('growtype_single_post_related_posts', 'growtype_post_growtype_single_post_related_posts');
@@ -56,7 +57,7 @@ function growtype_post_growtype_single_post_related_posts()
             'post__not_in' => array (get_the_id()),
             'posts_per_page' => 3,
             'orderby' => 'menu_order',
-            'order' => 'DESC',
+            'order' => 'ASC',
         );
 
         if (!empty($first_tag)) {
@@ -70,6 +71,7 @@ function growtype_post_growtype_single_post_related_posts()
             'section_title' => __('Read more', 'growtype'),
             'params' => [
                 'columns' => 3,
+                'post_is_a_link' => true,
             ]
         ];
 

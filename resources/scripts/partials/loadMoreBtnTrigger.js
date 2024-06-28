@@ -1,20 +1,23 @@
 import {growtypePostGetTermsFilterSelectedValues} from "./getTermsFilterSelectedValues";
 import {growtypePostLoadPosts} from "./loadPosts";
+import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
+import {loadMorePosts} from "./loadMorePosts";
 
-export function growtypePostLoadMore(element) {
-    let loadMoreBtnClicked = false;
+export function loadMoreBtnTrigger(element) {
+    window.growtype_post_load_more_posts_btn_clicked = false;
+
     element.click(function (e) {
         e.preventDefault();
 
-        if (loadMoreBtnClicked) {
+        if (window.growtype_post_load_more_posts_btn_clicked) {
             return;
         }
 
-        loadMoreBtnClicked = true;
+        window.growtype_post_load_more_posts_btn_clicked = true;
 
         let btn = $(this);
         let id = btn.attr('data-growtype-post-load-more');
-        let postsContainer = $('#' + id + '.growtype-post-container');
+        let postsContainer = $('#' + id);
 
         if (postsContainer.length === 0) {
             postsContainer = btn.closest('.growtype-post-container')
@@ -32,11 +35,6 @@ export function growtypePostLoadMore(element) {
             let postAmountToShowLimit = initiallyVisiblePosts + postsAmountToLoad;
             let filtersContainer = postsContainer.closest('.wp-block-growtype-post').find('.growtype-post-terms-filters');
             let filterParams = growtypePostGetTermsFilterSelectedValues(filtersContainer);
-
-            let existingPostsIds = [];
-            postsContainer.find('.growtype-post-single-inner').each(function () {
-                existingPostsIds.push($(this).attr('data-id'));
-            });
 
             if (loadingType === 'limited') {
 
@@ -65,40 +63,30 @@ export function growtypePostLoadMore(element) {
                  */
                 growtypePostLoadPosts(postsContainer.closest('.wp-block-growtype-post'), filterParams, postAmountToShowLimit);
 
-                loadMoreBtnClicked = false;
+                window.growtype_post_load_more_posts_btn_clicked = false;
             } else if (loadingType === 'ajax') {
-                let btnText = btn.text();
-
-                btn.addClass('is-loading');
-                btn.text('');
-                btn.append('<span class="spinner-border"></span>');
-
-                jQuery.ajax({
-                    url: growtype_post.ajax_url,
-                    type: 'post',
-                    data: {
-                        action: 'growtype_post_load_more_posts',
-                        existing_posts_ids: JSON.stringify(existingPostsIds),
-                        amount_to_load: postsAmountToLoad,
-                        amount_to_show: postAmountToShowLimit,
-                        filter_params: JSON.stringify(Object.assign({}, filterParams)),
-                        preview_style: postsContainer.closest('.growtype-post-container-wrapper').attr('data-preview-style'),
-                    },
-                    success: function (response) {
-                        if (response.data.render) {
-                            postsContainer.append(response.data.render);
-                            btn.removeClass('is-loading');
-                            btn.find('.spinner-border').remove();
-                            btn.text(btnText);
-                        }
-
-                        loadMoreBtnClicked = false;
-                    },
-                    error: function () {
-                        loadMoreBtnClicked = false;
-                    }
-                });
+                loadMorePosts({
+                    amount_to_load: postsAmountToLoad,
+                    amount_to_show: postAmountToShowLimit,
+                    selected_terms_navigation_values: filterParams,
+                    filters_container: filtersContainer,
+                    btn: btn,
+                    posts_container: postsContainer
+                })
             }
         }
     })
+
+    /**
+     * Hide load more button if all posts are visible
+     */
+    if ($('.gp-actions-wrapper').length > 0) {
+        let visiblePosts = $('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container').attr('data-visible-posts');
+        let existingPosts = $('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container .growtype-post-single').length;
+        let loadingType = $('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container').attr('data-loading-type');
+
+        if (existingPosts <= visiblePosts && loadingType !== 'ajax') {
+            $('.gp-actions-wrapper').hide();
+        }
+    }
 }

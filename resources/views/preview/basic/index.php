@@ -15,7 +15,6 @@
         <?php echo isset($post_in_modal) && $post_in_modal ? 'data-bs-toggle="modal" data-bs-target="#growtype-post-modal-' . $post->ID . '"' : '' ?>
         <?php echo isset($post_terms_html) ? $post_terms_html : '' ?>
         <?php echo isset($post_attributes) ? $post_attributes : '' ?>
-
     >
         <?php echo growtype_post_include_view(
             'preview.' . $args['preview_style'] . '.content',

@@ -75,8 +75,8 @@ class Growtype_Post
      */
     public function __construct()
     {
-        if (defined('Growtype_Post_Version')) {
-            $this->version = Growtype_Post_Version;
+        if (defined('growtype_post_version')) {
+            $this->version = growtype_post_version;
         } else {
             $this->version = '1.0.0';
         }

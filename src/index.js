@@ -6,6 +6,11 @@
 import {registerBlockType} from '@wordpress/blocks';
 
 /**
+ * Adjust content
+ */
+import './adjust-content';
+
+/**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
  * All files containing `style` keyword are bundled together. The code used
  * gets applied both to the front of your site and to the editor. All other files
@@ -23,7 +28,7 @@ import Edit from './edit';
 import save from './save';
 import metadata from './block.json';
 
-import { SVG, Path } from '@wordpress/primitives';
+import {SVG, Path} from '@wordpress/primitives';
 
 const icon = (
     <SVG width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">

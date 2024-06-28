@@ -153,12 +153,14 @@ if (!function_exists('growtype_post_render_single')) {
  * @param $size
  * @return mixed|null
  */
-function growtype_post_get_featured_image_url($post, $size = 'medium', $default_img_id = null)
-{
-    $feat_img_url = isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
-    $feat_img_url = empty($feat_img_url) && !empty($default_img_id) ? wp_get_attachment_image_url($default_img_id) : $feat_img_url;
+if (!function_exists('growtype_post_get_featured_image_url')) {
+    function growtype_post_get_featured_image_url($post, $size = 'medium', $default_img_id = null)
+    {
+        $feat_img_url = isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
+        $feat_img_url = empty($feat_img_url) && !empty($default_img_id) ? wp_get_attachment_image_url($default_img_id) : $feat_img_url;
 
-    return $feat_img_url;
+        return apply_filters('growtype_post_get_featured_image_url', $feat_img_url, $post, $size, $default_img_id);
+    }
 }
 
 /**
@@ -178,7 +180,10 @@ if (!function_exists('growtype_post_load_textdomain')) {
 if (!function_exists('growtype_post_date_format')) {
     function growtype_post_date_format()
     {
-        return get_option('growtype_post_date_format', 'Y m d');
+        $default_date_format = get_option('date_format');
+        $date_format = get_option('growtype_post_date_format', 'Y m d');
+
+        return !empty($date_format) ? $date_format : $default_date_format;
     }
 }
 
@@ -255,5 +260,99 @@ if (!function_exists('growtype_post_get_post_likes')) {
         }
 
         return $likes;
+    }
+}
+
+/**
+ * Post excerpt
+ */
+if (!function_exists('growtype_post_get_excerpt')) {
+    function growtype_post_get_excerpt($post_id, $intro_content_length = null)
+    {
+        $post = get_post($post_id);
+        $excerpt = apply_filters('growtype_post_get_excerpt', $post->post_excerpt, $post_id);
+
+        return growtype_post_get_limited_content($excerpt, $intro_content_length);
+    }
+}
+
+/**
+ * @param $post_id
+ * @param $image_url
+ * @param $check_if_exists
+ * @return int|WP_Error
+ */
+function growtype_child_set_featured_image_from_url($post_id, $image_url, $check_if_exists = true)
+{
+    if (empty($image_url)) {
+        return new WP_Error('invalid_image_url', 'Image URL is empty.');
+    }
+
+    $file_type = wp_check_filetype(basename($image_url), null);
+    $post_mime_type = !isset($file_type['type']) || !$file_type['type'] ? 'image/jpeg' : $file_type['type'];
+    $file_ext = !isset($file_type['ext']) || !$file_type['ext'] ? 'jpeg' : $file_type['ext'];
+    $upload_dir = wp_upload_dir();
+    $image_name = isset(parse_url($image_url)['path']) && !empty(parse_url($image_url)['path']) ? str_replace('/', '', parse_url($image_url)['path']) : wp_generate_password();
+    $image_name_full = $image_name;
+
+    if (strpos($image_name, '.' . $file_ext) === false) {
+        $image_name_full = $image_name . '.' . $file_ext;
+    }
+
+    $upload_path = $upload_dir['path'] . '/' . $image_name_full;
+
+    if ($check_if_exists) {
+        $attachment_file = substr($upload_path, strlen(wp_upload_dir()['basedir']) + 1);
+
+        if (file_exists($upload_path)) {
+            $existing_attachment = get_posts(array (
+                'post_type' => 'attachment',
+                'posts_per_page' => 1,
+                'post_status' => 'inherit',
+                'meta_query' => array (
+                    array (
+                        'key' => '_wp_attached_file',
+                        'value' => $attachment_file,
+                        'compare' => '='
+                    )
+                )
+            ));
+
+            if (!empty($existing_attachment)) {
+                $existing_attachment_id = $existing_attachment[0]->ID;
+                set_post_thumbnail($post_id, $existing_attachment_id);
+                return $existing_attachment_id;
+            }
+        }
+    }
+
+    $image_data = file_get_contents($image_url);
+
+    file_put_contents($upload_path, $image_data);
+
+    if (!$image_data || !$upload_path) {
+        return new WP_Error('image_download_failed', 'Failed to download the image from the URL.');
+    }
+
+    list($width, $height) = getimagesize($upload_path);
+
+    $attachment = array (
+        'post_mime_type' => $post_mime_type,
+        'post_title' => sanitize_file_name(pathinfo($upload_path, PATHINFO_FILENAME)),
+        'post_content' => '',
+        'post_status' => 'inherit',
+        'width' => $width,
+        'height' => $height,
+    );
+
+    $attach_id = wp_insert_attachment($attachment, $upload_path, $post_id);
+
+    wp_update_attachment_metadata($attach_id, wp_generate_attachment_metadata($attach_id, $upload_path));
+
+    if (!is_wp_error($attach_id)) {
+        set_post_thumbnail($post_id, $attach_id);
+        return $attach_id;
+    } else {
+        return $attach_id;
     }
 }

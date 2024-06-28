@@ -24,7 +24,8 @@ class Growtype_Post_Admin
 {
     use AdminSettingsGeneralTrait;
 
-    const GROWTYPE_POST_SETTINGS_DEFAULT_TAB = 'general';
+    const SETTINGS_DEFAULT_TAB = 'general';
+
     const SETTINGS_PAGE_SLUG = 'growtype-post-settings';
 
     /**
@@ -60,6 +61,46 @@ class Growtype_Post_Admin
         if (is_admin()) {
             $this->load_methods();
         }
+
+        add_filter('growtype_form_google_auth_request_is_excluded', array ($this, 'exclude_auth_request'), 0, 2);
+
+        add_action('init', array ($this, 'validate_auth'));
+    }
+
+    public function validate_auth()
+    {
+        if (isset($_GET['code']) && current_user_can('manage_options')) {
+            if (strpos($_SERVER['REQUEST_URI'], self::google_auth_redirect_path()) !== false) {
+                update_user_meta(get_current_user_id(), 'growtype_post_google_auth_code', $_GET['code']);
+                wp_redirect(admin_url('edit.php'));
+                exit;
+            } elseif (strpos($_SERVER['REQUEST_URI'], self::pinterest_auth_redirect_path()) !== false) {
+                update_user_meta(get_current_user_id(), 'growtype_post_pinterest_auth_code', $_GET['code']);
+                wp_redirect(admin_url('edit.php'));
+                exit;
+            }
+        }
+    }
+
+    public function exclude_auth_request($excluded, $request_uri)
+    {
+        if (strpos($request_uri, self::google_auth_redirect_path()) !== false) {
+            $excluded = true;
+        } elseif (strpos($request_uri, self::pinterest_auth_redirect_path()) !== false) {
+            $excluded = true;
+        }
+
+        return $excluded;
+    }
+
+    public static function google_auth_redirect_path()
+    {
+        return 'growtype-post-google-auth';
+    }
+
+    public static function pinterest_auth_redirect_path()
+    {
+        return 'growtype-post-pinterest-auth';
     }
 
     /**

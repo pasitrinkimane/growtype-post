@@ -52,7 +52,7 @@ class Growtype_Post_Admin_Settings
                     if (isset ($_GET['tab'])) {
                         $tab = $_GET['tab'];
                     } else {
-                        $tab = Growtype_Post_Admin::GROWTYPE_POST_SETTINGS_DEFAULT_TAB;
+                        $tab = Growtype_Post_Admin::SETTINGS_DEFAULT_TAB;
                     }
 
                     switch ($tab) {
@@ -61,6 +61,24 @@ class Growtype_Post_Admin_Settings
 
                             echo '<table class="form-table">';
                             do_settings_fields(Growtype_Post_Admin::SETTINGS_PAGE_SLUG, 'growtype_post_settings_general_render');
+                            echo '</table>';
+
+                            break;
+                        case 'social':
+                            settings_fields('growtype_post_settings_social');
+
+                            echo '<table class="form-table">';
+                            do_settings_sections('growtype_form_settings_social_reddit_section');
+                            do_settings_sections('growtype_form_settings_social_google_section');
+                            do_settings_sections('growtype_form_settings_social_medium_section');
+                            echo '</table>';
+
+                            break;
+                        case 'content':
+                            settings_fields('growtype_post_settings_content');
+
+                            echo '<table class="form-table">';
+                            do_settings_sections('growtype_post_settings_content_openai_section');
                             echo '</table>';
 
                             break;
@@ -78,15 +96,7 @@ class Growtype_Post_Admin_Settings
 
     function process_posted_data()
     {
-        if (isset($_POST['option_page']) && $_POST['option_page'] === 'growtype_post_settings_generate') {
-            if (isset($_POST['generate_settings'])) {
-                $growtype_post_crud = new Growtype_Wc_Crud();
-                $growtype_post_crud->generate_products();
-            }
 
-            wp_redirect(admin_url('admin.php?page=g' . Growtype_Post_Admin::SETTINGS_PAGE_SLUG . '&tab=generate&updated=true'));
-            exit();
-        }
     }
 
     function settings_tabs()
@@ -94,7 +104,7 @@ class Growtype_Post_Admin_Settings
         return apply_filters('growtype_post_admin_settings_tabs', []);
     }
 
-    function render_settings_tab_render($current = Growtype_Post_Admin::GROWTYPE_POST_SETTINGS_DEFAULT_TAB)
+    function render_settings_tab_render($current = Growtype_Post_Admin::SETTINGS_DEFAULT_TAB)
     {
         $tabs = $this->settings_tabs();
 
@@ -115,5 +125,17 @@ class Growtype_Post_Admin_Settings
          */
         include_once GROWTYPE_POST_PATH . 'admin/pages/settings/tabs/growtype-post-admin-settings-general.php';
         new Growtype_Post_Admin_Settings_General();
+
+        /**
+         * Social
+         */
+        include_once GROWTYPE_POST_PATH . 'admin/pages/settings/tabs/growtype-post-admin-settings-social.php';
+        new Growtype_Post_Admin_Settings_Social();
+
+        /**
+         * Social
+         */
+        include_once GROWTYPE_POST_PATH . 'admin/pages/settings/tabs/growtype-post-admin-settings-content.php';
+        new Growtype_Post_Admin_Settings_Content();
     }
 }

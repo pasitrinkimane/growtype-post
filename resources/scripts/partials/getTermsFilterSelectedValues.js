@@ -1,3 +1,5 @@
+import {updateUrlWithFilterParams} from "./updateUrlWithFilterParams";
+
 /**
  * @param termsFilter
  * @returns {*[]}
@@ -40,6 +42,8 @@ export function growtypePostGetTermsFilterSelectedValues(termsFilter) {
             });
         }
     });
+
+    updateUrlWithFilterParams(filterParams, termsFilter.closest('.growtype-post-container-wrapper'));
 
     return filterParams;
 }
