@@ -173,7 +173,17 @@ class Growtype_Post_Shortcode
         }
 
         if (!empty($args['post__in'])) {
-            $query_args['post__in'] = is_string($args['post__in']) ? explode(',', $args['post__in']) : $args['post__in'];;
+            if (is_string($args['post__in'])) {
+                $post_in = explode(',', $args['post__in']);
+            } else {
+                $post_in = array_filter($args['post__in'], function ($value) {
+                    return ($value !== null && $value !== false && $value !== '' && !empty($value));
+                });
+            }
+
+            if (!empty($post_in)) {
+                $query_args['post__in'] = $post_in;
+            }
         }
 
         if (!empty($args['post__not_in'])) {
@@ -267,6 +277,14 @@ class Growtype_Post_Shortcode
                  */
                 if (!empty($args['meta_query'])) {
                     $query_args['meta_query'] = is_array($args['meta_query']) ? $args['meta_query'] : json_decode(urldecode($args['meta_query']), true);
+
+                    if (!empty($query_args['meta_query'])) {
+                        foreach ($query_args['meta_query'] as $key => $meta_query) {
+                            if (isset($meta_query['value']) && $meta_query['value'] === '$current_date') {
+                                $query_args['meta_query'][$key]['value'] = date('Ymd');
+                            }
+                        }
+                    }
                 }
 
                 /**
@@ -327,7 +345,7 @@ class Growtype_Post_Shortcode
 
                 //https://developer.wordpress.org/rest-api/reference/posts/#arguments
                 $response = wp_remote_get($content_url, [
-                    'timeout' => 10,
+                    'timeout' => 30,
                     'sslverify' => false
                 ]);
 
@@ -351,7 +369,7 @@ class Growtype_Post_Shortcode
                 }
             }
 
-            if (!$args['load_all_posts'] || ($args['load_all_posts'] && $args['loading_type'] === 'ajax')) {
+            if (!empty($posts) && (!$args['load_all_posts'] || ($args['load_all_posts'] && $args['loading_type'] === 'ajax'))) {
                 $posts = array_slice($posts, growtype_post_get_pagination_offset($posts_per_page), $posts_per_page);
             }
 

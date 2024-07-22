@@ -1,4 +1,5 @@
 import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
+import {growtypePostAjaxLoadMoreContent} from "../events/growtypePostAjaxLoadMoreContent";
 
 export function loadMorePosts(params) {
     let btn = params['btn'] || null;
@@ -55,6 +56,8 @@ export function loadMorePosts(params) {
             }
 
             window.growtype_post_load_more_posts_btn_clicked = false;
+
+            document.dispatchEvent(growtypePostAjaxLoadMoreContent(response));
         },
         error: function () {
             window.growtype_post_load_more_posts_btn_clicked = false;

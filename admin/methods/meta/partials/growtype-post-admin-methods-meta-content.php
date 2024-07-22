@@ -46,7 +46,7 @@ Does the article provide an original, interesting and engaging perspective on th
 //        'tagline_prompts' =>
 //            'Generate a tagline for my article. Base the tagline on the "[Title]" title and the [Selected Keywords]. Write the tagline in the [Language] language using a [Style] writing style and a [Tone] writing tone. Use persuasive power words.',
         'main_content_prompts' =>
-            'Write a SEO optimizes HTML article "[Title]". [Guiding Prompt]. [Competitors Message]. Write the article and for each section, vary the word counts of each by at least 50%. This is my outline for you to write: [Outline]. Each section should provide a unique perspective on the topic and provide value over and above what\'s already available. Format each section heading as a [Heading Tag] tag. You must not include a conclusion. Use keywords to SEO optimise article: [Selected Keywords]. Write the article in the [Language] language using a [Style] writing style and a [Tone] writing tone. Each section must be explored in detail and must include a minimum of 3 paragraphs. To achieve this, you must include all possible known features, benefits, arguments, analysis and whatever is needed to explore the topic to the best of your knowledge.',
+            'Write a SEO optimizes HTML article "[Title]". (([Guiding Prompt])). [Competitors Message]. Write the article and for each section, vary the word counts of each by at least 50%. This is my outline for you to write: [Outline]. Each section should provide a unique perspective on the topic and provide value over and above what\'s already available. Format each section heading as a [Heading Tag] tag. You must not include a conclusion. Use keywords to SEO optimise article: [Selected Keywords]. Write the article in the [Language] language using a [Style] writing style and a [Tone] writing tone. Each section must be explored in detail and must include a minimum of 3 paragraphs. To achieve this, you must include all possible known features, benefits, arguments, analysis and whatever is needed to explore the topic to the best of your knowledge.',
         'conclusion_prompts' =>
             'Create a +- 150 words conclusion based on the title - "[Title]" and optimise conclusion for keywords: "[Selected Keywords]". Write in the [Language] language using a [Style] writing style and a [Tone] writing tone. Include a call to action to express a sense of urgency. Within the paragraph, include a [Heading Tag] tag for the heading to contain the word "conclusion. Don\'t use <div> tags or <ul> tags.',
     ];
@@ -384,7 +384,10 @@ Does the article provide an original, interesting and engaging perspective on th
 
     public static function fetch_and_filter_content($url, $css_class)
     {
-        $response = wp_remote_get($url);
+        $response = wp_remote_get($url, [
+            'timeout' => 20,
+            'sslverify' => false
+        ]);
 
         if (is_wp_error($response)) {
             return 'HTTP request failed: ' . $response->get_error_message();

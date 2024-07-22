@@ -10,9 +10,6 @@
   display: grid;
   grid-template-columns: repeat(var(--growtype-post-posts-grid-columns-count), 1fr);
   grid-gap: 15px;
-  @include bp-tablet() {
-    grid-template-columns: repeat(3, 1fr);
-  }
   @include bp-tablet-portrait() {
     grid-template-columns: repeat(2, 1fr);
   }

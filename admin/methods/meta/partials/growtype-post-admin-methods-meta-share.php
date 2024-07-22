@@ -6,8 +6,8 @@ class Growtype_Post_Admin_Methods_Meta_Share
     const BLOGGER = 'blogger';
     const MEDIUM = 'medium';
     const PINTEREST = 'pinterest';
-
     const TWITTER = 'twitter';
+    const TREADS = 'treads';
 
     const PLATFORMS = [
         self::REDDIT => 'Reddit',
@@ -15,6 +15,7 @@ class Growtype_Post_Admin_Methods_Meta_Share
         self::MEDIUM => 'Medium',
         self::PINTEREST => 'Pinterest',
         self::TWITTER => 'Twitter',
+//        self::TREADS => 'Treads',
     ];
 
     public function __construct()

@@ -3,6 +3,7 @@ import {growtypePostLoadPosts} from "./loadPosts";
 import {getPostsLimit} from "./getPostsLimit";
 import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
 import {loadMorePosts} from "./loadMorePosts";
+import {getUrlFilterParams} from "./getUrlFilterParams";
 
 export function termsFilter() {
     $('.growtype-post-terms-filter').on('change', function (event) {
@@ -31,20 +32,24 @@ export function termsFilter() {
      * Filter posts
      */
     $('.growtype-post-terms-filter-btn').click(function () {
-        if ($(this).attr('data-disabled')) {
+        postTermsFilterBtnClick($(this));
+    });
+
+    function postTermsFilterBtnClick(btn, preventDoubleClick = true) {
+        if (btn.attr('data-disabled') && preventDoubleClick) {
             return;
         }
 
-        let triggerType = $(this).attr('data-trigger-type');
-        let multipleSelect = $(this).attr('data-multiple-select');
+        let triggerType = btn.attr('data-trigger-type');
+        let multipleSelect = btn.attr('data-multiple-select');
 
-        if (triggerType === 'click' && $(this).hasClass('is-active')) {
+        if (triggerType === 'click' && btn.hasClass('is-active') && preventDoubleClick) {
             return;
         }
 
-        let postsWrapper = $(this).closest('.growtype-post-container-wrapper');
-        let filtersContainer = $(this).closest('.growtype-post-terms-filters');
-        let filterContainer = $(this).closest('.growtype-post-terms-filter');
+        let postsWrapper = btn.closest('.growtype-post-container-wrapper');
+        let filtersContainer = btn.closest('.growtype-post-terms-filters');
+        let filterContainer = btn.closest('.growtype-post-terms-filter');
         let minimumVisiblePostsAmount = postsWrapper.find('.growtype-post-container').attr('data-visible-posts');
         minimumVisiblePostsAmount = parseInt(minimumVisiblePostsAmount);
 
@@ -52,18 +57,18 @@ export function termsFilter() {
          * Update filter state
          */
         if (triggerType === 'toggle') {
-            if (!$(this).hasClass('is-active')) {
+            if (!btn.hasClass('is-active')) {
                 if (multipleSelect === 'false') {
                     filterContainer.find('.growtype-post-terms-filter-btn').removeClass('is-active');
                 }
 
-                $(this).addClass('is-active');
+                btn.addClass('is-active');
             } else {
-                $(this).removeClass('is-active');
+                btn.removeClass('is-active');
             }
         } else {
             filterContainer.find('.growtype-post-terms-filter-btn').removeClass('is-active');
-            $(this).addClass('is-active');
+            btn.addClass('is-active');
         }
 
         /**
@@ -80,7 +85,7 @@ export function termsFilter() {
          * Filter posts
          */
         filterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePostsAmount);
-    });
+    }
 
     function filterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePostsAmount) {
 
@@ -135,11 +140,20 @@ export function termsFilter() {
      *
      */
     $('.growtype-post-terms-filter').each(function (index, element) {
+        let btn
+        if (Object.entries(getUrlFilterParams()).length === 0) {
+            btn = $('.growtype-post-terms-filter-btn[data-cat-' + $(element).attr('data-type') + '="' + $(element).attr('data-init-cat') + '"]');
+        } else {
+            Object.entries(getUrlFilterParams()).forEach(([key, value]) => {
+                btn = $('.growtype-post-terms-filter-btn[data-cat-' + key + '="' + value + '"]');
+            });
+        }
+
         if ($(this).attr('data-init-cat') !== '' && $(element).is(':visible')) {
             if ($(element).is('select')) {
                 $(element).trigger('change');
             } else if ($(element).is('div')) {
-                $('.growtype-post-terms-filter-btn[data-cat-' + $(element).attr('data-type') + '="' + $(element).attr('data-init-cat') + '"]').trigger('click');
+                postTermsFilterBtnClick(btn, false);
             }
         }
     });
