@@ -2,7 +2,7 @@ import {growtypePostAjaxLoadContent} from "./../events/growtypePostAjaxLoadConte
 import {postCta} from "./postCta";
 import {termsFilter} from "./termsFilter";
 import {loadMoreBtnTrigger} from "./loadMoreBtnTrigger";
-import {updateFilterWithUrlParams} from "./updateFilterWithUrlParams";
+import {updateFiltersWithUrlParams} from "./updateFiltersWithUrlParams";
 import {getUrlFilterParams} from "./getUrlFilterParams";
 
 export function ajaxLoadPosts() {
@@ -15,6 +15,10 @@ export function ajaxLoadPosts() {
             args = args ? JSON.parse(args) : '';
 
             args['selected_terms_navigation_values'] = urlFilterParams;
+
+            if (urlFilterParams['orderby']) {
+                args['orderby'] = urlFilterParams['orderby'][0];
+            }
 
             $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').hide();
 
@@ -34,8 +38,6 @@ export function ajaxLoadPosts() {
 
                             termsFilter();
 
-                            postCta();
-
                             loadMoreBtnTrigger(content.find('.btn-loadmore'));
 
                             $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').show();
@@ -43,7 +45,7 @@ export function ajaxLoadPosts() {
                             /**
                              * Update filter with url params
                              */
-                            updateFilterWithUrlParams();
+                            updateFiltersWithUrlParams(true);
 
                             if (parseInt(response.data.posts_amount) !== parseInt(args['posts_per_page'])) {
                                 content.find('.gp-actions-wrapper').hide();

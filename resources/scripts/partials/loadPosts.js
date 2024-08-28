@@ -13,30 +13,43 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
     postsContainer.find('.growtype-post-single').each(function (index, post) {
 
         let postIsVisible = true;
+
+        // if (Object.entries(filterParams).length === 0 || Object.entries(filterParams)[0][1].includes('all')) {
+        //     postIsVisible = false;
+        // }
+
         Object.entries(filterParams).map(function (element, index) {
             let key = element[0].toString();
-            let value = element[1].toString();
+            let values = element[1];
 
-            if (value === 'all' || value === undefined || value === '') {
-                return;
-            }
+            Object.entries(values).map(function (value) {
+                let selectedValue = value[1];
 
-            var attr = $(post).attr('data-cat-' + key);
-            if (typeof attr === 'undefined' || attr === false) {
-                return;
-            }
+                if (selectedValue === 'all' || selectedValue === undefined || selectedValue === '') {
+                    return;
+                }
 
-            let exists = false;
+                var attr = $(post).attr('data-cat-' + key);
 
-            $(post).attr('data-cat-' + key).split(',').forEach(function (item) {
-                if (item.trim() === value) {
-                    exists = true;
+                if (typeof attr === 'undefined' || attr === false) {
+                    postIsVisible = false;
+                    return;
+                }
+
+                let exists = false;
+
+                let postCatValues = $(post).attr('data-cat-' + key).split(',');
+
+                postCatValues.forEach(function (item) {
+                    if (item.trim() === selectedValue) {
+                        exists = true;
+                    }
+                });
+
+                if (!exists) {
+                    postIsVisible = false;
                 }
             });
-
-            if (!exists) {
-                postIsVisible = false;
-            }
         });
 
         if (postIsVisible) {

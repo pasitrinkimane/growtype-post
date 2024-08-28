@@ -7,8 +7,7 @@
 
   .growtype-post-terms-filter-btn {
     &.is-active {
-      background: var(--btn-secondary-background-color-active);
-      color: var(--btn-secondary-color-active);
+      opacity: 0.7;
     }
 
     @include bp-phone-xl() {
@@ -20,6 +19,23 @@
 .growtype-post-terms-filters {
   .chosen-container {
     margin-bottom: 20px;
+    //@include bp-phone-xl-reverse() {
+    //  max-width: 300px;
+    //}
+  }
+
+  &[data-nav-style="select"] {
+    div.growtype-post-terms-filter {
+      display: none;
+    }
+
+    select {
+      display: block;
+    }
+
+    .chosen-container {
+      display: block;
+    }
   }
 }
 
@@ -44,4 +60,58 @@ select.growtype-post-terms-filter {
 .growtype-post-custom-filters {
   padding-bottom: 25px;
   display: inline-block;
+}
+
+.growtype-post-terms-filters {
+  .chosen-container-multi .chosen-choices {
+    border-radius: 5px !important;
+    padding-left: 10px;
+
+    li.search-choice span {
+      font-size: 14px;
+    }
+
+    li.search-choice {
+      margin-top: 8px;
+    }
+
+    li.search-field {
+      input[type=text] {
+        font-size: 15px;
+        min-height: 45px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      }
+    }
+  }
+}
+
+.growtype-post-filters-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  justify-content: flex-end;
+
+  .growtype-post-terms-filters, .growtype-post-custom-filters {
+    display: flex;
+    align-items: flex-end;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+
+  &:empty {
+    display: none;
+  }
+
+  & + .growtype-post-container {
+    padding-top: 30px;
+  }
+
+  .growtype-post-terms-filters-single, .growtype-post-custom-filters-single {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
 }

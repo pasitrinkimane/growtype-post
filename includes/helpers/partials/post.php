@@ -120,8 +120,18 @@ if (!function_exists('growtype_post_include_view')) {
 if (!function_exists('growtype_post_get_pagination_offset')) {
     function growtype_post_get_pagination_offset($posts_per_page)
     {
-        $current_page = max(1, get_query_var('paged'));
+        $current_page = growtype_post_get_pagination_page_nr();
         return $current_page === 1 ? 0 : ($current_page - 1) * $posts_per_page;
+    }
+}
+
+/**
+ * Include custom view
+ */
+if (!function_exists('growtype_post_get_pagination_page_nr')) {
+    function growtype_post_get_pagination_page_nr()
+    {
+        return max(1, get_query_var('paged') ? get_query_var('paged') : (get_query_var('page') ? get_query_var('page') : 1));
     }
 }
 
@@ -144,7 +154,7 @@ function growtype_post_render_all($the_query = null, $parameters = null)
 if (!function_exists('growtype_post_render_single')) {
     function growtype_post_render_single($post, $parameters)
     {
-        return Growtype_Post_Shortcode::render_single($post, $parameters);
+        return Growtype_Post_Shortcode::render_single_post($post, $parameters);
     }
 }
 
@@ -234,13 +244,41 @@ if (!function_exists('growtype_post_like_post')) {
         $likes = growtype_post_get_post_likes($post_id);
 
         if (!empty($post_id)) {
-            if (!in_array($ip_key, $likes)) {
-                array_push($likes, $ip_key);
-                update_post_meta($post_id, 'growtype_post_likes', $likes);
-            } elseif ($dislike_enabled) {
-                $likes = array_diff($likes, [$ip_key]);
-                update_post_meta($post_id, 'growtype_post_likes', $likes);
+            $post_is_liked = false;
+            foreach ($likes as $key => $like_details) {
+                $like_details['ip_key'] = $like_details['ip_key'] ?? [];
+                $like_details['user_id'] = get_current_user_id();
+                if ($like_details['ip_key'] === $ip_key) {
+                    $post_is_liked = true;
+                }
             }
+
+            if (!$post_is_liked) {
+                array_push($likes, [
+                    'ip_key' => $ip_key,
+                    'user_id' => get_current_user_id(),
+                    'date' => date('Y-m-d H:i:s'),
+                ]);
+            } else {
+                if ($dislike_enabled) {
+                    $existing_likes = [];
+                    foreach ($likes as $key => $like_details) {
+                        if ($like_details['ip_key'] === $ip_key) {
+                            continue;
+                        }
+
+                        if (!empty($like_details['user_id']) && $like_details['user_id'] === get_current_user_id()) {
+                            continue;
+                        }
+
+                        $existing_likes[] = $like_details;
+                    }
+
+                    $likes = $existing_likes;
+                }
+            }
+
+            update_post_meta($post_id, 'growtype_post_likes', $likes);
         }
 
         return $likes;
@@ -260,6 +298,100 @@ if (!function_exists('growtype_post_get_post_likes')) {
         }
 
         return $likes;
+    }
+}
+
+/**
+ * Post likes
+ */
+if (!function_exists('growtype_post_get_user_liked_posts_ids')) {
+    function growtype_post_get_user_liked_posts_ids($user_id = null, $params = [])
+    {
+        $user_id = !empty($user_id) ? $user_id : get_current_user_id();
+        $post_type = $params['post_type'] ?? 'any';
+
+        $args = array (
+            'post_type' => $post_type,
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'meta_query' => array (
+                'relation' => 'AND',
+                array (
+                    'key' => 'growtype_post_likes',
+                    'value' => '',
+                    'compare' => '!=',
+                )
+            ),
+        );
+
+        $user_posts = [];
+        $wp_query = new WP_Query($args);
+
+        while ($wp_query->have_posts()) : $wp_query->the_post();
+            $post_likes = get_post_meta(get_the_ID(), 'growtype_post_likes', true);
+            $user_id = !empty($user_id) ? $user_id : get_current_user_id();
+            $post_likes = !empty($post_likes) ? $post_likes : [];
+
+            foreach ($post_likes as $post_like) {
+                $post_ip_key = $post_like['ip_key'] ?? '';
+                $post_user_id = $post_like['user_id'] ?? '';
+
+                if (($post_ip_key === growtype_post_get_ip_key()) || (!empty($post_user_id) && $post_user_id === $user_id)) {
+                    array_push($user_posts, [
+                        'post_id' => get_the_ID(),
+                        'date' => $post_like['date'],
+                    ]);
+                }
+            }
+        endwhile;
+
+        usort($user_posts, function ($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+
+        $user_posts = array_pluck($user_posts, 'post_id');
+
+        return $user_posts;
+    }
+}
+
+/**
+ * Post likes
+ */
+if (!function_exists('growtype_post_is_liked_by_user')) {
+    function growtype_post_is_liked_by_user($post_id, $user_id = null)
+    {
+        $post_likes = get_post_meta($post_id, 'growtype_post_likes', true);
+        $user_id = !empty($user_id) ? $user_id : get_current_user_id();
+        $post_likes = !empty($post_likes) ? $post_likes : [];
+
+        foreach ($post_likes as $post_like) {
+            $post_ip_key = $post_like['ip_key'] ?? '';
+            $post_user_id = $post_like['user_id'] ?? '';
+
+            if ($post_ip_key === growtype_post_get_ip_key()) {
+                return true;
+            }
+
+            if (!empty($post_user_id) && $post_user_id === $user_id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Post likes
+ */
+if (!function_exists('growtype_post_likes_amount')) {
+    function growtype_post_likes_amount($post_id)
+    {
+        $post_likes = get_user_meta($post_id, 'growtype_post_likes', true);
+        $post_likes = !empty($post_likes) ? $post_likes : [];
+
+        return count($post_likes);
     }
 }
 

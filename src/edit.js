@@ -274,6 +274,15 @@ export default function Edit({attributes, setAttributes}) {
                             :
                             ''
                         }
+                        {attributes.load_all_posts ?
+                            <ToggleControl
+                                label={__('Infinite load posts', 'growtype-post')}
+                                checked={attributes.infinite_load_posts}
+                                onChange={(val) => updateShortcode('infinite_load_posts', val)}
+                            />
+                            :
+                            ''
+                        }
                         {attributes.load_all_posts && (
                             <SelectControl
                                 label={__('Posts loading method', 'growtype-post')}
@@ -375,6 +384,51 @@ export default function Edit({attributes, setAttributes}) {
                             checked={attributes.show_if_no_posts}
                             onChange={(val) => updateShortcode('show_if_no_posts', val)}
                         />
+                        <ToggleControl
+                            label={__('Show custom tax posts', 'growtype-post')}
+                            checked={attributes.show_custom_tax_posts}
+                            onChange={(val) => updateShortcode('show_custom_tax_posts', val)}
+                        />
+                        {attributes.show_custom_tax_posts ?
+                            <TextControl
+                                label={__('Custom tax', 'growtype-post')}
+                                help={__('Enter custom tax', 'growtype-post')}
+                                onChange={(val) => updateShortcode('custom_tax', val)}
+                                value={attributes.custom_tax}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.show_custom_tax_posts ?
+                            <TextControl
+                                label={__('Custom tax slug', 'growtype-post')}
+                                help={__('Enter custom tax slug', 'growtype-post')}
+                                onChange={(val) => updateShortcode('custom_tax_slug', val)}
+                                value={attributes.custom_tax_slug}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.show_custom_tax_posts ?
+                            <SelectControl
+                                label={__('Custom tex level', 'growtype-post')}
+                                help={__('Which level custom tax posts to show', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Any',
+                                        value: 'any',
+                                    },
+                                    {
+                                        label: 'Parent',
+                                        value: 'parent',
+                                    }
+                                ]}
+                                value={attributes.custom_tax_level}
+                                onChange={(val) => updateShortcode('custom_tax_level', val)}
+                            />
+                            :
+                            ''
+                        }
                     </PanelBody>
                     <PanelBody
                         title={__('Terms navigation settings', 'growtype-post')}
@@ -392,10 +446,70 @@ export default function Edit({attributes, setAttributes}) {
                         />
                         {attributes.terms_navigation ?
                             <TextControl
-                                label={__('Terms navigation taxonomy', 'growtype-post')}
-                                help={__('', 'growtype-post')}
+                                label={__('Terms navigation taxonomies', 'growtype-post')}
+                                help={__("Separated by ','", 'growtype-post')}
                                 onChange={(val) => updateShortcode('terms_navigation_taxonomy', val)}
                                 value={attributes.terms_navigation_taxonomy}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation ?
+                            <SelectControl
+                                label={__('Navigation style', 'growtype-post')}
+                                help={__('', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Buttons',
+                                        value: 'buttons',
+                                    },
+                                    {
+                                        label: 'Select',
+                                        value: 'select',
+                                    }
+                                ]}
+                                value={attributes.terms_navigation_style}
+                                onChange={(val) => updateShortcode('terms_navigation_style', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation && attributes.terms_navigation_style === 'buttons' ?
+                            <SelectControl
+                                label={__('Default trigger type', 'growtype-post')}
+                                help={__('Trigger type.', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Click',
+                                        value: 'click',
+                                    },
+                                    {
+                                        label: 'Toggle',
+                                        value: 'toggle',
+                                    }
+                                ]}
+                                value={attributes.terms_navigation_default_term_trigger_type}
+                                onChange={(val) => updateShortcode('terms_navigation_default_term_trigger_type', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation && attributes.terms_navigation_style === 'select' ?
+                            <ToggleControl
+                                label={__('Select allow multiple options', 'growtype-post')}
+                                help={''}
+                                checked={attributes.terms_navigation_select_allow_multiple_options ? true : false}
+                                onChange={(val) => updateShortcode('terms_navigation_select_allow_multiple_options', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation && attributes.terms_navigation_style === 'select' ?
+                            <ToggleControl
+                                label={__('Select allow single deselect', 'growtype-post')}
+                                help={''}
+                                checked={attributes.terms_navigation_select_allow_single_deselect ? true : false}
+                                onChange={(val) => updateShortcode('terms_navigation_select_allow_single_deselect', val)}
                             />
                             :
                             ''
@@ -432,8 +546,8 @@ export default function Edit({attributes, setAttributes}) {
                             <TextControl
                                 label={__('Default term selected', 'growtype-post')}
                                 help={__('', 'growtype-post')}
-                                onChange={(val) => updateShortcode('default_term_selected', val)}
-                                value={attributes.default_term_selected}
+                                onChange={(val) => updateShortcode('terms_navigation_default_term_selected', val)}
+                                value={attributes.terms_navigation_default_term_selected}
                             />
                             :
                             ''
@@ -455,6 +569,20 @@ export default function Edit({attributes, setAttributes}) {
                         />
                         {attributes.custom_filters ?
                             <ToggleControl
+                                label={__('Show labels', 'growtype-post')}
+                                help={
+                                    attributes.custom_filters_show_labels
+                                        ? 'Is visible.'
+                                        : 'Is hidden.'
+                                }
+                                checked={attributes.custom_filters_show_labels ? true : false}
+                                onChange={(val) => updateShortcode('custom_filters_show_labels', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.custom_filters ?
+                            <ToggleControl
                                 label={__('Search input', 'growtype-post')}
                                 help={
                                     attributes.custom_filters_search_input_active
@@ -463,6 +591,20 @@ export default function Edit({attributes, setAttributes}) {
                                 }
                                 checked={attributes.custom_filters_search_input_active ? true : false}
                                 onChange={(val) => updateShortcode('custom_filters_search_input_active', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.custom_filters ?
+                            <ToggleControl
+                                label={__('Orderby select', 'growtype-post')}
+                                help={
+                                    attributes.custom_filters_orderby_select_active
+                                        ? 'Is visible.'
+                                        : 'Is hidden.'
+                                }
+                                checked={attributes.custom_filters_orderby_select_active ? true : false}
+                                onChange={(val) => updateShortcode('custom_filters_orderby_select_active', val)}
                             />
                             :
                             ''

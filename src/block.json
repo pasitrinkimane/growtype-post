@@ -37,6 +37,10 @@
       "type": "string",
       "default": "category"
     },
+    "terms_navigation_style": {
+      "type": "string",
+      "default": "buttons"
+    },
     "terms_navigation_show_all_option_visible": {
       "type": "boolean",
       "default": false
@@ -45,9 +49,21 @@
       "type": "boolean",
       "default": true
     },
-    "default_term_selected": {
+    "terms_navigation_default_term_selected": {
       "type": "string",
       "default": ""
+    },
+    "terms_navigation_default_term_trigger_type": {
+      "type": "string",
+      "default": "click"
+    },
+    "terms_navigation_select_allow_multiple_options": {
+      "type": "boolean",
+      "default": false
+    },
+    "terms_navigation_select_allow_single_deselect": {
+      "type": "boolean",
+      "default": false
     },
     "post_type": {
       "type": "string",
@@ -66,6 +82,10 @@
       "default": false
     },
     "show_load_more_posts_btn": {
+      "type": "boolean",
+      "default": false
+    },
+    "infinite_load_posts": {
       "type": "boolean",
       "default": false
     },
@@ -117,6 +137,22 @@
       "type": "boolean",
       "default": false
     },
+    "show_custom_tax_posts": {
+      "type": "boolean",
+      "default": false
+    },
+    "custom_tax": {
+      "type": "string",
+      "default": ""
+    },
+    "custom_tax_level": {
+      "type": "string",
+      "default": "any"
+    },
+    "custom_tax_slug": {
+      "type": "string",
+      "default": ""
+    },
     "pagination": {
       "type": "boolean",
       "default": false
@@ -141,9 +177,17 @@
       "type": "boolean",
       "default": false
     },
+    "custom_filters_orderby_select_active": {
+      "type": "boolean",
+      "default": false
+    },
     "custom_filters_included": {
       "type": "string",
       "default": ""
+    },
+    "custom_filters_show_labels": {
+      "type": "boolean",
+      "default": false
     }
   },
   "supports": {

@@ -118,18 +118,18 @@ $wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_custom
 /**
  * Back
  */
-$wp_customize->add_setting('growtype_post_back_btn_enabled',
+$wp_customize->add_setting('growtype_post_breadcrumbs_enabled',
     array (
         'default' => 1,
         'transport' => 'refresh',
     )
 );
 
-$wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_customize, 'growtype_post_back_btn_enabled',
+$wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_customize, 'growtype_post_breadcrumbs_enabled',
     array (
-        'label' => esc_html__('Back btn'),
+        'label' => esc_html__('Breadcrumbs'),
         'section' => 'post_single_page',
-        'description' => __('Button to go back.', 'growtype'),
+        'description' => __('Breadcrumbs + btn go back.', 'growtype'),
     )
 ));
 

@@ -5,6 +5,7 @@ export function getUrlFilterParams() {
     if (urlSearchParams['size'] && urlSearchParams['size'] > 0) {
         const urlParams = {};
         for (let [key, value] of urlSearchParams.entries()) {
+            key = key.replace('gps_', '');
             urlParams[key] = value.split(",");
         }
 
@@ -13,9 +14,10 @@ export function getUrlFilterParams() {
         } else {
             if (Object.entries(urlParams).length > 0) {
                 Object.entries(urlParams).forEach(([key, value]) => {
-                    let filterBtn = $('.growtype-post-terms-filter-btn[data-cat-' + key + ']');
+                    let termsFilterBtn = $('.growtype-post-terms-filter-btn[data-cat-' + key + ']');
+                    let customFilterBtn = $('.growtype-post-custom-filters-single[data-name="' + key + '"]');
 
-                    if (filterBtn.length > 0) {
+                    if (termsFilterBtn.length > 0 || customFilterBtn.length > 0) {
                         filterParams[key] = value;
                     }
                 });

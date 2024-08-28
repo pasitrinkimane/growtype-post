@@ -69,10 +69,10 @@ class Growtype_Post_Shortcode
     public static function format_args($attr = [])
     {
         $args = [
-            'post_type' => isset($attr['post_type']) ? $attr['post_type'] : 'post',
+            'post_type' => isset($attr['post_type']) ? $attr['post_type'] : get_post_type(),
             'content_source' => isset($attr['content_source']) ? $attr['content_source'] : 'internal',
             'content_url' => isset($attr['content_url']) ? $attr['content_url'] : '',
-            'posts_per_page' => isset($attr['posts_per_page']) ? $attr['posts_per_page'] : -1,
+            'posts_per_page' => isset($attr['posts_per_page']) ? $attr['posts_per_page'] : get_option('posts_per_page'),
             'preview_style' => isset($attr['preview_style']) ? $attr['preview_style'] : 'basic', //blog
             'preview_style_custom' => isset($attr['preview_style_custom']) ? $attr['preview_style_custom'] : '', //blog
             'category_name' => isset($attr['category_name']) ? $attr['category_name'] : '', //use category slug
@@ -102,14 +102,50 @@ class Growtype_Post_Shortcode
             'ajax_load_content' => isset($attr['ajax_load_content']) ? filter_var($attr['ajax_load_content'], FILTER_VALIDATE_BOOLEAN) : false,
             'terms_navigation_show_all_option_visible' => isset($attr['terms_navigation_show_all_option_visible']) ? filter_var($attr['terms_navigation_show_all_option_visible'], FILTER_VALIDATE_BOOLEAN) : false,
             'terms_navigation_selections_included_in_url' => isset($attr['terms_navigation_selections_included_in_url']) ? filter_var($attr['terms_navigation_selections_included_in_url'], FILTER_VALIDATE_BOOLEAN) : true,
-            'default_term_selected' => isset($attr['default_term_selected']) ? $attr['default_term_selected'] : '',
+            'terms_navigation_default_term_selected' => isset($attr['terms_navigation_default_term_selected']) ? $attr['terms_navigation_default_term_selected'] : '',
+            'terms_navigation_select_allow_multiple_options' => isset($attr['terms_navigation_select_allow_multiple_options']) && filter_var($attr['terms_navigation_select_allow_multiple_options'], FILTER_VALIDATE_BOOLEAN) ? true : false,
+            'terms_navigation_select_allow_single_deselect' => isset($attr['terms_navigation_select_allow_single_deselect']) && filter_var($attr['terms_navigation_select_allow_single_deselect'], FILTER_VALIDATE_BOOLEAN) ? true : false,
             'show_load_more_posts_btn' => isset($attr['show_load_more_posts_btn']) ? filter_var($attr['show_load_more_posts_btn'], FILTER_VALIDATE_BOOLEAN) : false,
             'custom_filters' => isset($attr['custom_filters']) ? filter_var($attr['custom_filters'], FILTER_VALIDATE_BOOLEAN) : false,
             'custom_filters_search_input_active' => isset($attr['custom_filters_search_input_active']) ? filter_var($attr['custom_filters_search_input_active'], FILTER_VALIDATE_BOOLEAN) : false,
+            'custom_filters_orderby_select_active' => isset($attr['custom_filters_orderby_select_active']) ? filter_var($attr['custom_filters_orderby_select_active'], FILTER_VALIDATE_BOOLEAN) : false,
+            'custom_filters_show_labels' => isset($attr['custom_filters_show_labels']) ? filter_var($attr['custom_filters_show_labels'], FILTER_VALIDATE_BOOLEAN) : false,
             'custom_filters_included' => isset($attr['custom_filters_included']) && !empty($attr['custom_filters_included']) ? $attr['custom_filters_included'] : [],
             'show_if_no_posts' => isset($attr['show_if_no_posts']) && !empty($attr['show_if_no_posts']) && $attr['show_if_no_posts'] ? true : false,
             'selected_terms_navigation_values' => isset($attr['selected_terms_navigation_values']) && !empty($attr['selected_terms_navigation_values']) && $attr['selected_terms_navigation_values'] ? $attr['selected_terms_navigation_values'] : [],
+            'terms_navigation_default_term_trigger_type' => isset($attr['terms_navigation_default_term_trigger_type']) ? $attr['terms_navigation_default_term_trigger_type'] : 'click',
+            'terms_navigation_style' => isset($attr['terms_navigation_style']) ? $attr['terms_navigation_style'] : 'buttons',
+            'infinite_load_posts' => isset($attr['infinite_load_posts']) ? $attr['infinite_load_posts'] : false,
+            'show_custom_tax_posts' => isset($attr['show_custom_tax_posts']) ? $attr['show_custom_tax_posts'] : false,
+            'custom_tax' => isset($attr['custom_tax']) ? $attr['custom_tax'] : null,
+            'custom_tax_slug' => isset($attr['custom_tax_slug']) ? $attr['custom_tax_slug'] : null,
+            'custom_tax_level' => isset($attr['custom_tax_level']) ? $attr['custom_tax_level'] : null,
         ];
+
+        $args['offset'] = isset($args['offset']) ? $args['offset'] : growtype_post_get_pagination_offset($args['posts_per_page']);
+
+        if (empty($args['tax_query'])) {
+            $queried_object = get_queried_object();
+
+            if (!empty($queried_object)) {
+                $queried_object_slug = $queried_object->slug;
+                if (!empty($queried_object_slug)) {
+                    $tax_query_args = [
+                        'taxonomy' => $queried_object->taxonomy,
+                        'field' => 'slug',
+                        'terms' => $queried_object_slug,
+                    ];
+
+                    if ($queried_object->parent == 0) {
+                        $tax_query_args['include_children'] = false;
+                    } else {
+                        $tax_query_args['include_children'] = true;
+                    }
+
+                    $args['tax_query'][] = $tax_query_args;
+                }
+            }
+        }
 
         $args['post_type'] = !is_array($args['post_type']) ? explode(',', $args['post_type']) : $args['post_type'];
 
@@ -138,6 +174,9 @@ class Growtype_Post_Shortcode
         }
 
         $args['post_classes'] = isset($attr['post_classes']) && !empty($attr['post_classes']) ? implode(' ', $post_classes_list) . ' ' . $attr['post_classes'] : implode(' ', $post_classes_list);
+        $args['post_classes'] = explode(' ', $args['post_classes']);
+        $args['post_classes'] = array_unique($args['post_classes']);
+        $args['post_classes'] = implode(' ', $args['post_classes']);
 
         return apply_filters('growtype_post_shortcode_format_args', $args, $attr);
     }
@@ -223,7 +262,7 @@ class Growtype_Post_Shortcode
             }
         }
 
-        if ($args['pagination'] && !empty(get_query_var('paged'))) {
+        if ($args['pagination'] && growtype_post_get_pagination_page_nr() > 1) {
             $query_args['offset'] = growtype_post_get_pagination_offset($posts_per_page);
         }
 
@@ -291,7 +330,54 @@ class Growtype_Post_Shortcode
                  * Include custom tax query
                  */
                 if (!empty($args['tax_query'])) {
-                    $query_args['tax_query'] = json_decode(urldecode($args['tax_query']), true);
+                    $query_args['tax_query'] = is_array($args['tax_query']) ? $args['tax_query'] : json_decode(urldecode($args['tax_query']), true);
+                }
+
+                /**
+                 * Terms navigation
+                 */
+                if (isset($args['selected_terms_navigation_values']) && !empty($args['selected_terms_navigation_values'])) {
+                    foreach ($args['selected_terms_navigation_values'] as $tax => $term) {
+                        if (in_array('all', $term) || !taxonomy_exists($tax)) {
+                            continue;
+                        }
+
+                        $query_args['tax_query'][] = [
+                            'taxonomy' => $tax,
+                            'field' => 'slug',
+                            'terms' => $term
+                        ];
+                    }
+                }
+
+                if (isset($args['show_custom_tax_posts']) && $args['show_custom_tax_posts']) {
+                    $tax_value = $args['custom_tax_slug'] ?? '';
+                    $custom_tax = $args['custom_tax'] ?? '';
+
+                    if (!empty($tax_value) || empty($custom_tax)) {
+                        $term = get_term_by('slug', $tax_value, $custom_tax);
+
+                        $tax_level = $args['custom_tax_level'] ?? 'any';
+
+                        if ($tax_level === 'parent') {
+                            $parent_term_id = $term->term_id;
+
+                            $child_terms = get_terms(array (
+                                'taxonomy' => $custom_tax,
+                                'parent' => $parent_term_id,
+                                'hide_empty' => false,
+                            ));
+
+                            $child_term_ids = wp_list_pluck($child_terms, 'term_id');
+
+                            $query_args['tax_query'][] = [
+                                'taxonomy' => $custom_tax,
+                                'field' => 'term_id',
+                                'terms' => $child_term_ids,
+                                'include_children' => false
+                            ];
+                        }
+                    }
                 }
 
                 $query_args = apply_filters('growtype_post_shortcode_extend_args', $query_args, $args);
@@ -461,35 +547,22 @@ class Growtype_Post_Shortcode
          * Prepare default wp_query if empty wp_query is passed
          */
         if (empty($wp_query)) {
-            $args['pagination'] = isset($args['pagination']) ? $args['pagination'] : true;
-            $args['posts_per_page'] = isset($args['posts_per_page']) ? $args['posts_per_page'] : get_option('posts_per_page');
-            $args['post_type'] = isset($args['post_type']) ? $args['post_type'] : get_post_type();
-            $args['offset'] = isset($args['offset']) ? $args['offset'] : growtype_post_get_pagination_offset($args['posts_per_page']);
-
-            $queried_object = get_queried_object();
-
-            if (!empty($queried_object)) {
-                $queried_object_slug = $queried_object->slug;
-                if (!empty($queried_object_slug)) {
-                    $args['category_name'] = $queried_object_slug;
-                }
-            }
-
             $wp_query = new WP_Query($args);
 
             $args['columns'] = isset($args['columns']) ? $args['columns'] : 3;
-
-            $pages_amount = 0;
-
-            if (isset($args['post_type']) && $args['post_type']) {
-                $pages_amount = (int)round($wp_query->found_posts / $args['posts_per_page']);
-            }
-
-            $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : $pages_amount;
         }
+
+        $pages_amount = 0;
+
+        if (isset($args['post_type']) && $args['post_type']) {
+            $pages_amount = (int)ceil($wp_query->found_posts / $args['posts_per_page']);
+        }
+
+        $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : $pages_amount;
 
         $terms_navigation_taxonomies = isset($args['terms_navigation_taxonomy']) ? $args['terms_navigation_taxonomy'] : ['category'];
 
+        $terms_groups = [];
         foreach ($terms_navigation_taxonomies as $terms_navigation_taxonomy) {
             $terms = get_terms(array (
                 'taxonomy' => $terms_navigation_taxonomy,
@@ -498,22 +571,37 @@ class Growtype_Post_Shortcode
             ));
 
             if (!is_wp_error($terms)) {
+                $combined_values = $terms;
+
+                if (isset($args['terms_navigation_show_all_option_visible']) && $args['terms_navigation_show_all_option_visible']) {
+                    $combined_values = array_merge([
+                        (object)[
+                            'name' => 'All',
+                            'slug' => 'all',
+                        ]
+                    ], $terms);
+                }
+
                 $terms = [
                     $terms_navigation_taxonomy => [
-                        'values' => array_merge([
-                            (object)[
-                                'name' => 'All',
-                                'slug' => 'all',
-                            ]
-                        ], $terms)
+                        'values' => $combined_values,
+                        'settings' => [
+                            'placeholder' => apply_filters('growtype_post_terms_navigation_select_placeholder', 'Select ...'),
+                            'is_multiple' => $args['terms_navigation_select_allow_multiple_options'],
+                            'allow_single_deselect' => $args['terms_navigation_select_allow_single_deselect'],
+                        ]
                     ]
                 ];
             }
+
+            if (is_wp_error($terms)) {
+                $terms = [];
+            }
+
+            $terms_groups = array_merge($terms_groups, $terms);
         }
 
-        if (is_wp_error($terms)) {
-            $terms = [];
-        }
+        $terms = $terms_groups;
 
         $terms = apply_filters('growtype_post_shortcode_extend_terms', $terms, $wp_query, $args);
 
@@ -530,110 +618,173 @@ class Growtype_Post_Shortcode
             ?>
 
             <div
-                <?php echo !empty($args['parent_id']) ? 'id="' . $args['parent_id'] . '"' : "" ?>
+                id="<?php echo !empty($args['parent_id']) ? $args['parent_id'] : 'gpw-' . wp_generate_password(12, false) ?>"
                 class="<?php echo implode(' ', $wrapper_container_classes) ?>"
+                data-post-type="<?php echo implode(',', $args['post_type']) ?>"
                 data-preview-style="<?php echo $args['preview_style'] ?>"
                 data-content-source="<?php echo $args['content_source'] ?>"
                 data-content-url-cache="<?php echo $args['content_url_cache'] ?>"
+                data-args='<?php echo json_encode($args) ?>'
             >
-                <?php if (isset($args['terms_navigation']) && $args['terms_navigation']) { ?>
-                    <div
-                        class="growtype-post-terms-filters"
-                        data-selections-included-in-url="<?php echo $args['terms_navigation_selections_included_in_url'] ?>"
-                    >
-
-                        <?php do_action('growtype_post_terms_filters_after_open', $terms, $terms_navigation_taxonomies); ?>
-
-                        <?php foreach ($terms as $key => $existing_terms) {
-                            $js_init_cat = isset($existing_terms['settings']['js_init_cat']) ? $existing_terms['settings']['js_init_cat'] : '';
-
-                            if (isset($args['default_term_selected']) && !empty($args['default_term_selected'])) {
-                                $js_init_cat = $args['default_term_selected'];
-                            }
-
-                            ?>
-                            <div class="growtype-post-terms-filter <?php echo isset($existing_terms['settings']['is_closed_by_default']) && $existing_terms['settings']['is_closed_by_default'] ? 'is-closed' : '' ?>"
-                                 data-type="<?php echo $key ?>"
-                                 data-init-cat="<?php echo $js_init_cat ?>"
+                <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] || isset($args['custom_filters']) && $args['custom_filters']) { ?>
+                    <div class="growtype-post-filters-wrapper">
+                        <?php if (isset($args['terms_navigation']) && $args['terms_navigation']) { ?>
+                            <div
+                                class="growtype-post-terms-filters"
+                                data-selections-included-in-url="<?php echo $args['terms_navigation_selections_included_in_url'] ?>"
+                                data-nav-style="<?php echo $args['terms_navigation_style'] ?>"
                             >
-                                <?php if (isset($existing_terms['values'])) {
-                                    $counter = 0;
-                                    $toggle_trigger_exists = false;
-                                    foreach ($existing_terms['values'] as $existing_term) {
 
-                                        if (!$args['terms_navigation_show_all_option_visible'] && isset($existing_term->slug) && $existing_term->slug === 'all') {
-                                            continue;
-                                        }
+                                <?php do_action('growtype_post_terms_filters_after_open', $terms, $terms_navigation_taxonomies); ?>
 
-                                        $trigger_type = isset($existing_terms['settings']['trigger_type']) ? $existing_terms['settings']['trigger_type'] : 'click';
-                                        $multiple_select = isset($existing_terms['settings']['multiple_select']) && $existing_terms['settings']['multiple_select'] === true ? 'true' : 'false';
+                                <?php foreach ($terms as $key => $existing_terms) {
+                                    $js_init_cat = isset($existing_terms['settings']['js_init_cat']) ? $existing_terms['settings']['js_init_cat'] : '';
 
-                                        $is_selected = false;
-                                        if (isset($existing_terms['settings']['default_value'])) {
-                                            if ($existing_terms['settings']['default_value'] === $existing_term->slug) {
-                                                $is_selected = true;
-                                            }
-                                        } elseif (empty($js_init_cat) && $counter === 0) {
-                                            $is_selected = true;
-                                        }
-                                        ?>
-                                        <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $is_selected ? 'is-active' : '' ?>"
-                                             data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"
-                                             data-trigger-type="<?php echo $trigger_type ?>"
-                                             data-multiple-select="<?php echo $multiple_select ?>"
-                                             data-disabled="<?php echo isset($existing_term->disabled) ? $existing_term->disabled : false ?>"
+                                    if (isset($args['terms_navigation_default_term_selected']) && !empty($args['terms_navigation_default_term_selected'])) {
+                                        $js_init_cat = $args['terms_navigation_default_term_selected'];
+                                    }
+
+                                    ?>
+                                    <div class="growtype-post-terms-filters-single">
+
+                                        <?php do_action('growtype_post_terms_filters_single_after_open', $existing_terms, $key); ?>
+
+                                        <div class="growtype-post-terms-filter <?php echo isset($existing_terms['settings']['is_closed_by_default']) && $existing_terms['settings']['is_closed_by_default'] ? 'is-closed' : '' ?>"
+                                             data-type="<?php echo $key ?>"
+                                             data-init-cat="<?php echo $js_init_cat ?>"
                                         >
-                                            <?php echo $existing_term->name ?>
+                                            <?php if (isset($existing_terms['values'])) {
+                                                $counter = 0;
+                                                $toggle_trigger_exists = false;
+                                                foreach ($existing_terms['values'] as $existing_term) {
+
+                                                    $existing_term = is_array($existing_term) ? (object)$existing_term : $existing_term;
+
+                                                    if (!$args['terms_navigation_show_all_option_visible'] && isset($existing_term->slug) && $existing_term->slug === 'all') {
+                                                        continue;
+                                                    }
+
+                                                    $trigger_type = isset($existing_terms['settings']['trigger_type']) ? $existing_terms['settings']['trigger_type'] : $args['terms_navigation_default_term_trigger_type'];
+                                                    $multiple_select = isset($existing_terms['settings']['multiple_select']) && $existing_terms['settings']['multiple_select'] === true ? 'true' : 'false';
+
+                                                    $is_selected = false;
+                                                    if (isset($existing_terms['settings']['default_value'])) {
+                                                        if ($existing_terms['settings']['default_value'] === $existing_term->slug) {
+                                                            $is_selected = true;
+                                                        }
+                                                    } elseif (empty($js_init_cat) && $counter === 0 && $args['terms_navigation_show_all_option_visible']) {
+                                                        $is_selected = true;
+                                                    }
+                                                    ?>
+                                                    <div class="growtype-post-terms-filter-btn btn btn-secondary <?php echo $is_selected ? 'is-active' : '' ?>"
+                                                         data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"
+                                                         data-trigger-type="<?php echo $trigger_type ?>"
+                                                         data-multiple-select="<?php echo $multiple_select ?>"
+                                                         data-disabled="<?php echo isset($existing_term->disabled) ? $existing_term->disabled : false ?>"
+                                                    >
+                                                        <?php echo $existing_term->name ?>
+                                                    </div>
+                                                    <?php $counter++; ?>
+                                                <?php }
+                                            } ?>
                                         </div>
-                                        <?php $counter++; ?>
-                                    <?php }
-                                } ?>
-                            </div>
-                            <select name="<?php echo $key ?>"
-                                    class="growtype-post-terms-filter"
-                                    data-type="<?php echo $key ?>"
-                                    data-init-cat="<?php echo $js_init_cat ?>"
-                            >
-                                <?php if (isset($existing_terms['values'])) {
-                                    foreach ($existing_terms['values'] as $existing_term) {
-                                        $is_selected = false;
-                                        if (isset($existing_terms['settings']['default_value'])) {
-                                            if ($existing_terms['settings']['default_value'] === $existing_term->slug) {
-                                                $is_selected = true;
-                                            }
-                                        } elseif ($counter === 0) {
-                                            $is_selected = true;
-                                        }
-                                        ?>
-                                        <?php if (!$toggle_trigger_exists && $trigger_type === 'toggle') {
-                                            $toggle_trigger_exists = true;
-                                            ?>
-                                            <option value="none" <?php echo $is_selected ? 'selected' : '' ?> class="" data-cat-<?php echo $key ?>="none"><?php echo isset($existing_terms['settings']['select_value_none_label']) ? $existing_terms['settings']['select_value_none_label'] : __('Select...', 'growtype-post') ?></option>
-                                        <?php } ?>
-                                        <option value="<?php echo $existing_term->name ?>" <?php echo $is_selected ? 'selected' : '' ?> class="" data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"><?php echo isset($existing_terms['settings']['select_value_not_none_prefix']) && !empty($existing_terms['settings']['select_value_not_none_prefix']) ? $existing_terms['settings']['select_value_not_none_prefix'] : '' ?><?php echo $existing_term->name ?></option>
-                                    <?php }
-                                } ?>
-                            </select>
-                        <?php } ?>
+                                        <select
+                                            <?php echo isset($existing_terms['settings']['is_multiple']) && $existing_terms['settings']['is_multiple'] ? 'multiple' : '' ?>
+                                            name="<?php echo $key ?>"
+                                            class="growtype-post-terms-filter"
+                                            data-type="<?php echo $key ?>"
+                                            data-init-cat="<?php echo $js_init_cat ?>"
+                                            data-allow-single-deselect="<?php echo isset($existing_terms['settings']['allow_single_deselect']) && $existing_terms['settings']['allow_single_deselect'] ? 'true' : 'false' ?>"
+                                            data-placeholder="<?php echo isset($existing_terms['settings']['placeholder']) ? $existing_terms['settings']['placeholder'] : 'Select ...' ?>"
+                                        >
+                                            <option value="" class="" data-cat-<?php echo $key ?>="none"><?php echo isset($existing_terms['settings']['placeholder']) ? $existing_terms['settings']['placeholder'] : 'Select ...' ?></option>
+                                            <?php if (isset($existing_terms['values'])) {
+                                                foreach ($existing_terms['values'] as $existing_term) {
 
-                        <?php do_action('growtype_post_terms_filters_before_close', $terms, $terms_navigation_taxonomies); ?>
-                    </div>
-                <?php }
+                                                    $existing_term = is_array($existing_term) ? (object)$existing_term : $existing_term;
+                                                    $is_selected = false;
 
-                if (isset($args['custom_filters']) && $args['custom_filters']) { ?>
-                    <div class="growtype-post-custom-filters">
-                        <?php do_action('growtype_post_custom_filters_after_open', $args['custom_filters_included']); ?>
+                                                    if (isset($existing_terms['settings']['default_value'])) {
+                                                        if ($existing_terms['settings']['default_value'] === $existing_term->slug) {
+                                                            $is_selected = true;
+                                                        }
+                                                    }
+                                                    ?>
+                                                    <option value="<?php echo $existing_term->name ?>" <?php echo $is_selected ? 'selected' : '' ?> class="" data-cat-<?php echo $key ?>="<?php echo $existing_term->slug ?>"><?php echo isset($existing_terms['settings']['select_value_not_none_prefix']) && !empty($existing_terms['settings']['select_value_not_none_prefix']) ? $existing_terms['settings']['select_value_not_none_prefix'] : '' ?><?php echo $existing_term->name ?></option>
+                                                <?php }
+                                            } ?>
+                                        </select>
 
-                        <?php if (isset($args['custom_filters_search_input_active']) && $args['custom_filters_search_input_active']) { ?>
-                            <div class="growtype-post-custom-filters-single" data-name="search">
-                                <label for="growtype_post_custom_filters_search">Search</label>
-                                <input type="text" name="growtype_post_custom_filters_search"/>
+                                        <?php do_action('growtype_post_terms_filters_single_before_close', $existing_terms, $key); ?>
+                                    </div>
+                                <?php } ?>
+
+                                <?php do_action('growtype_post_terms_filters_before_close', $terms, $terms_navigation_taxonomies); ?>
                             </div>
                         <?php } ?>
+                        <?php if (isset($args['custom_filters']) && $args['custom_filters']) { ?>
+                            <div class="growtype-post-custom-filters">
+                                <?php do_action('growtype_post_custom_filters_after_open', $args['custom_filters_included']); ?>
 
-                        <?php do_action('growtype_post_custom_filters_before_close', $args['custom_filters_included']); ?>
+                                <?php
+                                $custom_filters = [
+                                    'search' => [
+                                        'active' => isset($args['custom_filters_search_input_active']) && $args['custom_filters_search_input_active'],
+                                        'type' => 'text',
+                                        'label' => 'Search',
+                                        'name' => 'search',
+                                    ],
+                                    'orderby' => [
+                                        'active' => isset($args['custom_filters_orderby_select_active']) && $args['custom_filters_orderby_select_active'],
+                                        'type' => 'select',
+                                        'label' => 'Orderby',
+                                        'ajax' => true,
+                                        'name' => 'orderby',
+                                        'disable_search' => true,
+                                        'options' => apply_filters('growtype_post_custom_filters_orderby_options', [
+                                            'date' => 'Date',
+                                            'name' => 'Name',
+                                            'menu_order' => 'Menu Order',
+                                        ]),
+                                    ]
+                                ];
+
+                                $custom_filters = apply_filters('growtype_post_custom_filters', $custom_filters, $args);
+
+                                foreach ($custom_filters as $custom_filter) {
+                                    if (!$custom_filter['active']) {
+                                        continue;
+                                    }
+
+                                    if ($custom_filter['type'] === 'select') { ?>
+                                        <div class="growtype-post-custom-filters-single" data-name="<?php echo $custom_filter['name'] ?>" data-ajax="<?php echo filter_var($custom_filter['ajax'], FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false' ?>">
+                                            <?php if (isset($args['custom_filters_show_labels']) && $args['custom_filters_show_labels']) { ?>
+                                                <label for="<?php echo $custom_filter['name'] ?>"><?php echo $custom_filter['label'] ?></label>
+                                            <?php } ?>
+                                            <select class="growtype-post-custom-filter" name="<?php echo $custom_filter['name'] ?>" data-disable-search="<?php echo filter_var($custom_filter['disable_search'], FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false' ?>">
+                                                <?php foreach ($custom_filter['options'] as $key => $value) { ?>
+                                                    <option value="<?php echo $key ?>" <?= $key === $args['orderby'] ? 'selected' : '' ?>><?php echo $value ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                    <?php } else { ?>
+                                        <div class="growtype-post-custom-filters-single" data-name="<?php echo $custom_filter['name'] ?>">
+                                            <?php if (isset($args['custom_filters_show_labels']) && $args['custom_filters_show_labels']) { ?>
+                                                <label for="<?php echo $custom_filter['name'] ?>"><?php echo $custom_filter['label'] ?></label>
+                                            <?php } ?>
+                                            <input type="text" name="<?php echo $custom_filter['name'] ?>"/>
+                                        </div>
+                                    <?php }
+                                }
+                                ?>
+
+                                <?php do_action('growtype_post_custom_filters_before_close', $args); ?>
+                            </div>
+                        <?php } ?>
                     </div>
-                <?php }
+                <?php } ?>
+
+                <?php
 
                 $container_classes = ['growtype-post-container'];
 
@@ -671,7 +822,7 @@ class Growtype_Post_Shortcode
                     <?php endwhile; ?>
                 <?php } ?>
 
-                <?php if (isset($args['show_load_more_posts_btn']) && $args['show_load_more_posts_btn']) { ?>
+                <?php if (isset($args['load_all_posts']) && $args['load_all_posts'] && isset($args['show_load_more_posts_btn']) && $args['show_load_more_posts_btn']) { ?>
                     <div class="gp-actions-wrapper">
                         <button class="btn btn-primary btn-loadmore"><?php echo apply_filters('growtype_post_load_more_posts_btn_label', __('Load more', 'growtype-post')) ?></button>
                     </div>
@@ -735,9 +886,18 @@ class Growtype_Post_Shortcode
             }
 
             if (!isset($existing_args['post_terms']) || empty($existing_args['post_terms'])) {
-                if (isset($current_post->post_terms)) {
+                if (isset($current_post->post_terms) && !empty($current_post->post_terms)) {
                     $existing_args['post_terms'] = $current_post->post_terms;
                 } else {
+
+                    if (empty($terms)) {
+                        $default_terms = get_the_terms(get_the_ID(), $args['terms_navigation_taxonomy']);
+
+                        foreach ($default_terms as $default_term) {
+                            $terms[$default_term->taxonomy] = $default_terms;
+                        }
+                    }
+
                     foreach ($terms as $key => $term) {
                         $existing_args['post_terms'][$key] = wp_get_post_terms(get_the_ID(), $key);
                         $existing_args['post_terms'][$key] = is_wp_error($existing_args['post_terms'][$key]) ? [] : $existing_args['post_terms'][$key];
@@ -782,7 +942,19 @@ class Growtype_Post_Shortcode
     {
         $html = '';
         foreach ($terms as $key => $term) {
-            $html .= 'data-cat-' . $key . '="' . implode(',', array_pluck($term, 'slug')) . '" ';
+            $term_slugs = array_pluck($term, 'slug');
+            $term_parents = array_pluck($term, 'parent');
+
+            foreach ($term_parents as $term_parent) {
+                if (!empty($term_parent)) {
+                    $term = get_term($term_parent, $term->taxonomy);
+                    if (!empty($term)) {
+                        array_push($term_slugs, $term->slug);
+                    }
+                }
+            }
+
+            $html .= 'data-cat-' . $key . '="' . implode(',', $term_slugs) . '" ';
         }
 
         return $html;
@@ -815,10 +987,12 @@ class Growtype_Post_Shortcode
         }
 
         $total_pages = !empty($total_pages) ? $total_pages : (is_object($custom_query) ? $custom_query->max_num_pages : count($custom_query));
+
         $big = 999999999;
 
         if ($total_pages > 1) {
-            $current_page = max(1, get_query_var('paged'));
+            $current_page = growtype_post_get_pagination_page_nr();
+
             echo paginate_links(array (
                 'prev_text' => '<span class="dashicons dashicons-arrow-left-alt2"></span>',
                 'next_text' => '<span class="dashicons dashicons-arrow-right-alt2"></span>',

@@ -1,8 +1,15 @@
 <?php
 
-add_action('growtype_archive', 'growtype_post_growtype_archive');
+add_action('growtype_archive', 'growtype_post_archive');
 
-function growtype_post_growtype_archive()
+function growtype_post_archive()
 {
-    echo growtype_post_render_all();
+    $parameters = apply_filters('growtype_post_archive_parameters', [
+        'columns' => 4,
+        'pagination' => true
+    ]);
+
+    $query = apply_filters('growtype_post_archive_query', null);
+
+    echo growtype_post_render_all($query, $parameters);
 }

@@ -4,8 +4,6 @@ import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
 import {loadMorePosts} from "./loadMorePosts";
 
 export function loadMoreBtnTrigger(element) {
-    window.growtype_post_load_more_posts_btn_clicked = false;
-
     element.click(function (e) {
         e.preventDefault();
 
@@ -65,14 +63,25 @@ export function loadMoreBtnTrigger(element) {
 
                 window.growtype_post_load_more_posts_btn_clicked = false;
             } else if (loadingType === 'ajax') {
-                loadMorePosts({
-                    amount_to_load: postsAmountToLoad,
-                    amount_to_show: postAmountToShowLimit,
-                    selected_terms_navigation_values: filterParams,
-                    filters_container: filtersContainer,
-                    btn: btn,
-                    posts_container: postsContainer
-                })
+                let args = postsContainer.closest('.growtype-post-container-wrapper').attr('data-args');
+                args = args ? JSON.parse(args) : {};
+
+                args['amount_to_load'] = postsAmountToLoad;
+                args['amount_to_show'] = postAmountToShowLimit;
+                args['selected_terms_navigation_values'] = Object.assign({}, filterParams);
+
+                let orderby = $('.growtype-post-filters-wrapper select[name="orderby"]').val();
+
+                if (orderby) {
+                    args['orderby'] = orderby;
+                }
+
+                let elements = {};
+                elements['filters_container'] = filtersContainer;
+                elements['btn'] = btn;
+                elements['posts_container'] = postsContainer;
+
+                loadMorePosts(elements, args);
             }
         }
     })
@@ -85,8 +94,8 @@ export function loadMoreBtnTrigger(element) {
         let existingPosts = $('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container .growtype-post-single').length;
         let loadingType = $('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container').attr('data-loading-type');
 
-        if (existingPosts <= visiblePosts && loadingType !== 'ajax') {
-            $('.gp-actions-wrapper').hide();
+        if (existingPosts >= visiblePosts) {
+            $('.gp-actions-wrapper').show();
         }
     }
 }

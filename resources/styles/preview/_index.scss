@@ -64,9 +64,9 @@
  Actions
  */
 .gp-actions-wrapper {
-  display: flex;
-  justify-content: center;
+  display: none;
   padding-top: 50px;
+  text-align: center;
 
   .btn {
     @include bp-phone-xl() {
@@ -76,6 +76,13 @@
     &.is-loading {
       background: none;
       border: none;
+      position: relative;
+      min-height: 40px;
+      transition: initial;
+
+      .spinner-border {
+        top: 10px;
+      }
     }
   }
 }

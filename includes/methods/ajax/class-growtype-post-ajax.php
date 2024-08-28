@@ -4,8 +4,8 @@ class Growtype_Post_Ajax
 {
     public function __construct()
     {
-        add_action('wp_ajax_like_post', array ($this, 'growtype_post_like_ajax_callback'));
-        add_action('wp_ajax_nopriv_like_post', array ($this, 'growtype_post_like_ajax_callback'));
+        add_action('wp_ajax_growtype_post_like_post', array ($this, 'growtype_post_like_ajax_callback'));
+        add_action('wp_ajax_nopriv_growtype_post_like_post', array ($this, 'growtype_post_like_ajax_callback'));
 
         add_action('wp_ajax_get_post_likes', array ($this, 'growtype_post_get_post_likes_ajax_callback'));
         add_action('wp_ajax_nopriv_get_post_likes', array ($this, 'growtype_post_get_post_likes_ajax_callback'));
@@ -22,28 +22,36 @@ class Growtype_Post_Ajax
 
     function growtype_post_load_more_posts_callback()
     {
-        $existing_posts_ids = isset($_POST['existing_posts_ids']) && !empty($_POST['existing_posts_ids']) ? json_decode(stripslashes($_POST['existing_posts_ids']), true) : [];
-        $amount_to_load = isset($_POST['amount_to_load']) ? $_POST['amount_to_load'] : [];
-        $preview_style = isset($_POST['preview_style']) ? $_POST['preview_style'] : 'basic';
+        $args = isset($_POST['args']) ? $_POST['args'] : [];
 
-        $external_args = array_merge($_POST, [
+        if (empty($args)) {
+            wp_send_json_error([
+                'message' => 'No args provided'
+            ], 400);
+        }
+
+        $existing_posts_ids = isset($args['existing_posts_ids']) && !empty($args['existing_posts_ids']) ? json_decode(stripslashes($args['existing_posts_ids']), true) : [];
+        $amount_to_load = isset($args['amount_to_load']) ? $args['amount_to_load'] : [];
+        $post_terms = isset($args['selected_terms_navigation_values']) ? $args['selected_terms_navigation_values'] : [];
+
+        $external_args = array_merge($args, [
             'post__not_in' => $existing_posts_ids,
-            'posts_per_page' => $amount_to_load,
-            'preview_style' => $preview_style,
+            'posts_per_page' => $amount_to_load
         ]);
 
-        $args = Growtype_Post_Shortcode::format_args($external_args);
+        $formated_args = Growtype_Post_Shortcode::format_args($external_args);
 
-        $args = apply_filters('growtype_post_load_more_posts_args', $args);
+        $formated_args = apply_filters('growtype_post_load_more_posts_args', $formated_args);
 
-        $wp_query_response = Growtype_Post_Shortcode::query_posts($args);
+        $wp_query_response = Growtype_Post_Shortcode::query_posts($formated_args);
 
-        $args = array_merge($args, $wp_query_response['args'] ?? []);
+        $formated_args = array_merge($formated_args, $wp_query_response['args'] ?? []);
         $wp_query = $wp_query_response['wp_query'] ?? [];
 
         $render = Growtype_Post_Shortcode::render_posts(
             $wp_query,
-            $args
+            $formated_args,
+            $post_terms
         );
 
         wp_send_json_success([

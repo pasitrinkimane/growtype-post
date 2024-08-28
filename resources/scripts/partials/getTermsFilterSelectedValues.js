@@ -5,6 +5,11 @@ import {updateUrlWithFilterParams} from "./updateUrlWithFilterParams";
  * @returns {*[]}
  */
 export function growtypePostGetTermsFilterSelectedValues(termsFilter) {
+
+    if (termsFilter === undefined) {
+        return;
+    }
+
     let filterParams = [];
     let chosenExists = termsFilter.find('.chosen-container:visible').length > 0;
 

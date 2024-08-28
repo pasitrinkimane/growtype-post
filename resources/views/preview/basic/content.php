@@ -4,7 +4,7 @@
     <?php } ?>
     <div class="b-content">
         <?php
-        $terms = !empty($post_terms) ? implode(', ', array_pluck($post_terms, 'name')) : '';
+        $terms = !empty($post_terms) && isset(array_values($post_terms)[0]) ? implode(', ', array_pluck(array_values($post_terms)[0], 'name')) : '';
         if (!empty($terms)) { ?>
             <p class="e-terms"><?php echo $terms ?></p>
         <?php } ?>
@@ -19,7 +19,7 @@
                 <?php echo growtype_post_get_excerpt($post->ID, isset($intro_content_length) && !empty($intro_content_length) ? $intro_content_length : null) ?>
             </div>
         <?php } ?>
-        <?php echo growtype_post_render_cta(); ?>
+        <?php echo growtype_post_render_cta($post->ID); ?>
     </div>
 
     <?php if (get_theme_mod('growtype_post_preview_actions_enabled', true)) { ?>

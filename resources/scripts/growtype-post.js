@@ -1,9 +1,10 @@
 import {loadMoreBtnTrigger} from "./partials/loadMoreBtnTrigger";
-import {filterPosts} from "./partials/filterPosts";
-import {updateFilterWithUrlParams} from "./partials/updateFilterWithUrlParams";
+import {customFilterPosts} from "./partials/customFilterPosts";
+import {updateFiltersWithUrlParams} from "./partials/updateFiltersWithUrlParams";
 import {termsFilter} from "./partials/termsFilter";
 import {ajaxLoadPosts} from "./partials/ajaxLoadPosts";
 import {postCta} from "./partials/postCta";
+import {infiniteLoadPosts} from "./partials/infiniteLoadPosts";
 
 $ = jQuery;
 
@@ -18,12 +19,12 @@ loadMoreBtnTrigger($('.gp-actions-wrapper .btn-loadmore'));
 /**
  * Filter posts
  */
-filterPosts();
+customFilterPosts();
 
 /**
  * Update filter with url params
  */
-updateFilterWithUrlParams();
+updateFiltersWithUrlParams();
 
 /**
  * Terms filter
@@ -39,3 +40,8 @@ postCta();
  * Ajax load posts
  */
 ajaxLoadPosts();
+
+/**
+ * Infinite load posts
+ */
+infiniteLoadPosts();

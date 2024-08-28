@@ -3,6 +3,10 @@ import {growtypePostGetTermsFilterSelectedValues} from "./getTermsFilterSelected
 export function formatLoadedPostsKey(filtersContainer) {
     let filterParams = growtypePostGetTermsFilterSelectedValues(filtersContainer);
 
+    if (filterParams === undefined) {
+        return '';
+    }
+
     let loadedPostsKey = '';
     Object.entries(filterParams).map(function (element, index) {
         let key = element[0];

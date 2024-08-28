@@ -1,5 +1,14 @@
-.single {
+.gp-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
+  a {
+    text-decoration: none;
+  }
+}
+
+.single {
   article {
     .b-info {
       &:empty {
@@ -44,8 +53,11 @@
     }
   }
 
-  .section-back {
+  .section-breadcrumbs {
     padding-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 
     .btn-back {
       color: black;
