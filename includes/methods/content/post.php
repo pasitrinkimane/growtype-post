@@ -12,8 +12,20 @@ add_action('growtype_single_post_date', 'growtype_post_growtype_single_post_date
 function growtype_post_growtype_single_post_date()
 {
     if (get_theme_mod('growtype_post_single_page_date_enabled', true)) {
-        echo '<div class="container section-date">' . get_the_date() . '</div>';
+        echo '<div class="container section-date"><span class="e-date">' . get_the_date() . '</span></div>';
     }
+}
+
+add_action('growtype_single_post_taxonomy', 'growtype_post_growtype_single_post_info_wrapper_open');
+function growtype_post_growtype_single_post_info_wrapper_open()
+{
+    echo '<div class="section-info">';
+}
+
+add_action('growtype_single_post_date', 'growtype_post_growtype_single_post_info_wrapper_close');
+function growtype_post_growtype_single_post_info_wrapper_close()
+{
+    echo '</div>';
 }
 
 /**
@@ -28,13 +40,13 @@ function growtype_post_growtype_single_post_featured_image($params = [])
 
     $post_id = get_the_ID();
     $caption = get_the_post_thumbnail_caption($post_id);
-    $thumbnail_url = get_the_post_thumbnail_url($post_id, 'full');
+    $image_url = get_the_post_thumbnail_url($post_id, 'full');
 
-    if (empty($thumbnail_url) && isset($params['default_image'])) {
-        $thumbnail_url = $params['default_image'];
+    if (empty($image_url) && isset($params['default_image'])) {
+        $image_url = $params['default_image'];
     }
 
-    if (empty($thumbnail_url)) {
+    if (empty($image_url)) {
         return;
     }
 
@@ -44,13 +56,26 @@ function growtype_post_growtype_single_post_featured_image($params = [])
 
     $style = sprintf(
         'background-image: url(%s); background-size: %s; background-position: %s; background-repeat: %s;',
-        esc_url($thumbnail_url),
+        esc_url($image_url),
         esc_attr($background_size),
         esc_attr($background_position),
         esc_attr($background_repeat)
     );
 
     $caption_html = !empty($caption) ? sprintf('<span class="section-featuredimg-caption e-caption">%s</span>', esc_html($caption)) : '';
+
+    ?>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "ImageObject",
+            "contentUrl": "<?php echo $image_url ?>",
+            "name": "<?php echo get_the_title() ?>",
+            "description": "<?php echo get_the_excerpt() ?>"
+        }
+
+    </script>
+    <?php
 
     printf(
         '<div class="container section-featuredimg" style="%s">%s</div>',
@@ -65,8 +90,8 @@ function growtype_post_growtype_single_post_featured_image($params = [])
 add_action('growtype_single_post_cta', 'growtype_post_growtype_single_post_cta');
 function growtype_post_growtype_single_post_cta($params = [])
 {
-    if (get_theme_mod('growtype_post_single_page_cta_enabled', true)) {
-        echo growtype_post_render_cta($params['post_id'] ?? null, $params['cta_buttons'] ?? null);
+    if (get_theme_mod('growtype_post_single_page_social_cta_enabled', true)) {
+        echo growtype_post_render_social_cta($params['post_id'] ?? null, $params['cta_buttons'] ?? null);
     }
 }
 
@@ -75,8 +100,15 @@ function growtype_post_growtype_single_post_cta($params = [])
  * @param $show_buttons
  * @return string
  */
-function growtype_post_render_cta($post_id = null, $cta_buttons = null)
+function growtype_post_render_social_cta($post_id = null, $cta_buttons = null)
 {
+    /**
+     * Check if the social actions are enabled
+     */
+    if (!get_theme_mod('growtype_post_preview_social_actions_enabled', true)) {
+        return '';
+    }
+
     $post_id = $post_id ?? get_the_ID();
 
     $default_buttons = [
@@ -102,7 +134,7 @@ function growtype_post_render_cta($post_id = null, $cta_buttons = null)
         return $html;
     }, '');
 
-    return $cta_html ? "<div class=\"growtype-post-cta-wrapper\">{$cta_html}</div>" : '';
+    return $cta_html ? "<div class=\"growtype-post-social-cta-wrapper\">{$cta_html}</div>" : '';
 }
 
 function growtype_post_render_like_button($post_id, $button_config)
@@ -315,7 +347,7 @@ function growtype_post_growtype_single_post_taxonomy()
             $category = join('/', wp_list_pluck($terms, 'name'));
         }
 
-        echo '<div class="container section-taxonomy">' . $category . '</div>';
+        echo '<div class="container section-taxonomy"><span class="e-tax">' . $category . '</span></div>';
     }
 }
 

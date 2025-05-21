@@ -67,6 +67,9 @@
   display: none;
   padding-top: 50px;
   text-align: center;
+  @include bp-phone-xl() {
+    padding-top: 40px;
+  }
 
   .btn {
     @include bp-phone-xl() {
@@ -79,6 +82,7 @@
       position: relative;
       min-height: 40px;
       transition: initial;
+      font-size: 0;
 
       .spinner-border {
         top: 10px;

@@ -1,5 +1,6 @@
-export function getPostsLimit(minimumVisiblePostsAmount, filterParams) {
+export function getPostsLimit(wrapper, minimumVisiblePostsAmount, filterParams) {
     let postsLimit = minimumVisiblePostsAmount;
+    let wrapperId = $(wrapper).attr('id');
 
     if (postsLimit === -1) {
         postsLimit = 99999;
@@ -11,8 +12,8 @@ export function getPostsLimit(minimumVisiblePostsAmount, filterParams) {
             termsFilterAmountKey += key + '_' + value + '_';
         });
 
-        if (window.growtype_post.terms_filter[termsFilterAmountKey] !== undefined) {
-            postsLimit = parseInt(window.growtype_post.terms_filter[termsFilterAmountKey]['visible']);
+        if (window.growtype_post['wrappers'][wrapperId]['terms_filter'][termsFilterAmountKey] !== undefined) {
+            postsLimit = parseInt(window.growtype_post['wrappers'][wrapperId]['terms_filter'][termsFilterAmountKey]['visible']);
         }
     }
 

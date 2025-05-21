@@ -98,7 +98,8 @@ class Growtype_Post_Public
 
         wp_localize_script($this->Growtype_Post, 'growtype_post', array (
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'post_id' => get_the_ID()
+                'post_id' => get_the_ID(),
+                'wrappers' => [],
             )
         );
     }

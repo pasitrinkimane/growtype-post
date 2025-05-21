@@ -57,6 +57,7 @@ class Growtype_Post_Loader
         $this->filters = array ();
 
         $this->load_methods();
+        $this->load_templates();
     }
 
     /**
@@ -158,6 +159,12 @@ class Growtype_Post_Loader
         new Growtype_Post_Api();
 
         /**
+         * Service
+         */
+        require_once GROWTYPE_POST_PATH . 'includes/service/class-growtype-post-service.php';
+        new Growtype_Post_Service();
+
+        /**
          * Content
          */
         require_once GROWTYPE_POST_PATH . 'includes/methods/content/archive.php';
@@ -168,5 +175,44 @@ class Growtype_Post_Loader
          */
         require_once GROWTYPE_POST_PATH . 'includes/customizer/Growtype_Post_Customizer.php';
         new Growtype_Post_Customizer();
+    }
+
+    private function load_templates()
+    {
+        add_filter('theme_post_templates', [$this, 'register_dynamic_templates']);
+        add_filter('template_include', [$this, 'load_dynamic_template']);
+    }
+
+    function register_dynamic_templates($templates)
+    {
+        $template_directory = GROWTYPE_POST_PATH . 'resources/views/';
+
+        $template_files = glob($template_directory . 'template-*.php');
+
+        foreach ($template_files as $file) {
+            if (is_file($file) && pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                $file_contents = file_get_contents($file);
+                if (preg_match('/Template Name:\s*(.+)/', $file_contents, $matches)) {
+                    $template_name = trim($matches[1]);
+                    $template_filename = basename($file);
+
+                    $templates[$template_filename] = $template_name;
+                }
+            }
+        }
+
+        return $templates;
+    }
+
+    function load_dynamic_template($template)
+    {
+        $template_slug = get_page_template_slug();
+        $custom_template = GROWTYPE_POST_PATH . 'resources/views/' . $template_slug;
+
+        if ($template_slug && pathinfo($custom_template, PATHINFO_EXTENSION) === 'php' && file_exists($custom_template)) {
+            return $custom_template;
+        }
+
+        return $template;
     }
 }

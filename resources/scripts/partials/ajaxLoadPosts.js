@@ -1,61 +1,78 @@
 import {growtypePostAjaxLoadContent} from "./../events/growtypePostAjaxLoadContent";
-import {postCta} from "./postCta";
 import {termsFilter} from "./termsFilter";
 import {loadMoreBtnTrigger} from "./loadMoreBtnTrigger";
 import {updateFiltersWithUrlParams} from "./updateFiltersWithUrlParams";
 import {getUrlFilterParams} from "./getUrlFilterParams";
+import {initFiltering} from "./initFiltering";
+import {setWrapperDefaultParams} from "./setWrapperDefaultParams";
+import {infiniteLoadPosts} from "./infiniteLoadPosts";
 
+/**
+ * Ajax load posts
+ */
 export function ajaxLoadPosts() {
-    $(document).ready(function () {
-        $('.growtype-post-ajax-load-content').each(function (index, element) {
-            let component = $(this);
-            let container = component.closest('.wp-block-growtype-post');
-            let urlFilterParams = getUrlFilterParams();
-            let args = component.attr('data-args');
-            args = args ? JSON.parse(args) : '';
+    $('.growtype-post-ajax-load-content').each(function (index, element) {
+        let component = $(this);
+        let args = component.attr('data-args');
+        args = args ? JSON.parse(args) : '';
 
-            args['selected_terms_navigation_values'] = urlFilterParams;
+        let wrapperId = args['parent_id'];
+        setWrapperDefaultParams(wrapperId)
 
-            if (urlFilterParams['orderby']) {
-                args['orderby'] = urlFilterParams['orderby'][0];
-            }
+        let container = component.closest('.wp-block-growtype-post');
+        let urlFilterParams = getUrlFilterParams(wrapperId);
 
-            $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').hide();
+        args['selected_terms_navigation_values'] = urlFilterParams;
 
-            if (args) {
-                jQuery.ajax({
-                    url: growtype_post.ajax_url,
-                    type: 'post',
-                    data: {
-                        action: 'growtype_post_ajax_load_content',
-                        args: args
-                    },
-                    success: function (response) {
-                        if (response.data.render) {
-                            let content = $(response.data.render);
+        if (urlFilterParams['orderby']) {
+            args['orderby'] = urlFilterParams['orderby'][0];
+        }
 
-                            container.html(content);
+        $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').hide();
 
-                            termsFilter();
+        if ($(window).width() <= 570 && args['posts_per_page_mobile']) {
+            args['posts_per_page'] = args['posts_per_page_mobile'];
+        }
 
-                            loadMoreBtnTrigger(content.find('.btn-loadmore'));
+        if (args) {
+            jQuery.ajax({
+                url: growtype_post.ajax_url,
+                type: 'post',
+                data: {
+                    action: 'growtype_post_ajax_load_content',
+                    args: args
+                },
+                success: function (response) {
+                    if (response.data.render) {
+                        let html = $(response.data.render);
+                        let content = container.html(html);
+                        let wrapper = content.find('.growtype-post-container-wrapper');
 
-                            $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').show();
+                        termsFilter(wrapper);
 
-                            /**
-                             * Update filter with url params
-                             */
-                            updateFiltersWithUrlParams(true);
+                        loadMoreBtnTrigger(wrapper.find('.btn-loadmore'));
 
-                            if (parseInt(response.data.posts_amount) !== parseInt(args['posts_per_page'])) {
-                                content.find('.gp-actions-wrapper').hide();
-                            }
+                        $('a[data-growtype-post-load-more="' + args['parent_id'] + '"]').show();
 
-                            document.dispatchEvent(growtypePostAjaxLoadContent(response));
+                        updateFiltersWithUrlParams(wrapper);
+
+                        if (parseInt(response.data.posts_amount) !== parseInt(args['posts_per_page'])) {
+                            wrapper.find('.gp-actions-wrapper').hide();
                         }
+
+                        infiniteLoadPosts(wrapper);
+
+                        document.dispatchEvent(growtypePostAjaxLoadContent({
+                            response: response,
+                            wrapper: wrapper
+                        }));
                     }
-                });
-            }
-        });
-    })
+                }
+            });
+        }
+    });
+
+    document.addEventListener('growtypePostAjaxLoadContent', function (event) {
+        initFiltering(event['detail']['wrapper']);
+    });
 }

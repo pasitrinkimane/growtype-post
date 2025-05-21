@@ -41,6 +41,18 @@
       "type": "string",
       "default": "buttons"
     },
+    "terms_navigation_style_mobile": {
+      "type": "string",
+      "default": "select"
+    },
+    "show_filters_visibility_trigger": {
+      "type": "boolean",
+      "default": false
+    },
+    "filters_visible_by_default": {
+      "type": "boolean",
+      "default": true
+    },
     "terms_navigation_show_all_option_visible": {
       "type": "boolean",
       "default": false
@@ -90,6 +102,10 @@
       "default": false
     },
     "posts_per_page": {
+      "type": "number",
+      "default": 6
+    },
+    "posts_per_page_mobile": {
       "type": "number",
       "default": 6
     },

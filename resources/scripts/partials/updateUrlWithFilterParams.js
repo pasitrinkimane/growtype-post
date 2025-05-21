@@ -7,51 +7,53 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
-export function updateUrlWithFilterParams(filterParams, container) {
-    let containerId = container.attr('id');
-    let prefix = 'gps_';
+export function updateUrlWithFilterParams(filterParams, wrapper) {
+    let wrapperId = wrapper.attr('id');
+    let prefix = window.growtype_post['wrappers'][wrapperId]['filter_url_params_prefix'];
 
-    let includedInUrl = container.find('.growtype-post-terms-filters').attr('data-selections-included-in-url');
+    let includedInUrl = wrapper.find('.growtype-post-terms-filters').attr('data-selections-included-in-url');
     includedInUrl = includedInUrl ? true : false;
 
     if (!includedInUrl) {
         return;
     }
 
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const queryParamsMap = new Map();
+
+    urlSearchParams.forEach((value, key) => {
+        if (!key.startsWith(prefix)) {
+            queryParamsMap.set(key, value);
+        }
+    });
+
     Object.entries(filterParams).forEach(([key, value]) => {
         let encodedKey = prefix + encodeURIComponent(key);
         let encodedValue = encodeURIComponent(value);
 
-        // Check if the filter is already initialized in the container
         let filterExists = $('.growtype-post-terms-filter[data-type="' + key + '"][data-init-cat="' + value + '"]').length > 0;
 
-        if (filterExists) {
-            return;
+        if (!filterExists) {
+            queryParamsMap.set(encodedKey, encodedValue);
         }
-
-        // Update the map with the new value for the key
-        queryParamsMap.set(encodedKey, encodedValue);
     });
 
-    // Ensure `gpwid` is only added once
-    if (containerId) {
-        queryParamsMap.set('gpwid', encodeURIComponent(containerId));
+    if (wrapperId) {
+        queryParamsMap.set('gpwid', encodeURIComponent(wrapperId));
     }
 
-    // Construct the query parameters from the map
     let queryParams = [];
     queryParamsMap.forEach((value, key) => {
-        if (filterParams[key.replace(prefix, '')] !== undefined) {
-            queryParams.push(`${key}=${value}`);
-        }
+        queryParams.push(`${key}=${value}`);
     });
 
-    let newUrl = `${window.location.pathname}`;
-
     if (queryParams.length > 0) {
+        let newUrl = `${window.location.pathname}`;
         let queryString = queryParams.join('&');
-        newUrl = `${window.location.pathname}?${queryString}`;
-    }
+        newUrl = `${window.location.pathname}?${queryString}` + window.location.hash;
 
-    window.history.replaceState({}, '', newUrl);
+        setTimeout(function () {
+            window.history.replaceState({}, '', newUrl);
+        }, 500);
+    }
 }

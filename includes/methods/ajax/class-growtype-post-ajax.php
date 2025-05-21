@@ -64,15 +64,22 @@ class Growtype_Post_Ajax
     {
         $args = isset($_POST['args']) ? $_POST['args'] : [];
 
-        $transient_name = 'growtype_post_ajax_load_content_callback_transient_' . md5(json_encode($args));
+        $load_transient = $args['content_cache'] ?? false;
 
-        $render = get_transient($transient_name);
+        $transient_content = '';
+        if ($load_transient) {
+            $transient_name = 'growtype_post_ajax_load_content_callback_transient_' . md5(json_encode($args));
+            $transient_content = get_transient($transient_name);
+        }
 
-        if (empty($render)) {
+        if (empty($transient_content)) {
             $init = Growtype_Post_Shortcode::init($args);
             $render = $init['render'];
             $posts_amount = count($init['wp_query']->posts);
-//            set_transient($transient_name, $render, 60 * 60);
+
+            if ($load_transient) {
+                set_transient($transient_name, $render, 60 * 60);
+            }
         }
 
         wp_send_json_success([

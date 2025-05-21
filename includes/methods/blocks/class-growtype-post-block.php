@@ -25,6 +25,8 @@ class Growtype_Post_Block
     function __construct()
     {
         add_action('init', array ($this, 'create_block_growtype_post_block_init'));
+
+        add_action('enqueue_block_editor_assets', array ($this, 'localize_settings'));
     }
 
     function create_block_growtype_post_block_init()
@@ -32,6 +34,14 @@ class Growtype_Post_Block
         register_block_type_from_metadata(GROWTYPE_POST_PATH . 'build', [
             'render_callback' => array ($this, 'render_callback_growtype_post'),
         ]);
+    }
+
+    function localize_settings() {
+        $show_meta_boxes = get_option('growtype_post_admin_edit_post_show_meta_boxes');
+
+        wp_localize_script('growtype-post-editor-script', 'growtypePostAdminSettings', array(
+            'show_meta_boxes' => $show_meta_boxes,
+        ));
     }
 
     function render_callback_growtype_post($block_attributes, $content)

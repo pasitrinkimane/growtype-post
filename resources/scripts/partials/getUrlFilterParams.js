@@ -1,28 +1,36 @@
-export function getUrlFilterParams() {
+export function getUrlFilterParams(wrapperId) {
     const urlSearchParams = new URLSearchParams(window.location.search);
     let filterParams = {};
 
-    if (urlSearchParams['size'] && urlSearchParams['size'] > 0) {
-        const urlParams = {};
-        for (let [key, value] of urlSearchParams.entries()) {
-            key = key.replace('gps_', '');
+    if (!window.growtype_post['wrappers'][wrapperId]) {
+        return {};
+    }
+
+    let prefix = window.growtype_post['wrappers'][wrapperId]['filter_url_params_prefix'];
+
+    const urlParams = {};
+    for (let [key, value] of urlSearchParams.entries()) {
+        if (key.startsWith(prefix)) {
+            key = key.replace(prefix, '');
             urlParams[key] = value.split(",");
         }
+    }
 
-        if ($('.growtype-post-container-wrapper').length === 0) {
-            filterParams = urlParams;
-        } else {
-            if (Object.entries(urlParams).length > 0) {
-                Object.entries(urlParams).forEach(([key, value]) => {
-                    let termsFilterBtn = $('.growtype-post-terms-filter-btn[data-cat-' + key + ']');
-                    let customFilterBtn = $('.growtype-post-custom-filters-single[data-name="' + key + '"]');
+    if (Object.entries(urlParams).length > 0) {
+        let wrapper = $('.growtype-post-container-wrapper[id="' + wrapperId + '"]');
 
-                    if (termsFilterBtn.length > 0 || customFilterBtn.length > 0) {
-                        filterParams[key] = value;
-                    }
-                });
+        Object.entries(urlParams).forEach(([key, value]) => {
+            if (wrapper.length > 0) {
+                let termsFilterBtn = $(wrapper).find('.growtype-post-terms-filter-btn[data-cat-' + key + ']');
+                let customFilterBtn = $(wrapper).find('.growtype-post-custom-filters-single[data-name="' + key + '"]');
+
+                if (termsFilterBtn.length > 0 || customFilterBtn.length > 0) {
+                    filterParams[key] = value;
+                }
+            } else {
+                filterParams[key] = value;
             }
-        }
+        });
     }
 
     return filterParams;

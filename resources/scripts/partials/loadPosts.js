@@ -1,9 +1,3 @@
-/**
- * @param postsContainer
- * @param filterParams
- * @param postsLimit
- */
-
 const growtypePostLoadPostsEvent = new Event('growtypePostLoadPosts');
 
 export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) {
@@ -11,12 +5,7 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
     let validPosts = 0;
     let availablePosts = 0;
     postsContainer.find('.growtype-post-single').each(function (index, post) {
-
         let postIsVisible = true;
-
-        // if (Object.entries(filterParams).length === 0 || Object.entries(filterParams)[0][1].includes('all')) {
-        //     postIsVisible = false;
-        // }
 
         Object.entries(filterParams).map(function (element, index) {
             let key = element[0].toString();

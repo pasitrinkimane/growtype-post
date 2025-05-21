@@ -1,54 +1,48 @@
-import {updateUrlWithFilterParams} from "./updateUrlWithFilterParams";
+export function growtypePostGetTermsFilterSelectedValues(filtersContainer) {
+    if (!filtersContainer) return;
 
-/**
- * @param termsFilter
- * @returns {*[]}
- */
-export function growtypePostGetTermsFilterSelectedValues(termsFilter) {
+    const filterParams = {};
+    const chosenExists = filtersContainer.find('.chosen-container').length > 0;
 
-    if (termsFilter === undefined) {
-        return;
-    }
+    const filterWrapper = filtersContainer.closest('.growtype-post-filters-wrapper');
+    const filterElements = filterWrapper.find('.growtype-post-terms-filter-btn, select option');
 
-    let filterParams = [];
-    let chosenExists = termsFilter.find('.chosen-container:visible').length > 0;
+    // Process filter elements
+    filterElements.each(function () {
+        const btn = $(this);
+        const isActive = btn.hasClass('is-active');
+        const isSelected = btn.is(':selected');
+        const isChosen = btn.closest('select').next('.chosen-container').length > 0;
 
-    let filterSelector = '.growtype-post-terms-filter-btn:visible, select option';
+        // Check condition based on chosenExists
+        if ((isActive || (isSelected && isChosen)) || (!chosenExists && (isActive || isSelected))) {
+            $.each(this.attributes, (index, attr) => {
+                if (attr.name.startsWith('data-cat')) {
+                    const element = attr.name.replace('data-cat-', '');
+                    const value = btn.attr(attr.name);
 
-    if (!chosenExists) {
-        filterSelector = '.growtype-post-terms-filter-btn:visible, select:visible option';
-    }
-
-    termsFilter.find(filterSelector).each(function (index, btn) {
-        let condition = $(btn).hasClass('is-active') || ($(btn).is(':selected') && $(btn).closest('select').next('.chosen-container:visible').length > 0);
-
-        if (!chosenExists) {
-            condition = $(btn).hasClass('is-active') || $(btn).is(':selected');
-        }
-
-        if (condition) {
-            $(this).each(function (index) {
-                $.each(this.attributes, function (index, attr) {
-                    if (attr.name.indexOf('data-cat') === 0) {
-                        let element = attr.name.replace("data-cat-", "");
-                        let value = $(btn).attr('data-cat-' + element);
-
-                        if (value === 'none') {
-                            return;
-                        }
-
-                        if (filterParams[element] === undefined) {
+                    if (value !== 'none') {
+                        if (!filterParams[element]) {
                             filterParams[element] = [value];
-                        } else {
+                        } else if (!filterParams[element].includes(value)) {
                             filterParams[element].push(value);
                         }
                     }
-                });
+                }
             });
         }
     });
 
-    updateUrlWithFilterParams(filterParams, termsFilter.closest('.growtype-post-container-wrapper'));
+    // Handle multiselect filters with no selected values
+    filtersContainer.find('select[multiple]').each(function () {
+        const select = $(this);
+        const elementName = select.attr('name') || select.data('filter-param');
+        const selectedOptions = select.find(':selected');
+
+        if (selectedOptions.length === 0 && elementName) {
+            delete filterParams[elementName];
+        }
+    });
 
     return filterParams;
 }

@@ -69,7 +69,7 @@ class Growtype_Post_Admin_Settings_General
     {
         ?>
         <input type='checkbox' name='growtype_post_admin_edit_post_show_meta_boxes' value='1'
-            <?php if (1 == get_option('growtype_post_admin_edit_post_show_meta_boxes')) {
+            <?php if (get_option('growtype_post_admin_edit_post_show_meta_boxes')) {
                 echo 'checked="checked"';
             } ?> />
 

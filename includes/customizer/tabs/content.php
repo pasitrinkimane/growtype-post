@@ -100,14 +100,14 @@ $wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_custom
 /**
  * Cta
  */
-$wp_customize->add_setting('growtype_post_single_page_cta_enabled',
+$wp_customize->add_setting('growtype_post_single_page_social_cta_enabled',
     array (
         'default' => 1,
         'transport' => 'refresh',
     )
 );
 
-$wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_customize, 'growtype_post_single_page_cta_enabled',
+$wp_customize->add_control(new Skyrocket_Toggle_Switch_Custom_control($wp_customize, 'growtype_post_single_page_social_cta_enabled',
     array (
         'label' => esc_html__('CTA'),
         'section' => 'post_single_page',

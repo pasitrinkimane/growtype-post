@@ -1,4 +1,12 @@
-export function infiniteLoadPosts() {
+/**
+ * Infinite load posts
+ */
+export function infiniteLoadPosts(wrapper) {
+
+    document.addEventListener('growtypePostAjaxLoadContent', function (event) {
+        initInfiniteLoad(event['detail']['wrapper']);
+    });
+
     function isElementInView($element) {
         if ($element.length === 0) {
             return false;
@@ -14,37 +22,31 @@ export function infiniteLoadPosts() {
 
     let infiniteLoadingWasLoaded = false;
 
-    function initInfiniteLoad() {
-        if (!infiniteLoadingWasLoaded && $('.growtype-post-container-wrapper').length > 0 && $('.gp-actions-wrapper .btn-loadmore').length > 0) {
+    function initInfiniteLoad(wrapper) {
+        let wrapperId = $(wrapper).attr('id');
 
-            let params = $('.growtype-post-container-wrapper').attr('data-args');
+        if (!infiniteLoadingWasLoaded && $(wrapper).find('.gp-actions-wrapper .btn-loadmore').length > 0) {
+
+            let params = $(wrapper).attr('data-args');
             params = params ? JSON.parse(params) : '';
 
             if (params['infinite_load_posts']) {
                 infiniteLoadingWasLoaded = true;
 
-                window.growtype_post_load_more_initiated = false;
+                window.growtype_post['wrappers'][wrapperId]['load_more_initiated'] = false;
                 window.addEventListener('scroll', function () {
-                    let btnLoadmore = $('.gp-actions-wrapper .btn-loadmore');
+                    let btnLoadmore = $(wrapper).find('.gp-actions-wrapper .btn-loadmore');
 
                     if (isElementInView(btnLoadmore)) {
-                        if (!window.growtype_post_load_more_initiated) {
-                            window.growtype_post_load_more_initiated = true;
+                        if (!window.growtype_post['wrappers'][wrapperId]['load_more_initiated']) {
+                            window.growtype_post['wrappers'][wrapperId]['load_more_initiated'] = true;
                             btnLoadmore.trigger('click');
                         }
                     } else {
-                        window.growtype_post_load_more_initiated = false;
+                        window.growtype_post['wrappers'][wrapperId]['load_more_initiated'] = false;
                     }
                 });
             }
         }
-    }
-
-    if ($('.growtype-post-container-wrapper').length > 0) {
-        initInfiniteLoad();
-    } else {
-        document.addEventListener('growtypePostAjaxLoadContent', function () {
-            initInfiniteLoad();
-        })
     }
 }

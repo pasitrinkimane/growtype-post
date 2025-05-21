@@ -6,9 +6,11 @@ const {__} = wp.i18n;
 const {createHigherOrderComponent} = wp.compose;
 const {Fragment, useState} = wp.element;
 const {InspectorControls} = wp.blockEditor;
-const {PanelBody, TextControl, Button} = wp.components;
+const {PanelBody, TextControl, Button, Spinner} = wp.components;
 
 const enableCustomButtonOnBlocks = ['core/paragraph', 'core/heading'];
+
+const {show_meta_boxes} = growtypePostAdminSettings;
 
 /**
  * Create attributes
@@ -55,18 +57,16 @@ const createInspectorControls = createHigherOrderComponent((BlockEdit) => {
 
             const [customTextPrompt, setCustomTextPrompt] = useState('');
             const [imageCat, setImageCat] = useState('');
-
-            let generatingStarted = false;
+            const [isLoading, setIsLoading] = useState(false); // Add a loading state
 
             function handleSubmit() {
-
-                if (generatingStarted) {
-                    return;
+                if (isLoading) {
+                    return; // Prevent multiple clicks
                 }
 
-                generatingStarted = true;
+                setIsLoading(true); // Start loading spinner
 
-                const selectedBlocks = wp.data.select('core/block-editor').getSelectedBlockClientIds()
+                const selectedBlocks = wp.data.select('core/block-editor').getSelectedBlockClientIds();
 
                 let selectedBlocksData = {};
                 selectedBlocks.map(function (blockId) {
@@ -84,6 +84,9 @@ const createInspectorControls = createHigherOrderComponent((BlockEdit) => {
                         custom_text_prompt: customTextPrompt,
                         image_cat: imageCat,
                     }).done(response => {
+
+                        console.log(response)
+
                         if (response.values) {
                             Object.entries(response.values).forEach(function ([key, value]) {
                                 let content = value['content'] ?? '';
@@ -97,7 +100,7 @@ const createInspectorControls = createHigherOrderComponent((BlockEdit) => {
 
                                 if (images.length > 0) {
                                     images.forEach(function (imageUrl) {
-                                        let block = wp.blocks.createBlock('core/image', { url: imageUrl, alt: '' });
+                                        let block = wp.blocks.createBlock('core/image', {url: imageUrl, alt: ''});
 
                                         const blockIndex = wp.data.select('core/block-editor').getBlockIndex(key);
 
@@ -107,11 +110,11 @@ const createInspectorControls = createHigherOrderComponent((BlockEdit) => {
                             });
                         }
 
-                        generatingStarted = false;
-                    }).fail(error => {
-                        console.error('AJAX request error:', error);
-
-                        generatingStarted = false;
+                        growtypePostAdminRenderNotice(response, true, true)
+                        setIsLoading(false); // Stop loading spinner
+                    }).fail(response => {
+                        growtypePostAdminRenderNotice(response.responseJSON.data, false, true)
+                        setIsLoading(false);
                     });
                 }
             }
@@ -127,27 +130,43 @@ const createInspectorControls = createHigherOrderComponent((BlockEdit) => {
             return (
                 <Fragment>
                     <BlockEdit {...props} />
-                    <InspectorControls>
-                        <PanelBody
-                            title={__('Growtype Post - Content')}
-                            initialOpen={true}
-                        >
-                            <TextControl
-                                label={__('Image cat', 'growtype-post')}
-                                help={__('Generate image', 'growtype-post')}
-                                onChange={(newValue) => handleImageCatChange(newValue)}
-                                value={imageCat}
-                            />
-                            <TextareaControl
-                                label={__('Custom Text Prompt:', 'growtype-post')}
-                                onChange={(newValue) => handleCustomTextPromptChange(newValue)}
-                                value={customTextPrompt}
-                            />
-                            <Button isPrimary onClick={handleSubmit}>
-                                {__('Generate')}
-                            </Button>
-                        </PanelBody>
-                    </InspectorControls>
+                    {
+                        show_meta_boxes ?
+                            <InspectorControls>
+                                <PanelBody
+                                    title={__('Growtype Post - Content')}
+                                    initialOpen={true}
+                                >
+                                    <TextControl
+                                        label={__('Image cat', 'growtype-post')}
+                                        help={__('Generate image', 'growtype-post')}
+                                        onChange={(newValue) => handleImageCatChange(newValue)}
+                                        value={imageCat}
+                                    />
+                                    <TextareaControl
+                                        label={__('Custom Text Prompt:', 'growtype-post')}
+                                        onChange={(newValue) => handleCustomTextPromptChange(newValue)}
+                                        value={customTextPrompt}
+                                    />
+                                    <Button
+                                        isPrimary
+                                        onClick={handleSubmit}
+                                        disabled={isLoading} // Disable button while loading
+                                    >
+                                        {isLoading ? (
+                                            <Fragment>
+                                                <Spinner/> {/* Show spinner */}
+                                                {__('Generating...')}
+                                            </Fragment>
+                                        ) : (
+                                            __('Generate')
+                                        )}
+                                    </Button>
+                                </PanelBody>
+                            </InspectorControls>
+                            :
+                            ''
+                    }
                 </Fragment>
             );
         };

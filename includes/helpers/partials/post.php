@@ -70,16 +70,23 @@ function growtype_post_get_limited_content($initial_content, $length = 125, $sen
  * Include custom view
  */
 if (!function_exists('growtype_post_include_view')) {
-    function growtype_post_include_view($file_path, $args = array ())
+    function growtype_post_include_view($file_path, $args = array (), $root_dir = false)
     {
         if (empty($file_path)) {
             error_log('Growtype post - File path is empty');
             return '';
         }
 
+        $plugin_folder = GROWTYPE_POST_TEXT_DOMAIN . '/';
+
+        if ($root_dir) {
+            $plugin_folder = '';
+        }
+
         $fallback_view = GROWTYPE_POST_PATH . 'resources/views/' . str_replace('.', '/', $file_path) . '.php';
-        $child_blade_view = get_stylesheet_directory() . '/views/' . GROWTYPE_POST_TEXT_DOMAIN . '/' . str_replace('.', '/', $file_path) . '.blade.php';
-        $child_view = get_stylesheet_directory() . '/views/' . GROWTYPE_POST_TEXT_DOMAIN . '/' . str_replace('.', '/', $file_path) . '.php';
+        $child_blade_view = get_stylesheet_directory() . '/views/' . $plugin_folder . str_replace('.', '/', $file_path) . '.blade.php';
+        $child_view = get_stylesheet_directory() . '/views/' . $plugin_folder . str_replace('.', '/', $file_path) . '.php';
+        $parent_blade_view = get_template_directory() . '/views/' . $plugin_folder . str_replace('.', '/', $file_path) . '.blade.php';
 
         $template_path = $fallback_view;
 
@@ -87,6 +94,8 @@ if (!function_exists('growtype_post_include_view')) {
             return App\template($child_blade_view, $args);
         } elseif (file_exists($child_view)) {
             $template_path = $child_view;
+        } elseif (file_exists($parent_blade_view)) {
+            return App\template($parent_blade_view, $args);
         }
 
         if (str_contains($template_path, 'index') && !file_exists($template_path)) {
@@ -414,77 +423,73 @@ if (!function_exists('growtype_post_get_excerpt')) {
  * @param $check_if_exists
  * @return int|WP_Error
  */
-function growtype_child_set_featured_image_from_url($post_id, $image_url, $check_if_exists = true)
-{
-    if (empty($image_url)) {
-        return new WP_Error('invalid_image_url', 'Image URL is empty.');
-    }
+if (!function_exists('growtype_post_upload_image_from_url')) {
+    function growtype_post_upload_image_from_url($image_url, $check_if_exists = true)
+    {
+        if (empty($image_url)) {
+            return new WP_Error('invalid_image_url', 'Image URL is empty.');
+        }
 
-    $file_type = wp_check_filetype(basename($image_url), null);
-    $post_mime_type = !isset($file_type['type']) || !$file_type['type'] ? 'image/jpeg' : $file_type['type'];
-    $file_ext = !isset($file_type['ext']) || !$file_type['ext'] ? 'jpeg' : $file_type['ext'];
-    $upload_dir = wp_upload_dir();
-    $image_name = isset(parse_url($image_url)['path']) && !empty(parse_url($image_url)['path']) ? str_replace('/', '', parse_url($image_url)['path']) : wp_generate_password();
-    $image_name_full = $image_name;
+        $file_type = wp_check_filetype(basename($image_url), null);
+        $post_mime_type = !isset($file_type['type']) || !$file_type['type'] ? 'image/jpeg' : $file_type['type'];
+        $file_ext = !isset($file_type['ext']) || !$file_type['ext'] ? 'jpeg' : $file_type['ext'];
+        $upload_dir = wp_upload_dir();
+        $image_name = isset(parse_url($image_url)['path']) && !empty(parse_url($image_url)['path']) ? str_replace('/', '', parse_url($image_url)['path']) : wp_generate_password();
+        $image_name_full = $image_name;
 
-    if (strpos($image_name, '.' . $file_ext) === false) {
-        $image_name_full = $image_name . '.' . $file_ext;
-    }
+        if (strpos($image_name, '.' . $file_ext) === false) {
+            $image_name_full = $image_name . '.' . $file_ext;
+        }
 
-    $upload_path = $upload_dir['path'] . '/' . $image_name_full;
+        $upload_path = $upload_dir['path'] . '/' . $image_name_full;
 
-    if ($check_if_exists) {
-        $attachment_file = substr($upload_path, strlen(wp_upload_dir()['basedir']) + 1);
+        if ($check_if_exists) {
+            $attachment_file = substr($upload_path, strlen(wp_upload_dir()['basedir']) + 1);
 
-        if (file_exists($upload_path)) {
-            $existing_attachment = get_posts(array (
-                'post_type' => 'attachment',
-                'posts_per_page' => 1,
-                'post_status' => 'inherit',
-                'meta_query' => array (
-                    array (
-                        'key' => '_wp_attached_file',
-                        'value' => $attachment_file,
-                        'compare' => '='
+            if (file_exists($upload_path)) {
+                $existing_attachment = get_posts(array (
+                    'post_type' => 'attachment',
+                    'posts_per_page' => 1,
+                    'post_status' => 'inherit',
+                    'meta_query' => array (
+                        array (
+                            'key' => '_wp_attached_file',
+                            'value' => $attachment_file,
+                            'compare' => '='
+                        )
                     )
-                )
-            ));
+                ));
 
-            if (!empty($existing_attachment)) {
-                $existing_attachment_id = $existing_attachment[0]->ID;
-                set_post_thumbnail($post_id, $existing_attachment_id);
-                return $existing_attachment_id;
+                if (!empty($existing_attachment)) {
+                    $existing_attachment_id = $existing_attachment[0]->ID;
+                    return $existing_attachment_id;
+                }
             }
         }
-    }
 
-    $image_data = file_get_contents($image_url);
+        $image_data = file_get_contents($image_url);
 
-    file_put_contents($upload_path, $image_data);
+        file_put_contents($upload_path, $image_data);
 
-    if (!$image_data || !$upload_path) {
-        return new WP_Error('image_download_failed', 'Failed to download the image from the URL.');
-    }
+        if (!$image_data || !$upload_path) {
+            return new WP_Error('image_download_failed', 'Failed to download the image from the URL.');
+        }
 
-    list($width, $height) = getimagesize($upload_path);
+        list($width, $height) = getimagesize($upload_path);
 
-    $attachment = array (
-        'post_mime_type' => $post_mime_type,
-        'post_title' => sanitize_file_name(pathinfo($upload_path, PATHINFO_FILENAME)),
-        'post_content' => '',
-        'post_status' => 'inherit',
-        'width' => $width,
-        'height' => $height,
-    );
+        $attachment = array (
+            'post_mime_type' => $post_mime_type,
+            'post_title' => sanitize_file_name(pathinfo($upload_path, PATHINFO_FILENAME)),
+            'post_content' => '',
+            'post_status' => 'inherit',
+            'width' => $width,
+            'height' => $height,
+        );
 
-    $attach_id = wp_insert_attachment($attachment, $upload_path, $post_id);
+        $attach_id = wp_insert_attachment($attachment, $upload_path);
 
-    wp_update_attachment_metadata($attach_id, wp_generate_attachment_metadata($attach_id, $upload_path));
+        wp_update_attachment_metadata($attach_id, wp_generate_attachment_metadata($attach_id, $upload_path));
 
-    if (!is_wp_error($attach_id)) {
-        set_post_thumbnail($post_id, $attach_id);
-        return $attach_id;
-    } else {
         return $attach_id;
     }
 }

@@ -1,9 +1,10 @@
-export function postCta() {
-    if ($('.growtype-post-container-wrapper').length > 0) {
-        initActionBtns();
-    }
+/**
+ * Post CTA
+ */
+export function postCta(wrapper) {
+    initActionBtns();
 
-    document.addEventListener('growtypePostAjaxLoadContent', function () {
+    document.addEventListener('growtypePostAjaxLoadContent', function (event) {
         initActionBtns();
     })
 
@@ -22,12 +23,8 @@ export function postCta() {
         /**
          * Like post
          */
-        likeActionInit($('.growtype-post-btn-like'));
-
-        /**
-         * Share post
-         */
-        sharePostAction($('.growtype-post-btn-share'))
+        likeActionInit($(wrapper).find('.growtype-post-btn-like'));
+        sharePostAction($(wrapper).find('.growtype-post-btn-share'))
     }
 
     function likeActionInit(element) {
@@ -81,6 +78,9 @@ export function postCta() {
         })
     }
 
+    /**
+     * Share post
+     */
     function sharePostAction(element) {
         /**
          * Share post

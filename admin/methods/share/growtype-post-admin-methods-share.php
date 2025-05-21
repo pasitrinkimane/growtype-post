@@ -2,362 +2,181 @@
 
 class Growtype_Post_Admin_Methods_Share
 {
+    const READ_MORE_SENTENCES = [
+        'Read more 🔗:',
+        'Continue reading 📖:',
+        'Check out the full article 📝:'
+    ];
+
+    const FIND_OUT_MORE_SENTENCES = [
+        'Learn more 🔍:',
+        'Explore further 🌐:',
+        'Discover more 🔍:',
+        'Find out more 🔍:',
+        'Click here for more info 🖱️:',
+    ];
+
+    const INTRO_TITLE = [
+        '"%s"', // Keeps it neutral for flexibility
+        "💡 New Article Alert! \n\"%s\"",
+        "📖 Just Published: \n\"%s\"",
+        "🔥 Hot Off the Press: \n\"%s\"",
+        "✨ Check Out Our Latest: \n\"%s\"",
+        "🔔 Don't Miss This: \n\"%s\"",
+        "🌟 Featured Article: \n\"%s\"",
+        "📰 Fresh Reads: \n\"%s\"",
+        "📖 Explore Now: \n\"%s\""
+    ];
+
+    const INTRO_SENTENCES = [
+        'New article:',
+        'We published a new article:',
+        'Check out our latest article:',
+        'Our latest article:',
+        'Discover our latest publication:',
+        'Presenting our new article:',
+        'Announcing our latest article:',
+    ];
+
     public function __construct()
     {
         $this->load_methods();
+
+        add_filter('growtype_auth_admin_settings_credentials_available_services', [$this, 'growtype_auth_admin_settings_credentials_available_services_extend']);
+
+        add_filter('growtype_post_admin_methods_share_response', [$this, 'growtype_post_admin_methods_share_response_extend'], 0, 4);
+    }
+
+    function growtype_auth_admin_settings_credentials_available_services_extend($services)
+    {
+        $services[Growtype_Auth::SERVICE_REDDIT]['fields'] = array_merge($services[Growtype_Auth::SERVICE_REDDIT]['fields'], [
+            [
+                'name' => 'username',
+                'label' => 'Username',
+                'placeholder' => 'Username',
+                'type' => 'text',
+                'default' => ''
+            ],
+            [
+                'name' => 'password',
+                'label' => 'Password',
+                'placeholder' => 'Password',
+                'type' => 'text',
+                'default' => ''
+            ],
+            [
+                'name' => 'subreddits',
+                'label' => 'Subreddits (separated by comma)',
+                'placeholder' => 'Subreddits',
+                'type' => 'text',
+                'default' => ''
+            ],
+        ]);
+
+        $services[Growtype_Auth::SERVICE_GOOGLE]['fields'] = array_merge($services[Growtype_Auth::SERVICE_GOOGLE]['fields'], [
+            [
+                'name' => 'blogger_blogs_ids',
+                'label' => 'Blogger Blogs ids (separated by comma)',
+                'placeholder' => 'Blogs ids',
+                'type' => 'text',
+                'default' => ''
+            ],
+        ]);
+
+        $services[Growtype_Auth::SERVICE_TUMBLR]['fields'] = array_merge($services[Growtype_Auth::SERVICE_TUMBLR]['fields'], [
+            [
+                'name' => 'blog_name',
+                'label' => 'Blog name',
+                'placeholder' => 'Blog name',
+                'type' => 'text',
+                'default' => ''
+            ],
+        ]);
+
+        $services[Growtype_Auth::SERVICE_THREADS]['fields'] = array_merge($services[Growtype_Auth::SERVICE_THREADS]['fields'], [
+            [
+                'name' => 'available_users',
+                'label' => 'Available users',
+                'placeholder' => 'Usernames (separated by comma)',
+                'type' => 'text',
+                'default' => ''
+            ],
+        ]);
+
+        return $services;
     }
 
     public function load_methods()
     {
+        require_once 'services/growtype-post-admin-methods-share-blogger.php';
+        new Growtype_Post_Admin_Methods_Share_Blogger();
+
         require_once 'services/growtype-post-admin-methods-share-medium.php';
-        require_once 'services/growtype-post-admin-methods-share-twitter.php';
-        require_once 'services/growtype-post-admin-methods-share-treads.php';
+        new Growtype_Post_Admin_Methods_Share_Medium();
+
         require_once 'services/growtype-post-admin-methods-share-pinterest.php';
+        new Growtype_Post_Admin_Methods_Share_Pinterest();
+
+        require_once 'services/growtype-post-admin-methods-share-reddit.php';
+        new Growtype_Post_Admin_Methods_Share_Reddit();
+
+        require_once 'services/growtype-post-admin-methods-share-threads.php';
+        new Growtype_Post_Admin_Methods_Share_Threads();
+
+        require_once 'services/growtype-post-admin-methods-share-twitter.php';
+        new Growtype_Post_Admin_Methods_Share_Twitter();
+
+        require_once 'services/growtype-post-admin-methods-share-tumblr.php';
+        new Growtype_Post_Admin_Methods_Share_Tumblr();
     }
 
-    public static function submit($platform, $post_id)
+    function growtype_post_admin_methods_share_response_extend($share_details, $account_details, $post_details, $platform_class)
     {
-        $featured_img_url = get_the_post_thumbnail_url($post_id, 'full');
-        $post_title = get_the_title($post_id);
-        $post_excerpt = get_the_excerpt($post_id);
-        $post_content = apply_filters('the_content', get_post_field('post_content', $post_id));
-        $main_meta_title = get_post_meta(get_option('page_on_front'), '_yoast_wpseo_title', true);
-        $website_domain = parse_url(get_home_url())['host'] ?? '';
+        if (class_exists($platform_class)) {
+            $share_details = $platform_class::share($account_details, $post_details);
+        }
 
-        $content_formats = [
-            'full' => 'full',
-            'medium' => 'medium',
-            'short' => 'short',
-            'link' => 'link'
-        ];
+        return $share_details;
+    }
 
-        $read_more_sentences = [
-            'Read more 🔗:',
-            'Learn more 🔍:',
-            'Explore further 🌐:',
-            'Discover more 🔍:',
-            'Find out more 📚:',
-            'Continue reading 📖:',
-            'Check out the full article 📝:',
-            'Click here to read more 🖱️:',
-        ];
+    public static function submit($platform, $account_details, $post_id)
+    {
+        $post = get_post($post_id);
 
-        $intro_sentences = [
-            'New article on:',
-            'We published a new article on:',
-            'Check out our latest article:',
-            'Our latest article:',
-            'Discover our latest publication:',
-            'Presenting our new article:',
-            'Announcing our latest article:',
-        ];
+        $post_content = $post->post_content;
+        $post_featured_img_url = get_the_post_thumbnail_url($post_id, 'full');
 
-        $intro_title = [
-            '%s',
-            'Article - %s',
-            'A new article - %s',
-            'Our latest article - %s',
-            'Latest article - %s',
-            'Latest publication - %s',
-        ];
-
-        if ($platform == Growtype_Post_Admin_Methods_Meta_Share::REDDIT) {
-            $subreddits = explode(',', get_option('growtype_post_reddit_default_subreddits'));
-            $source_url = get_permalink($post_id);
-            $post_content = self::format_post_content($post_content);
-
-            $response = [];
-            foreach ($subreddits as $subreddit) {
-                $content = '';
-                $content_format = array_rand($content_formats, 1);
-
-                $read_more_sentence = sprintf('%s — %s', $post_title, $website_domain ?? '');
-                $read_more_sentence = $read_more_sentences[array_rand($read_more_sentences)] . " " . "[$read_more_sentence]($source_url)";
-
-                switch ($content_format) {
-                    case 'full':
-                        $content = $read_more_sentence . "\n\n" . $post_content;
-
-                        break;
-                    case 'long':
-                        $content = self::get_first_content_elements($post_content, rand(7, 12));
-                        $content .= "\n\n" . $read_more_sentence . "\n\n";
-
-                        break;
-                    case 'medium':
-                        $content = self::get_first_content_elements($post_content, rand(3, 6));
-                        $content .= "\n\n" . $read_more_sentence . "\n\n";
-
-                        break;
-                    case 'short':
-                        $content = self::get_first_content_elements($post_content, rand(1, 2));
-                        $content .= "\n\n" . $read_more_sentence . "\n\n";
-
-                        break;
-                    case 'link':
-                        $content = $intro_sentences[array_rand($intro_sentences)] . " " . "[$source_url]($source_url)";
-
-                        break;
-                }
-
-                if (!empty($featured_img_url)) {
-                    $content = $content . "\n\n " . "![Image]( {$featured_img_url} ) \n\n ";
-                }
-
-                if (empty($content)) {
-                    return [
-                        'success' => false,
-                        'message' => 'Content is empty'
-                    ];
-                }
-
-                $reddit_post_title = sprintf($intro_title[array_rand($intro_title)], $post_title);
-
-                $details = [
-                    'title' => $reddit_post_title,
-                    'content' => $content,
-                    'subreddit' => $subreddit,
-                    'post_id' => $post_id,
-                    'image' => $featured_img_url,
-                    'url' => get_permalink($post_id)
-                ];
-
-                $credentials = [
-                    'client_id' => get_option('growtype_post_reddit_client_id'),
-                    'client_secret' => get_option('growtype_post_reddit_client_secret'),
-                    'username' => get_option('growtype_post_reddit_username'),
-                    'password' => get_option('growtype_post_reddit_password'),
-                ];
-
-                $response = self::post_to_reddit($credentials, $details);
-            }
-
-            /**
-             * Update post meta
-             */
-            if (isset($response['success']) && $response['success']) {
-                self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::REDDIT);
-            }
-
-            return $response;
-        } elseif ($platform === Growtype_Post_Admin_Methods_Meta_Share::BLOGGER) {
-            /**
-             * Add intro text
-             */
-            if (!empty($main_meta_title) && !empty($website_domain)) {
-                $intro_text = sprintf('%s — %s', $main_meta_title, $website_domain);
-                $source_url = get_permalink($post_id);
-                $intro_text = sprintf("Source: 🔗 <a href='%s' target='_blank'>%s</a>", $source_url, $intro_text);
-                $post_content = $intro_text . "\n\n" . $post_content;
-            }
-
-            if (!empty($featured_img_url)) {
-                $post_content = $post_content . "\n\n " . "<img src='" . $featured_img_url . "'> \n\n ";
-            }
-
-            $access_token = get_user_meta(get_current_user_id(), 'growtype_post_google_auth_access_token', true);
-
-            if (empty($access_token)) {
-                $access_token = self::setup_blogger();
-
-                if (isset($access_token['success']) && $access_token['success'] === false) {
-                    return $access_token;
-                }
-            }
-
-            $blogs_ids = explode(',', get_option('growtype_post_google_blogger_default_blogs_ids'));
-
-            foreach ($blogs_ids as $blog_id) {
-                $post_data = [
-                    'kind' => 'blogger#post',
-                    'title' => $post_title,
-                    'content' => $post_content,
-                    'labels' => ['connect', 'virtual characters', 'conversations', 'chat', 'learn', 'interact', 'lifelike personalities', 'experience', 'engaging conversations'],
-                ];
-
-                $response = self::post_to_blogger($access_token, $blog_id, $post_data);
-
-                if (isset($response['error'])) {
-                    $access_token = self::setup_blogger();
-
-                    if (isset($access_token['success']) && $access_token['success'] === false) {
-                        return $access_token;
-                    }
-
-                    return [
-                        'success' => false,
-                        'message' => 'Token updated. Please try again.',
-                    ];
-                } else {
-                    self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::BLOGGER);
-
-                    $blog_url = $response['url'] ?? '';
-                }
-            }
-
+        if (empty($post_content)) {
             return [
-                'success' => true,
-                'message' => 'Blogger post created successfully',
-                'url' => $blog_url ?? ''
-            ];
-        } elseif ($platform === Growtype_Post_Admin_Methods_Meta_Share::MEDIUM) {
-
-            if (!empty($featured_img_url)) {
-                $post_content = "<img src='" . $featured_img_url . "' alt='Photo on https://unsplash.com/. Source " . home_url() . "'>" . $post_content;
-            }
-
-            /**
-             * Resources
-             */
-            if (!empty($main_meta_title) && !empty($website_domain)) {
-                ob_start();
-                echo '<h3>🔗 Resources</h3>';
-                echo '<ul>';
-                echo '<li><a href="' . home_url() . '" target="_blank">' . $website_domain . ' - ' . $main_meta_title . '</a></li>';
-                echo '<li><a href="' . get_permalink($post_id) . '" target="_blank">' . $website_domain . ' - Blog</a></li>';
-                echo '</ul>';
-                $resources = ob_get_clean();
-                $post_content = $post_content . "\n\n" . $resources;
-            }
-
-            $post_details = [
-                'title' => $post_title,
-                'body' => $post_content,
-                'subtitle' => $post_excerpt,
-                'canonicalUrl' => get_permalink(get_page_by_path('blog')),
-                'tags' => ['ai', 'chat', 'soulmates', 'assistant', 'chatbot'],
-            ];
-
-            $response = Growtype_Post_Admin_Methods_Share_Medium::submit($post_details);
-
-            if (!isset($response['data'])) {
-                return [
-                    'success' => false,
-                    'message' => 'Medium post - something went wrong. Please try again.',
-                ];
-            }
-
-            self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::MEDIUM);
-
-            return [
-                'success' => true,
-                'message' => 'Medium post created successfully'
-            ];
-        } elseif ($platform === Growtype_Post_Admin_Methods_Meta_Share::TWITTER) {
-            $body = sprintf($intro_title[array_rand($intro_title)], $post_title);
-            $body .= "\n";
-            $body .= html_entity_decode(growtype_post_get_limited_content($post_content, 100), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $body .= "\n";
-            $body .= $read_more_sentences[array_rand($read_more_sentences)] . " " . get_permalink($post_id);
-
-            $post_details = [
-                'body' => $body,
-                'image' => base64_encode(file_get_contents($featured_img_url)),
-            ];
-
-            $response = Growtype_Post_Admin_Methods_Share_Twitter::submit($post_details);
-
-            if (isset($response['error']) && !empty($response['error'])) {
-                return [
-                    'success' => false,
-                    'message' => $response['error'],
-                ];
-            }
-
-            self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::TWITTER);
-
-            return [
-                'success' => true,
-                'message' => 'Twitter post created successfully'
-            ];
-        } elseif ($platform === Growtype_Post_Admin_Methods_Meta_Share::TREADS) {
-            $body = sprintf($intro_title[array_rand($intro_title)], $post_title);
-            $body .= "\n";
-            $body .= html_entity_decode(growtype_post_get_limited_content($post_content, 100), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $body .= "\n";
-            $body .= $read_more_sentences[array_rand($read_more_sentences)] . " " . get_permalink($post_id);
-
-            $post_details = [
-                'body' => $body,
-                'image' => !empty($featured_img_url) ? base64_encode(file_get_contents($featured_img_url)) : '',
-            ];
-
-            $response = Growtype_Post_Admin_Methods_Share_Treads::submit($post_details);
-
-            if (isset($response['error']) && !empty($response['error'])) {
-                return [
-                    'success' => false,
-                    'message' => $response['error'],
-                ];
-            }
-
-            self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::TWITTER);
-
-            return [
-                'success' => true,
-                'message' => 'Treads post created successfully'
-            ];
-        } elseif ($platform === Growtype_Post_Admin_Methods_Meta_Share::PINTEREST) {
-            $access_token = get_user_meta(get_current_user_id(), 'growtype_post_pinterest_auth_access_token', true);
-
-            if (empty($access_token)) {
-                $access_token = Growtype_Post_Admin_Methods_Share_Pinterest::setup_pinterest();
-
-                if (isset($access_token['success']) && $access_token['success'] === false) {
-                    return $access_token;
-                }
-            }
-
-            $boards_ids = ['945544952955159815'];
-
-            foreach ($boards_ids as $board_id) {
-                $pin_data = array (
-                    'title' => 'My Pin',
-                    'description' => 'Pin Description',
-                    'alt_text' => 'Pin Description',
-                    'board_id' => $board_id,
-                    'link' => home_url(),
-                    'media_source' => array (
-                        'source_type' => 'image_url',
-                        'url' => 'https://i.pinimg.com/564x/28/75/e9/2875e94f8055227e72d514b837adb271.jpg'
-                    )
-                );
-
-                $response = Growtype_Post_Admin_Methods_Share_Pinterest::post_to_pinterest($access_token, $pin_data);
-
-                if (isset($response['code']) && in_array($response['code'], [29, 2])) {
-                    return [
-                        'success' => false,
-                        'message' => $response['message'],
-                    ];
-                }
-
-                if (isset($response['error'])) {
-                    $access_token = Growtype_Post_Admin_Methods_Share_Pinterest::setup_pinterest();
-
-                    if (isset($access_token['success']) && $access_token['success'] === false) {
-                        return $access_token;
-                    }
-
-                    return [
-                        'success' => false,
-                        'message' => 'Token updated. Please try again.',
-                    ];
-                } else {
-                    self::update_shared_on_platforms($post_id, Growtype_Post_Admin_Methods_Meta_Share::PINTEREST);
-                }
-            }
-
-            return [
-                'success' => true,
-                'message' => 'Pinterest post created successfully'
+                'success' => false,
+                'message' => 'Post <b>content</b> is empty'
             ];
         }
 
-        return [
-            'success' => false,
-            'message' => 'Invalid platform'
+        if (empty($post_featured_img_url)) {
+            return [
+                'success' => false,
+                'message' => 'Post <b>featured image</b> is empty'
+            ];
+        }
+
+        $post_details = [
+            'id' => $post_id,
+            'content' => $post_content,
+            'title' => $post->post_title,
+            'excerpt' => $post->post_excerpt,
+            'featured_img_url' => $post_featured_img_url,
+            'default_meta_title' => get_post_meta(get_option('page_on_front'), '_yoast_wpseo_title', true),
+            'website_domain' => parse_url(get_home_url())['host'] ?? '',
+            'cta_url' => $_POST['share_data']['cta_url'] ?? '',
+            'hashtags' => Growtype_Post_Admin_Methods_Meta_Content::extract_hashtags_from_string($post_content),
         ];
+
+        $platform_class = sprintf('Growtype_Post_Admin_Methods_Share_%s', ucfirst($platform));
+
+        $share_response = apply_filters('growtype_post_admin_methods_share_response', [], $account_details, $post_details, $platform_class);
+
+        return $share_response;
     }
 
     public static function get_first_content_elements($html, $rowCount = 3)
@@ -422,192 +241,86 @@ class Growtype_Post_Admin_Methods_Share
         return $html_content;
     }
 
-    public static function update_shared_on_platforms($post_id, $platform)
+    public static function update_already_shared_on_platforms_details($post_id, $shared_details, $reset = false)
     {
-        $shared_on_platforms = get_post_meta($post_id, 'growtype_post_is_shared_on_platforms', true);
-        $shared_on_platforms = !empty($shared_on_platforms) ? $shared_on_platforms : [];
-        array_push($shared_on_platforms, $platform);
-        update_post_meta($post_id, 'growtype_post_is_shared_on_platforms', $shared_on_platforms);
-    }
+        $already_shared_on_platforms = $shared_details;
 
-    public static function post_to_reddit($credentials, $post_details)
-    {
-        try {
-            $agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3';
-            $title = $post_details['title'];
-            $subreddit = $post_details['subreddit'];
-            $url = $post_details['url'] ?? '';
-            $content = $post_details['content'];
-            $image = $post_details['image'] ?? '';
-
-            $content = htmlspecialchars_decode(strip_tags($content));
-
-            $client_id = $credentials['client_id'];
-            $client_secret = $credentials['client_secret'];
-            $redditUsername = $credentials['username'];
-            $redditPassword = $credentials['password'];
-
-            // Step 1: Obtain access token
-            $token_url = 'https://www.reddit.com/api/v1/access_token';
-            $token_data = array (
-                'grant_type' => 'password',
-                'username' => $redditUsername,
-                'password' => $redditPassword
-            );
-            $token_headers = array (
-                'User-Agent: ' . $agent,
-                'Authorization: Basic ' . base64_encode($client_id . ':' . $client_secret)
-            );
-
-            $ch = curl_init($token_url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $token_data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $token_headers);
-            $token_response = curl_exec($ch);
-            curl_close($ch);
-
-            $token = json_decode($token_response, true);
-
-            // Step 2: Create post
-            $post_url = 'https://oauth.reddit.com/api/submit';
-            $post_data = array (
-                'kind' => 'link', // Change to 'self' if it's a text post
-                'title' => $title,
-                'text' => $content,
-                'url' => $url,
-                'sr' => $subreddit,
-                'resubmit' => 'true',
-            );
-
-            $post_headers = array (
-                'User-Agent: ' . $agent,
-                'Authorization: bearer ' . $token['access_token']
-            );
-
-            $ch = curl_init($post_url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $post_headers);
-            $response = curl_exec($ch);
-            curl_close($ch);
-
-            $response = json_decode($response, true);
-
-            if (isset($response['success']) && $response['success'] == true) {
-                return [
-                    'success' => true,
-                    'message' => 'Reddit post created successfully'
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'message' => 'Reddit Error: ' . ($response['errors'][0][0] ?? 'Undefined error')
-                ];
-            }
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Reddit Error: ' . $e->getMessage()
-            ];
+        if (!$reset) {
+            $already_shared_on_platforms = get_post_meta($post_id, 'growtype_post_is_already_shared_on_platforms', true);
+            $already_shared_on_platforms = !empty($already_shared_on_platforms) ? $already_shared_on_platforms : [];
+            $already_shared_on_platforms = growtype_post_merge_arrays_recursively($already_shared_on_platforms, $shared_details);
         }
+
+        update_post_meta($post_id, 'growtype_post_is_already_shared_on_platforms', $already_shared_on_platforms);
     }
 
-    public static function setup_blogger()
+    public static function format_already_shared_on_platforms_details($platform, $auth_group_key, $account_channel, $response)
     {
-        $auth_code = get_user_meta(get_current_user_id(), 'growtype_post_google_auth_code', true);
-
-        $client_id = get_option('growtype_post_google_client_id');
-        $client_secret = get_option('growtype_post_google_client_secret');
-        $redirect_uri = home_url() . '/' . Growtype_Post_Admin::google_auth_redirect_path();
-        $scope = 'https://www.googleapis.com/auth/blogger';
-
-        $authorizationURL = 'https://accounts.google.com/o/oauth2/auth';
-
-        $params = [
-            'client_id' => $client_id,
-            'redirect_uri' => $redirect_uri,
-            'response_type' => 'code',
-            'scope' => $scope,
+        return [
+            $platform => [
+                $auth_group_key => [
+                    $account_channel => [
+                        'url' => $response['url'] ?? ''
+                    ]
+                ]
+            ]
         ];
+    }
 
-        $redirect_url = $authorizationURL . '?' . http_build_query($params);
+    public static function check_if_post_is_already_shared_on_platform($post_id, $platform, $auth_group_key, $account_channel)
+    {
+        $already_shared_on_platforms = Growtype_Post_Admin_Methods_Meta_Share::already_shared_on_platforms($post_id);
 
-        if (empty($auth_code)) {
-            return [
-                'success' => false,
-                'message' => 'Redirecting to Google for authorization',
-                'redirectURL' => $redirect_url
-            ];
-        } else {
-            $tokenURL = 'https://accounts.google.com/o/oauth2/token';
-
-            $params = [
-                'code' => $auth_code,
-                'client_id' => $client_id,
-                'client_secret' => $client_secret,
-                'redirect_uri' => $redirect_uri,
-                'grant_type' => 'authorization_code',
-            ];
-
-            $curl = curl_init($tokenURL);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($curl);
-            curl_close($curl);
-            $responseData = json_decode($response, true);
-
-            if (isset($responseData['error'])) {
-                return [
-                    'success' => false,
-                    'message' => 'Invalid grant',
-                    'redirectURL' => $redirect_url
-                ];
-            }
-
-            $access_token = $responseData['access_token'] ?? '';
-
-            if (!empty($access_token)) {
-                update_user_meta(get_current_user_id(), 'growtype_post_google_auth_access_token', $access_token);
-
-                return $access_token;
-            } else {
-                return [
-                    'success' => false,
-                    'message' => 'Failed to get access token',
-                    'redirectURL' => $redirect_url
-                ];
-            }
+        if (empty($account_channel)) {
+            $account_channel = $auth_group_key;
         }
+
+        if (isset($already_shared_on_platforms[$platform][$auth_group_key]) && in_array($account_channel, $already_shared_on_platforms[$platform][$auth_group_key])) {
+            return true;
+        }
+
+        return isset($already_shared_on_platforms[$platform][$auth_group_key][$account_channel]) ? true : false;
     }
 
-    public static function post_to_blogger($access_token, $blog_id, $post_data)
+    public static function get_shared_post_external_url_for_platform($post_id, $platform, $auth_group_key, $account_channel)
     {
-        $apiEndpoint = 'https://www.googleapis.com/blogger/v3/blogs/' . $blog_id . '/posts';
+        $already_shared_on_platforms = Growtype_Post_Admin_Methods_Meta_Share::already_shared_on_platforms($post_id);
 
-        $post_data['blog']['id'] = $blog_id;
+        if (empty($account_channel)) {
+            $account_channel = $auth_group_key;
+        }
 
-        $options = [
-            CURLOPT_URL => $apiEndpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($post_data),
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $access_token,
-            ],
+        if (!isset($already_shared_on_platforms[$platform][$auth_group_key][$account_channel]['url'])) {
+            return $already_shared_on_platforms[$platform][$auth_group_key]['url'] ?? '';
+        }
+
+        return $already_shared_on_platforms[$platform][$auth_group_key][$account_channel]['url'] ?? '';
+    }
+
+    public static function get_params_from_post_content($post_content)
+    {
+        // Extract Caption
+        preg_match('/Caption:\s*(.+?)(?:\n|$)/', $post_content, $captionMatch);
+        $caption = isset($captionMatch[1]) ? trim($captionMatch[1]) : '';
+        $caption = strip_tags($caption);
+
+        preg_match('/Tags:\s*(.+?)(?:\n|$)/', $post_content, $tagsMatch);
+        $tags = isset($tagsMatch[1]) ? trim($tagsMatch[1]) : '';
+        $tags = strip_tags($tags);
+
+        if (empty($tags)) {
+            preg_match_all('/#\w+/', $post_content, $matches);
+            $tags = $matches[0] ?? [];
+        }
+
+        preg_match('/CTA url:\s*(.+?)(?:\n|$)/', $post_content, $ctaMatch);
+        $cta_url = isset($ctaMatch[1]) ? trim($ctaMatch[1]) : '';
+        $cta_url = strip_tags($cta_url);
+
+        return [
+            'caption' => $caption,
+            'tags' => $tags,
+            'cta_url' => $cta_url,
         ];
-
-        $curl = curl_init();
-
-        curl_setopt_array($curl, $options);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        return json_decode($response, true);
     }
 }

@@ -78,7 +78,7 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue ? 'true' : 'false'
                 }
 
-                if (propertyKey === 'posts_per_page' || propertyKey === 'columns') {
+                if (propertyKey === 'posts_per_page' || propertyKey === 'posts_per_page_mobile' || propertyKey === 'columns') {
                     propertyValue = propertyValue.toString()
                 }
 
@@ -261,7 +261,7 @@ export default function Edit({attributes, setAttributes}) {
                             onChange={(val) => updateShortcode('post_in_modal', val)}
                         />
                         <ToggleControl
-                            label={__('Load all posts', 'growtype-post')}
+                            label={__('Load more posts', 'growtype-post')}
                             checked={attributes.load_all_posts}
                             onChange={(val) => updateShortcode('load_all_posts', val)}
                         />
@@ -311,6 +311,17 @@ export default function Edit({attributes, setAttributes}) {
                                     attributes.posts_per_page
                                 }
                                 onChange={(val) => updateShortcode('posts_per_page', val)}
+                                min={1}
+                                max={50}
+                            />
+                        )}
+                        {(!attributes.load_all_posts || attributes.loading_type !== 'initial') && (
+                            <RangeControl
+                                label={__('Visible posts - Mobile', 'growtype-post')}
+                                value={
+                                    attributes.posts_per_page_mobile
+                                }
+                                onChange={(val) => updateShortcode('posts_per_page_mobile', val)}
                                 min={1}
                                 max={50}
                             />
@@ -431,11 +442,36 @@ export default function Edit({attributes, setAttributes}) {
                         }
                     </PanelBody>
                     <PanelBody
-                        title={__('Terms navigation settings', 'growtype-post')}
+                        title={__('Filters settings', 'growtype-post')}
                         icon="admin-plugins"
                     >
                         <ToggleControl
-                            label="Terms navigation"
+                            label="Filters visibility trigger"
+                            help={
+                                attributes.show_filters_visibility_trigger
+                                    ? 'Is visible.'
+                                    : 'Is hidden.'
+                            }
+                            checked={attributes.show_filters_visibility_trigger ? true : false}
+                            onChange={(val) => updateShortcode('show_filters_visibility_trigger', val)}
+                        />
+                        <ToggleControl
+                            label="Filters visible by default"
+                            help={
+                                attributes.filters_visible_by_default
+                                    ? 'Is visible.'
+                                    : 'Is hidden.'
+                            }
+                            checked={attributes.filters_visible_by_default ? true : false}
+                            onChange={(val) => updateShortcode('filters_visible_by_default', val)}
+                        />
+                    </PanelBody>
+                    <PanelBody
+                        title={__('Terms filters settings', 'growtype-post')}
+                        icon="admin-plugins"
+                    >
+                        <ToggleControl
+                            label="Status"
                             help={
                                 attributes.terms_navigation
                                     ? 'Is active.'
@@ -446,7 +482,7 @@ export default function Edit({attributes, setAttributes}) {
                         />
                         {attributes.terms_navigation ?
                             <TextControl
-                                label={__('Terms navigation taxonomies', 'growtype-post')}
+                                label={__('Taxonomies', 'growtype-post')}
                                 help={__("Separated by ','", 'growtype-post')}
                                 onChange={(val) => updateShortcode('terms_navigation_taxonomy', val)}
                                 value={attributes.terms_navigation_taxonomy}
@@ -456,7 +492,7 @@ export default function Edit({attributes, setAttributes}) {
                         }
                         {attributes.terms_navigation ?
                             <SelectControl
-                                label={__('Navigation style', 'growtype-post')}
+                                label={__('Style desktop', 'growtype-post')}
                                 help={__('', 'growtype-post')}
                                 options={[
                                     {
@@ -470,6 +506,26 @@ export default function Edit({attributes, setAttributes}) {
                                 ]}
                                 value={attributes.terms_navigation_style}
                                 onChange={(val) => updateShortcode('terms_navigation_style', val)}
+                            />
+                            :
+                            ''
+                        }
+                        {attributes.terms_navigation ?
+                            <SelectControl
+                                label={__('Style mobile', 'growtype-post')}
+                                help={__('', 'growtype-post')}
+                                options={[
+                                    {
+                                        label: 'Buttons',
+                                        value: 'buttons',
+                                    },
+                                    {
+                                        label: 'Select',
+                                        value: 'select',
+                                    }
+                                ]}
+                                value={attributes.terms_navigation_style_mobile}
+                                onChange={(val) => updateShortcode('terms_navigation_style_mobile', val)}
                             />
                             :
                             ''
@@ -516,7 +572,7 @@ export default function Edit({attributes, setAttributes}) {
                         }
                         {attributes.terms_navigation ?
                             <ToggleControl
-                                label={__('"Show all" option visible', 'growtype-post')}
+                                label={__('"Show all" filter option', 'growtype-post')}
                                 help={
                                     attributes.terms_navigation_show_all_option_visible
                                         ? 'Is visible.'
@@ -544,7 +600,7 @@ export default function Edit({attributes, setAttributes}) {
                         }
                         {attributes.terms_navigation ?
                             <TextControl
-                                label={__('Default term selected', 'growtype-post')}
+                                label={__('Default value', 'growtype-post')}
                                 help={__('', 'growtype-post')}
                                 onChange={(val) => updateShortcode('terms_navigation_default_term_selected', val)}
                                 value={attributes.terms_navigation_default_term_selected}
@@ -558,7 +614,7 @@ export default function Edit({attributes, setAttributes}) {
                         icon="admin-plugins"
                     >
                         <ToggleControl
-                            label="Custom filters"
+                            label="Status"
                             help={
                                 attributes.custom_filters
                                     ? 'Is active.'

@@ -129,8 +129,8 @@ class Growtype_Post_Admin_Settings
         /**
          * Social
          */
-        include_once GROWTYPE_POST_PATH . 'admin/pages/settings/tabs/growtype-post-admin-settings-social.php';
-        new Growtype_Post_Admin_Settings_Social();
+//        include_once GROWTYPE_POST_PATH . 'admin/pages/settings/tabs/growtype-post-admin-settings-social.php';
+//        new Growtype_Post_Admin_Settings_Social();
 
         /**
          * Social
