@@ -185,16 +185,16 @@ class Growtype_Post
          * Shortcodes
          */
         require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-shortcode.php';
-        $this->loader = new Growtype_Post_Shortcode();
+        new Growtype_Post_Shortcode();
 
         require_once GROWTYPE_POST_PATH . 'includes/methods/shortcodes/class-growtype-post-liked-posts-shortcode.php';
-        $this->loader = new Growtype_Post_Liked_Posts_Shortcode();
+        new Growtype_Post_Liked_Posts_Shortcode();
 
         /**
          * block
          */
         require_once GROWTYPE_POST_PATH . 'includes/methods/blocks/class-growtype-post-block.php';
-        $this->loader = new Growtype_Post_Block();
+        new Growtype_Post_Block();
 
         $this->loader = new Growtype_Post_Loader();
 

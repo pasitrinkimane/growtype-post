@@ -19,6 +19,13 @@ class Growtype_Post_Block
             'formatting' => [
                 'decode' => false,
             ],
+        ],
+        'custom_args' => [
+            'skip' => false,
+            'get_value' => 'custom_args',
+            'formatting' => [
+                'decode' => false,
+            ],
         ]
     ];
 

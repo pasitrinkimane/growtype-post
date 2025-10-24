@@ -82,7 +82,7 @@ export default function Edit({attributes, setAttributes}) {
                     propertyValue = propertyValue.toString()
                 }
 
-                if (propertyKey === 'meta_query' || propertyKey === 'tax_query') {
+                if (propertyKey === 'meta_query' || propertyKey === 'tax_query' || propertyKey === 'custom_args') {
                     return;
                 }
 
@@ -708,6 +708,11 @@ export default function Edit({attributes, setAttributes}) {
                         here.</a>}
                     onChange={(val) => setAttributes({tax_query: val})}
                     value={attributes.tax_query}
+                />
+                <TextareaControl
+                    label={__('Custom Args', 'growtype-post')}
+                    onChange={(val) => setAttributes({custom_args: val})}
+                    value={attributes.custom_args}
                 />
                 <TextControl
                     label={__('Parent class', 'growtype-post')}

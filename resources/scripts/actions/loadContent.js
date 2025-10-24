@@ -6,11 +6,12 @@ import {getUrlFilterParams} from "./getUrlFilterParams";
 import {initFiltering} from "./initFiltering";
 import {setWrapperDefaultParams} from "./setWrapperDefaultParams";
 import {infiniteLoadPosts} from "./infiniteLoadPosts";
+import {adjustPostsGrid} from "./adjustPostsGrid";
 
 /**
  * Ajax load posts
  */
-export function ajaxLoadPosts() {
+export function loadContent() {
     $('.growtype-post-ajax-load-content').each(function (index, element) {
         let component = $(this);
         let args = component.attr('data-args');
@@ -40,7 +41,8 @@ export function ajaxLoadPosts() {
                 type: 'post',
                 data: {
                     action: 'growtype_post_ajax_load_content',
-                    args: args
+                    args: args,
+                    nonce: growtype_post.nonce
                 },
                 success: function (response) {
                     if (response.data.render) {
@@ -61,6 +63,8 @@ export function ajaxLoadPosts() {
                         }
 
                         infiniteLoadPosts(wrapper);
+
+                        adjustPostsGrid(wrapper);
 
                         document.dispatchEvent(growtypePostAjaxLoadContent({
                             response: response,

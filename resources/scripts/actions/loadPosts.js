@@ -1,10 +1,12 @@
+import {adjustPostsGrid} from "./adjustPostsGrid";
+
 const growtypePostLoadPostsEvent = new Event('growtypePostLoadPosts');
 
-export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) {
-    let loadingType = postsContainer.find('.growtype-post-container').attr('data-loading-type')
+export function growtypePostLoadPosts(wrapper, filterParams, postsLimit) {
+    let loadingType = wrapper.find('.growtype-post-container').attr('data-loading-type')
     let validPosts = 0;
     let availablePosts = 0;
-    postsContainer.find('.growtype-post-single').each(function (index, post) {
+    wrapper.find('.growtype-post-single').each(function (index, post) {
         let postIsVisible = true;
 
         Object.entries(filterParams).map(function (element, index) {
@@ -56,7 +58,7 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
         }
     });
 
-    let id = postsContainer.find('.growtype-post-container').attr('id');
+    let id = wrapper.find('.growtype-post-container').attr('id');
 
     let loadMoreBtn = $('a[data-growtype-post-load-more="' + id + '"]');
 
@@ -64,11 +66,11 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
      * Check if id is present
      */
     if (loadMoreBtn.length === 0) {
-        loadMoreBtn = postsContainer.find('.wp-block-button')
+        loadMoreBtn = wrapper.find('.wp-block-button')
     }
 
     if (loadMoreBtn.length === 0) {
-        loadMoreBtn = postsContainer.find('.gp-actions-wrapper .btn-loadmore')
+        loadMoreBtn = wrapper.find('.gp-actions-wrapper .btn-loadmore')
     }
 
     if (loadingType !== 'ajax') {
@@ -78,6 +80,8 @@ export function growtypePostLoadPosts(postsContainer, filterParams, postsLimit) 
             loadMoreBtn.closest('.wp-block-button, .gp-actions-wrapper').fadeIn();
         }
     }
+
+    adjustPostsGrid(wrapper);
 
     document.dispatchEvent(growtypePostLoadPostsEvent);
 }

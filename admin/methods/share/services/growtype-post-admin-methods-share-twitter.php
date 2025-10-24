@@ -143,7 +143,10 @@ class Growtype_Post_Admin_Methods_Share_Twitter
                 ];
             }
 
-            $post_url = 'https://x.com/chataigirl/status/' . $response['data']['id'];
+            $user_details = $client->userMeLookup()->performRequest();
+            $username = $user_details->data->username ?? '';
+
+            $post_url = 'https://x.com/' . $username . '/status/' . $response['data']['id'];
 
             return [
                 'success' => true,

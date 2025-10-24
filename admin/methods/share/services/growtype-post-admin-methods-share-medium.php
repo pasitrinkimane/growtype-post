@@ -45,20 +45,21 @@ class Growtype_Post_Admin_Methods_Share_Medium
         $post_title = $post_details['title'];
         $post_excerpt = $post_details['excerpt'];
         $featured_img_url = $post_details['featured_img_url'];
+        $cta_url = $post_details['cta_url'] ?? 'https://unsplash.com/';
 
         if (!empty($featured_img_url)) {
-            $post_content = "<img src='" . $featured_img_url . "' alt='Photo on https://unsplash.com/. Source " . home_url() . "'>" . $post_content;
+            $post_content = "<img src='" . $featured_img_url . "' alt='Photo on " . $cta_url . ". Source " . home_url() . "'>" . $post_content;
         }
 
         /**
          * Resources
          */
-        if (!empty($main_meta_title) && !empty($website_domain)) {
+        if (!empty($main_meta_title) && !empty($cta_url)) {
             ob_start();
             echo '<h3>🔗 Resources</h3>';
             echo '<ul>';
-            echo '<li><a href="' . home_url() . '" target="_blank">' . $website_domain . ' - ' . $main_meta_title . '</a></li>';
-            echo '<li><a href="' . get_permalink($post_id) . '" target="_blank">' . $website_domain . ' - Blog</a></li>';
+            echo '<li><a href="' . home_url() . '" target="_blank">' . $cta_url . ' - ' . $main_meta_title . '</a></li>';
+            echo '<li><a href="' . get_permalink($post_id) . '" target="_blank">' . $cta_url . ' - Blog</a></li>';
             echo '</ul>';
             $resources = ob_get_clean();
             $post_content = $post_content . "\n\n" . $resources;
@@ -69,6 +70,7 @@ class Growtype_Post_Admin_Methods_Share_Medium
             'body' => $post_content,
             'subtitle' => $post_excerpt,
             'canonicalUrl' => get_permalink(get_page_by_path('blog')),
+            'featured_img_url' => $featured_img_url,
             'tags' => ['ai', 'chat', 'soulmates', 'assistant', 'chatbot'],
         ];
 

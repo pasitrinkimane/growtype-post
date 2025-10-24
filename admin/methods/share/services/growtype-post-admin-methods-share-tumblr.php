@@ -184,7 +184,7 @@ class Growtype_Post_Admin_Methods_Share_Tumblr
 
         // Return success or failure
         if (isset($response['meta']['status']) && $response['meta']['status'] == 201) {
-            $response_url = sprintf('https://www.tumblr.com/chataigirl/%s/', $response['response']['id'] ?? '');
+            $response_url = sprintf('https://www.tumblr.com/%s/%s/', $blog_name, $response['response']['id'] ?? '');
 
             return [
                 'success' => true,
@@ -201,7 +201,7 @@ class Growtype_Post_Admin_Methods_Share_Tumblr
 
             return [
                 'success' => false,
-                'message' => sprintf('Tumblr post failed - %s Please try again.', $error),
+                'message' => sprintf('Tumblr post failed - %s. Please try again.', $error),
             ];
         }
     }

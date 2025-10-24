@@ -799,12 +799,12 @@ class Growtype_Post_Admin_Methods_Meta_Content
     public function load_partials()
     {
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/content/partials/growtype-post-admin-methods-meta-content-generate.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Content_Generate();
+        new Growtype_Post_Admin_Methods_Meta_Content_Generate();
 
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/content/partials/growtype-post-admin-methods-meta-content-adjust.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Content_Adjust();
+        new Growtype_Post_Admin_Methods_Meta_Content_Adjust();
 
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/content/partials/growtype-post-admin-methods-meta-content-prompt.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Content_Prompt();
+        new Growtype_Post_Admin_Methods_Meta_Content_Prompt();
     }
 }

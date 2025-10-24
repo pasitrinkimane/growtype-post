@@ -16,6 +16,14 @@ class Growtype_Post_Ajax
         add_action('wp_ajax_growtype_post_ajax_load_content', array ($this, 'growtype_post_ajax_load_content_callback'));
         add_action('wp_ajax_nopriv_growtype_post_ajax_load_content', array ($this, 'growtype_post_ajax_load_content_callback'));
 
+        add_action('rest_api_init', function () {
+            register_rest_route('growtype-post/v1', '/load-posts', [
+                'methods' => 'POST',
+                'callback' => array ($this, 'growtype_rest_load_posts'),
+                'permission_callback' => '__return_true',
+            ]);
+        });
+
         add_action('wp_ajax_growtype_post_load_more_posts', array ($this, 'growtype_post_load_more_posts_callback'));
         add_action('wp_ajax_nopriv_growtype_post_load_more_posts', array ($this, 'growtype_post_load_more_posts_callback'));
     }
@@ -60,8 +68,55 @@ class Growtype_Post_Ajax
         ], 200);
     }
 
+    function growtype_rest_load_posts($request)
+    {
+        $nonce = $request->get_param('nonce');
+        $args = array_map('sanitize_text_field', (array)$request->get_param('args'));
+
+        if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+
+            error_log('growtype_rest_load_posts nonce failed');
+
+            wp_send_json_error([
+                'message' => 'Security check failed'
+            ], 500);
+        }
+
+        $load_transient = $args['content_cache'] ?? false;
+
+        $transient_content = '';
+        if ($load_transient) {
+            $transient_name = 'growtype_post_ajax_load_content_callback_transient_' . md5(json_encode($args));
+            $transient_content = get_transient($transient_name);
+        }
+
+        if (empty($transient_content)) {
+            $init = Growtype_Post_Shortcode::init($args);
+            $render = $init['render'];
+            $posts_amount = count($init['wp_query']->posts);
+
+            if ($load_transient) {
+                set_transient($transient_name, $render, 60 * 60);
+            }
+        }
+
+        return rest_ensure_response([
+            'render' => $render ?? '',
+            'posts_amount' => $posts_amount ?? 0,
+        ]);
+    }
+
     function growtype_post_ajax_load_content_callback()
     {
+//        if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+//
+//            error_log('growtype_post_ajax_load_content_callback nonce failed');
+//
+//            wp_send_json_error([
+//                'message' => 'Security check failed'
+//            ], 500);
+//        }
+
         $args = isset($_POST['args']) ? $_POST['args'] : [];
 
         $load_transient = $args['content_cache'] ?? false;
@@ -83,8 +138,8 @@ class Growtype_Post_Ajax
         }
 
         wp_send_json_success([
-            'render' => $render,
-            'posts_amount' => $posts_amount,
+            'render' => $render ?? '',
+            'posts_amount' => $posts_amount ?? 0,
         ], 200);
     }
 

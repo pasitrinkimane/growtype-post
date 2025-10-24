@@ -1,18 +1,20 @@
-import {loadMoreBtnTrigger} from "./partials/loadMoreBtnTrigger";
-import {customFilterPosts} from "./partials/customFilterPosts";
-import {updateFiltersWithUrlParams} from "./partials/updateFiltersWithUrlParams";
-import {termsFilter} from "./partials/termsFilter";
-import {ajaxLoadPosts} from "./partials/ajaxLoadPosts";
-import {postCta} from "./partials/postCta";
-import {infiniteLoadPosts} from "./partials/infiniteLoadPosts";
-import {setWrapperDefaultParams} from "./partials/setWrapperDefaultParams";
+import {loadMoreBtnTrigger} from "./actions/loadMoreBtnTrigger";
+import {customFilterPosts} from "./actions/customFilterPosts";
+import {updateFiltersWithUrlParams} from "./actions/updateFiltersWithUrlParams";
+import {termsFilter} from "./actions/termsFilter";
+import {loadContent} from "./actions/loadContent";
+import {postCta} from "./actions/postCta";
+import {infiniteLoadPosts} from "./actions/infiniteLoadPosts";
+import {setWrapperDefaultParams} from "./actions/setWrapperDefaultParams";
 
 jQuery(document).ready(function () {
-    ajaxLoadPosts();
+    loadContent();
 });
 
 jQuery('.growtype-post-container-wrapper').each(function (index, wrapper) {
     let wrapperId = jQuery(wrapper).attr('id');
+    let visiblePosts = jQuery(wrapper).find('.growtype-post-container').attr('data-visible-posts');
+    let visiblePostsMobile = jQuery(wrapper).find('.growtype-post-container').attr('data-visible-posts-mobile');
 
     setWrapperDefaultParams(wrapperId);
     loadMoreBtnTrigger(jQuery(wrapper).find('a[data-growtype-post-load-more]'));
@@ -22,4 +24,14 @@ jQuery('.growtype-post-container-wrapper').each(function (index, wrapper) {
     termsFilter(wrapper);
     postCta(wrapper);
     infiniteLoadPosts(wrapper);
+
+    if ($(window).width() <= 768 && visiblePosts !== visiblePostsMobile) {
+        jQuery(wrapper)
+            .find('.growtype-post-container .growtype-post-single')
+            .each(function (index) {
+                if (index >= visiblePostsMobile) {
+                    jQuery(this).css('display', 'none');
+                }
+            });
+    }
 });

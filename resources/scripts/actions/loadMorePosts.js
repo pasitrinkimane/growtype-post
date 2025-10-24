@@ -1,12 +1,15 @@
 import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
 import {growtypePostAjaxLoadMoreContent} from "../events/growtypePostAjaxLoadMoreContent";
+import {adjustPostsGrid} from "./adjustPostsGrid";
 
 let currentRequest;
 
 export function loadMorePosts(elements, args = {}) {
     return new Promise((resolve, reject) => {
         let wrapper = elements['posts_container'].closest('.growtype-post-container-wrapper');
-        let wrapperId = $(wrapper).attr('id');
+        let wrapperId = wrapper.attr('id');
+        let visiblePosts = wrapper.find('.growtype-post-container').attr('data-visible-posts');
+        let visiblePostsMobile = wrapper.find('.growtype-post-container').attr('data-visible-posts-mobile');
 
         if (typeof elements['filters_container'] === 'undefined') {
             elements['filters_container'] = wrapper.find('.growtype-post-terms-filters');
@@ -40,7 +43,10 @@ export function loadMorePosts(elements, args = {}) {
 
         if (btn) {
             btn.addClass('is-loading');
-            btn.append('<span class="spinner-border"></span>');
+
+            if (btn.find('.spinner-border').length === 0) {
+                btn.append('<span class="spinner-border"></span>');
+            }
         }
 
         if (currentRequest) {
@@ -55,7 +61,11 @@ export function loadMorePosts(elements, args = {}) {
                 args: args
             },
             success: function (response) {
-                let wrapper = '';
+
+                if ($(window).width() <= 768 && visiblePosts !== visiblePostsMobile) {
+                    wrapper.find('.growtype-post-single:hidden').show();
+                }
+
                 if (response.data.render) {
                     if (args['shuffle'] !== undefined && args['shuffle'] === true) {
                         elements['posts_container'].html('');
@@ -86,6 +96,8 @@ export function loadMorePosts(elements, args = {}) {
                 }
 
                 window.growtype_post['wrappers'][wrapperId]['load_more_posts_btn_clicked'] = false;
+
+                adjustPostsGrid(wrapper);
 
                 document.dispatchEvent(growtypePostAjaxLoadMoreContent({
                     response: response,

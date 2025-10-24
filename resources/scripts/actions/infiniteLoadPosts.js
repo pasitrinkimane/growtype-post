@@ -3,6 +3,8 @@
  */
 export function infiniteLoadPosts(wrapper) {
 
+    initInfiniteLoad(wrapper);
+
     document.addEventListener('growtypePostAjaxLoadContent', function (event) {
         initInfiniteLoad(event['detail']['wrapper']);
     });

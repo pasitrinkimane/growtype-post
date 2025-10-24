@@ -10,6 +10,31 @@ class Growtype_Post_Shortcode
         if (!is_admin() && !wp_is_json_request()) {
             add_shortcode('growtype_post', array ($this, 'growtype_post_shortcode_callback'));
         }
+
+        add_filter('wp_insert_post_data', [$this, 'wp_insert_post_data_callback'], 10, 2);
+    }
+
+    function wp_insert_post_data_callback($data, $post_arr)
+    {
+        foreach (['post_content', 'post_excerpt'] as $field) {
+            if (!empty($data[$field]) && strpos($data[$field], '[growtype_post') !== false) {
+                $data[$field] = preg_replace_callback(
+                    '/\[growtype_post\b((?:\'[^\']*\'|"[^"]*"|[^\[\]]|\\\.)*)\]/',
+                    function ($m) {
+                        $attrs = $m[1];
+                        $attrs = str_replace(
+                            ['[', ']'],
+                            ['&#91;', '&#93;'],
+                            $attrs
+                        );
+                        return '[growtype_post' . $attrs . ']';
+                    },
+                    $data[$field]
+                );
+            }
+        }
+
+        return $data;
     }
 
     function growtype_post_shortcode_callback($attr)
@@ -92,11 +117,12 @@ class Growtype_Post_Shortcode
             'shuffle' => isset($attr['shuffle']) ? filter_var($attr['shuffle'], FILTER_VALIDATE_BOOLEAN) : false,
             'orderby' => isset($attr['orderby']) ? $attr['orderby'] : 'menu_order',
             'meta_key' => isset($attr['meta_key']) ? $attr['meta_key'] : '',
-            'parent_id' => isset($attr['parent_id']) ? $attr['parent_id'] : '',
+            'parent_id' => isset($attr['parent_id']) && !empty($attr['parent_id']) ? $attr['parent_id'] : 'gpw-container',
             'intro_content_length' => isset($attr['intro_content_length']) ? $attr['intro_content_length'] : '100',
             'loading_type' => isset($attr['loading_type']) ? $attr['loading_type'] : 'initial',
             'meta_query' => isset($attr['meta_query']) && !empty($attr['meta_query']) ? $attr['meta_query'] : null,
             'tax_query' => isset($attr['tax_query']) && !empty($attr['tax_query']) ? $attr['tax_query'] : null,
+            'custom_args' => isset($attr['custom_args']) && !empty($attr['custom_args']) ? $attr['custom_args'] : null,
             'sticky_post' => isset($attr['sticky_post']) && !empty($attr['sticky_post']) ? $attr['sticky_post'] : 'none',
             'terms_navigation_taxonomy' => isset($attr['terms_navigation_taxonomy']) ? (is_array($attr['terms_navigation_taxonomy']) ? $attr['terms_navigation_taxonomy'] : explode(',', $attr['terms_navigation_taxonomy'])) : ['category'],
             'post_is_a_link' => isset($attr['post_is_a_link']) ? filter_var($attr['post_is_a_link'], FILTER_VALIDATE_BOOLEAN) : false,
@@ -131,6 +157,23 @@ class Growtype_Post_Shortcode
             'show_filters_visibility_trigger' => isset($attr['show_filters_visibility_trigger']) && filter_var($attr['show_filters_visibility_trigger'], FILTER_VALIDATE_BOOLEAN) ? true : false,
             'filters_visible_by_default' => isset($attr['filters_visible_by_default']) && $attr['filters_visible_by_default'] ? '1' : '0',
         ];
+
+        // Apply custom args
+        if (!empty($attr['custom_args'])) {
+            $custom_args = [];
+            if (is_array($attr['custom_args'])) {
+                $custom_args = $attr['custom_args'];
+            } else {
+                $decoded = json_decode(urldecode($attr['custom_args']), true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $custom_args = $decoded;
+                }
+            }
+
+            foreach ($custom_args as $key => $custom_arg) {
+                $args[$key] = $custom_arg;
+            }
+        }
 
         $args['posts_per_page_mobile'] = isset($attr['posts_per_page_mobile']) ? $attr['posts_per_page_mobile'] : $args['posts_per_page'];
 
@@ -190,6 +233,10 @@ class Growtype_Post_Shortcode
         $args['post_classes'] = array_unique($args['post_classes']);
         $args['post_classes'] = implode(' ', $args['post_classes']);
 
+        if (isset($args['meta_query']) && !empty($args['meta_query']) && is_string($args['meta_query'])) {
+            $args['meta_query'] = html_entity_decode($args['meta_query'], ENT_QUOTES);
+        }
+
         return $args;
     }
 
@@ -202,7 +249,7 @@ class Growtype_Post_Shortcode
 
     public static function query_posts($args)
     {
-        $posts_per_page = $args['posts_per_page'];
+        $posts_per_page = (int)$args['posts_per_page'];
 
         /**
          * Show all posts
@@ -220,6 +267,14 @@ class Growtype_Post_Shortcode
 
         if (!empty($args['meta_key'])) {
             $query_args['meta_key'] = $args['meta_key'];
+        }
+
+        if (!empty($args['child_of'])) {
+            $query_args['child_of'] = $args['child_of'];
+        }
+
+        if (!empty($args['post_parent'])) {
+            $query_args['post_parent'] = $args['post_parent'];
         }
 
         if (!empty($args['category__not_in'])) {
@@ -656,7 +711,7 @@ class Growtype_Post_Shortcode
             }
             ?>
             <div
-                id="<?php echo !empty($args['parent_id']) ? $args['parent_id'] : 'gpw-' . wp_generate_password(12, false) ?>"
+                id="<?php echo $args['parent_id'] ?>"
                 class="<?php echo implode(' ', $wrapper_container_classes) ?>"
                 data-post-type="<?php echo implode(',', $args['post_type'] ?? []) ?>"
                 data-preview-style="<?php echo $args['preview_style'] ?>"
@@ -757,21 +812,19 @@ class Growtype_Post_Shortcode
 
                 $loading_type = isset($args['loading_type']) ? $args['loading_type'] : 'initial';
                 $visible_posts = isset($args['posts_per_page']) ? $args['posts_per_page'] : '';
+                $visible_posts_mobile = isset($args['posts_per_page_mobile']) ? $args['posts_per_page_mobile'] : $visible_posts;
 
                 if ($loading_type === 'initial' && $args['load_all_posts']) {
                     $visible_posts = '-1';
                 }
 
                 $posts_columns_amount = isset($args['columns']) ? $args['columns'] : 1;
-
-                if (empty($initially_retrieved_posts)) {
-                    $posts_columns_amount = 1;
-                }
                 ?>
 
                 <div class="<?php echo implode(' ', $container_classes) ?>"
                      data-columns="<?php echo $posts_columns_amount ?>"
                      data-visible-posts="<?php echo $visible_posts ?>"
+                     data-visible-posts-mobile="<?php echo $visible_posts_mobile ?>"
                      data-initially-retrieved-posts="<?php echo $initially_retrieved_posts ?>"
                      data-loading-type="<?php echo $loading_type ?>"
                      style="--growtype-post-posts-grid-columns-count:<?php echo $posts_columns_amount ?>;"
@@ -846,7 +899,7 @@ class Growtype_Post_Shortcode
 
             $current_post = apply_filters('growtype_post_shortcode_extend_post', $current_post, $args);
 
-            $existing_args['post_is_a_link'] = $current_post->post_is_a_link ?? true;
+            $existing_args['post_is_a_link'] = $current_post->post_is_a_link ?? $args['post_is_a_link'] ?? false;
             $existing_args['post_permalink'] = $current_post->post_permalink ?? get_permalink();
 
             if (empty($existing_args['post_terms'])) {

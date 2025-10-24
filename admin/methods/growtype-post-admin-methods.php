@@ -4,20 +4,20 @@ class Growtype_Post_Admin_Methods
 {
     public function __construct()
     {
-        global $typenow;
-
         if (get_option('growtype_post_admin_edit_post_show_meta_boxes')) {
             include_once GROWTYPE_POST_PATH . '/admin/methods/share/growtype-post-admin-methods-share.php';
             new Growtype_Post_Admin_Methods_Share();
 
-            include_once GROWTYPE_POST_PATH . '/admin/methods/meta/growtype-post-admin-methods-meta.php';
-            new Growtype_Post_Admin_Methods_Meta();
+            if (is_admin()) {
+                include_once GROWTYPE_POST_PATH . '/admin/methods/meta/growtype-post-admin-methods-meta.php';
+                new Growtype_Post_Admin_Methods_Meta();
 
-            add_filter('manage_posts_columns', array ($this, 'add_custom_columns_callback'));
+                add_filter('manage_posts_columns', array ($this, 'add_custom_columns_callback'));
 
-            add_action('manage_posts_custom_column', array ($this, 'manage_custom_columns_callback'), 10, 2);
+                add_action('manage_posts_custom_column', array ($this, 'manage_custom_columns_callback'), 10, 2);
 
-            add_action('admin_head', array ($this, 'add_inline_script_to_admin_head'));
+                add_action('admin_head', array ($this, 'add_inline_script_to_admin_head'));
+            }
         }
     }
 
@@ -48,6 +48,7 @@ class Growtype_Post_Admin_Methods
                     }
                 });
             }
+
         </script>
         <?php
     }

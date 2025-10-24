@@ -21,7 +21,7 @@ class Growtype_Post_Admin_Methods_Share
         "💡 New Article Alert! \n\"%s\"",
         "📖 Just Published: \n\"%s\"",
         "🔥 Hot Off the Press: \n\"%s\"",
-        "✨ Check Out Our Latest: \n\"%s\"",
+        "✨ Fresh Article: \n\"%s\"",
         "🔔 Don't Miss This: \n\"%s\"",
         "🌟 Featured Article: \n\"%s\"",
         "📰 Fresh Reads: \n\"%s\"",
@@ -31,11 +31,9 @@ class Growtype_Post_Admin_Methods_Share
     const INTRO_SENTENCES = [
         'New article:',
         'We published a new article:',
-        'Check out our latest article:',
-        'Our latest article:',
-        'Discover our latest publication:',
-        'Presenting our new article:',
-        'Announcing our latest article:',
+        'Fresh article:',
+        'Latest publication:',
+        'New article:'
     ];
 
     public function __construct()

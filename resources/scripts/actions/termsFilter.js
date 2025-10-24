@@ -133,7 +133,12 @@ export function termsFilter(wrapper) {
 
         if ($(this).attr('data-init-cat') !== '' && $(element).is(':visible')) {
             if ($(element).is('select')) {
-                $(element).trigger('change');
+                var initCat = $(this).attr('data-init-cat');
+                var $option = $(element).find('option[data-cat-' + $(element).attr('data-type') + '="' + initCat + '"]');
+
+                if ($option.length) {
+                    $(element).val($option.val()).trigger('change');
+                }
             } else if ($(element).is('div')) {
                 postTermsFilterBtnClick(selectedBtn, false);
             }

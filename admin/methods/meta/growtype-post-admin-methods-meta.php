@@ -53,13 +53,13 @@ class Growtype_Post_Admin_Methods_Meta
     public function load_partials()
     {
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/image/growtype-post-admin-methods-meta-image.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Image();
+        new Growtype_Post_Admin_Methods_Meta_Image();
 
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/share/growtype-post-admin-methods-meta-share.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Share();
+        new Growtype_Post_Admin_Methods_Meta_Share();
 
         require_once GROWTYPE_POST_PATH . 'admin/methods/meta/content/growtype-post-admin-methods-meta-content.php';
-        $this->loader = new Growtype_Post_Admin_Methods_Meta_Content();
+        new Growtype_Post_Admin_Methods_Meta_Content();
     }
 
     function custom_admin_footer_script()

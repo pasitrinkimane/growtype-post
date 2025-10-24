@@ -47,7 +47,10 @@ export function updateFiltersWithUrlParams(wrapper) {
                 let btn = $(wrapper).find('.growtype-post-terms-filter-btn[data-cat-' + key + '="' + value + '"]');
 
                 if (btn.length > 0) {
-                    btn.addClass('is-active');
+                    setTimeout(() => {
+                        btn.trigger('click');
+                        btn.addClass('is-active');
+                    }, 100);
                 }
             });
         });

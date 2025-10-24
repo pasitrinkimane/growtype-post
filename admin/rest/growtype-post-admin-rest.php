@@ -8,19 +8,55 @@ class Growtype_Post_Admin_Rest
         add_action('growtype_auth_return_tumblr_token_details', [$this, 'set_tumblr_token_details'], 0, 2);
         add_action('growtype_auth_return_threads_token_details', [$this, 'set_threads_token_details'], 0, 2);
 
-        add_action('rest_api_init', function () {
-            // Register the REST API route
-            register_rest_route('growtype-post/v1', '/post/import', [
-                'methods' => WP_REST_Server::CREATABLE, // Allow POST requests
-                'callback' => [$this, 'rest_post_callback'],
-                'permission_callback' => array ($this, 'permission_check_callback')
-            ]);
-        });
+        add_action('rest_api_init', array ($this, 'register_routes'));
     }
 
-    function permission_check_callback()
+    public function register_routes()
     {
-        return true;
+        register_rest_route('growtype-post/v1', '/post/import', [
+            'methods' => WP_REST_Server::CREATABLE, // Allow POST requests
+            'callback' => [$this, 'rest_post_callback'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route(
+            'growtype-post/v1',
+            '/post/prepare',
+            array (
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => array ($this, 'prepare_content'),
+                'permission_callback' => '__return_true',
+            )
+        );
+    }
+
+    public function prepare_content(WP_REST_Request $request)
+    {
+        $data = $request->get_params();
+        $platform = isset($data['platform']) ? sanitize_text_field($data['platform']) : '';
+        $post_id = isset($data['post_id']) ? sanitize_text_field($data['post_id']) : '';
+
+        $post_details = get_post($post_id); // use get_post (not get_posts)
+
+        if (!$post_details || is_wp_error($post_details)) {
+            return new WP_Error('invalid_post', 'Invalid post ID or post not found.');
+        }
+
+        $class_name = 'Growtype_Post_Admin_Methods_Share_' . ucfirst($platform);
+
+        if (!class_exists($class_name)) {
+            return new WP_Error('missing_class', "The class {$class_name} does not exist.");
+        }
+
+        $prepare_details = $class_name::prepare_send_details([
+            'id' => $post_id,
+            'content' => $post_details->post_content,
+            'title' => $post_details->post_title,
+            'excerpt' => $post_details->post_excerpt,
+            'featured_img_url' => growtype_post_get_featured_image_url($post_details),
+        ]);
+
+        return new WP_REST_Response($prepare_details, 200);
     }
 
     function rest_post_callback($data)

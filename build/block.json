@@ -185,6 +185,10 @@
       "type": "string",
       "default": ""
     },
+    "custom_args": {
+      "type": "string",
+      "default": ""
+    },
     "custom_filters": {
       "type": "boolean",
       "default": false

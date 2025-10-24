@@ -58,9 +58,7 @@ class Growtype_Post_Admin
         $this->Growtype_Post = $Growtype_Post;
         $this->version = $version;
 
-        if (is_admin()) {
-            $this->load_methods();
-        }
+        $this->load_methods();
 
         $this->load_rest();
     }
@@ -100,8 +98,10 @@ class Growtype_Post_Admin
         /**
          * Plugin settings
          */
-        require GROWTYPE_POST_PATH . '/admin/pages/growtype-post-admin-pages.php';
-        new Growtype_Post_Admin_Pages();
+        if (is_admin()) {
+            require GROWTYPE_POST_PATH . '/admin/pages/growtype-post-admin-pages.php';
+            new Growtype_Post_Admin_Pages();
+        }
     }
 
     private function load_rest()
