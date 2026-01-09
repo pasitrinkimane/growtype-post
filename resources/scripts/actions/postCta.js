@@ -64,6 +64,7 @@ export function postCta(wrapper) {
                 type: 'post',
                 data: {
                     action: 'growtype_post_like_post',
+                    nonce: growtype_post.nonce,
                     post_id: postId,
                     data_type: dataType
                 },
@@ -104,6 +105,7 @@ export function postCta(wrapper) {
                 type: 'post',
                 data: {
                     action: 'share_post',
+                    nonce: growtype_post.nonce,
                     post_id: postId,
                     data_type: dataType
                 },

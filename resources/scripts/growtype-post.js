@@ -33,5 +33,8 @@ jQuery('.growtype-post-container-wrapper').each(function (index, wrapper) {
                     jQuery(this).css('display', 'none');
                 }
             });
+
+        window.growtype_post['wrappers'][wrapperId]['initially_hidden_posts'] = jQuery(wrapper).find('.growtype-post-single:hidden');
+        // jQuery(wrapper).find('.growtype-post-container').attr('data-initially-retrieved-posts', visiblePostsMobile);
     }
 });

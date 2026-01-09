@@ -4,6 +4,8 @@ export function getPostsLimit(wrapper, minimumVisiblePostsAmount, filterParams) 
 
     if (postsLimit === -1) {
         postsLimit = 99999;
+    } else if ($(window).width() <= 768) {
+        postsLimit = $(wrapper).find('.growtype-post-container').attr('data-visible-posts-mobile');
     } else {
         let termsFilterAmountKey = '';
         Object.entries(filterParams).map(function (element, index) {

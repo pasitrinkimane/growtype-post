@@ -54,8 +54,8 @@ export function termsFilter(wrapper) {
     $(wrapper).find('.growtype-post-terms-filter').on('change', function (event) {
         let postsWrapper = $(event.target).closest('.growtype-post-container-wrapper');
         let filtersContainer = $(event.target).closest('.growtype-post-terms-filters');
-        let minimumVisiblePostsAmount = postsWrapper.find('.growtype-post-container').attr('data-visible-posts');
-        minimumVisiblePostsAmount = parseInt(minimumVisiblePostsAmount);
+        let visiblePosts = postsWrapper.find('.growtype-post-container').attr('data-visible-posts');
+        visiblePosts = parseInt(visiblePosts);
 
         /**
          * Update buttons
@@ -90,12 +90,12 @@ export function termsFilter(wrapper) {
         /**
          * Get posts limit
          */
-        let postsLimit = getPostsLimit(wrapper, minimumVisiblePostsAmount, filterParams);
+        let postsLimit = getPostsLimit(wrapper, visiblePosts, filterParams);
 
         /**
          * Filter posts
          */
-        termsFilterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePostsAmount);
+        termsFilterPosts(postsWrapper, filterParams, postsLimit, visiblePosts);
     });
 
     /**
@@ -159,8 +159,16 @@ export function termsFilter(wrapper) {
 
         let postsWrapper = btn.closest('.growtype-post-container-wrapper');
         let filtersContainer = btn.closest('.growtype-post-terms-filters');
-        let minimumVisiblePostsAmount = postsWrapper.find('.growtype-post-container').attr('data-visible-posts');
-        minimumVisiblePostsAmount = parseInt(minimumVisiblePostsAmount);
+        let visiblePosts = postsWrapper.find('.growtype-post-container').attr('data-visible-posts');
+        visiblePosts = parseInt(visiblePosts);
+
+        let visiblePostsMobile = postsWrapper.find('.growtype-post-container').attr('data-visible-posts-mobile');
+
+        let minimumVisiblePosts = visiblePosts;
+
+        if ($(window).width() <= 768) {
+            minimumVisiblePosts = visiblePostsMobile;
+        }
 
         /**
          * Update select elements
@@ -180,12 +188,12 @@ export function termsFilter(wrapper) {
                 /**
                  * Get posts limit
                  */
-                let postsLimit = getPostsLimit(wrapper, minimumVisiblePostsAmount, filterParams);
+                let postsLimit = getPostsLimit(wrapper, minimumVisiblePosts, filterParams);
 
                 /**
                  * Filter posts
                  */
-                termsFilterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePostsAmount);
+                termsFilterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePosts);
             });
         });
     }
@@ -285,9 +293,9 @@ export function termsFilter(wrapper) {
         });
     }
 
-    function termsFilterPosts(postsWrapper, filterParams, postsLimit, minimumVisiblePostsAmount) {
+    function termsFilterPosts(postsWrapper, filterParams, postsLimit, visiblePosts) {
         let filtersContainer = postsWrapper.find('.growtype-post-terms-filters:visible');
-        let loadingType = postsWrapper.find('.growtype-post-container').attr('data-loading-type');
+        let loadingType = postsWrapper.find('.growtype-post-container').attr('data-load-more-posts-loading-type');
 
         /**
          * Filter posts
@@ -314,7 +322,7 @@ export function termsFilter(wrapper) {
 
             if (loadingType === 'ajax') {
                 if (postsWrapper.find('.btn-loadmore:visible').length > 0) {
-                    let postAmountToShowLimit = minimumVisiblePostsAmount - postsWrapper.find('.growtype-post-single:visible').length;
+                    let postAmountToShowLimit = visiblePosts - postsWrapper.find('.growtype-post-single:visible').length;
 
                     if (postAmountToShowLimit > 0) {
                         let args = postsWrapper.closest('.growtype-post-container-wrapper').attr('data-args');

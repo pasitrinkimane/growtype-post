@@ -3,7 +3,7 @@ import {adjustPostsGrid} from "./adjustPostsGrid";
 const growtypePostLoadPostsEvent = new Event('growtypePostLoadPosts');
 
 export function growtypePostLoadPosts(wrapper, filterParams, postsLimit) {
-    let loadingType = wrapper.find('.growtype-post-container').attr('data-loading-type')
+    let loadingType = wrapper.find('.growtype-post-container').attr('data-load-more-posts-loading-type')
     let validPosts = 0;
     let availablePosts = 0;
     wrapper.find('.growtype-post-single').each(function (index, post) {
@@ -47,7 +47,7 @@ export function growtypePostLoadPosts(wrapper, filterParams, postsLimit) {
             availablePosts++;
         }
 
-        let shouldBeVisible = loadingType === 'ajax' ? true : validPosts < postsLimit;
+        let shouldBeVisible = validPosts < postsLimit;
 
         if (shouldBeVisible) {
             if (postIsVisible) {

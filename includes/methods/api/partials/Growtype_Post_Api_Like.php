@@ -12,16 +12,15 @@ class Growtype_Post_Api_Like
 
     function register_routes()
     {
-        $permission = current_user_can('manage_options');
-
         register_rest_route('growtype-post/v1', 'post/like/(?P<id>\d+)', array (
             'methods' => 'GET',
             'callback' => array (
                 $this,
                 'like_post_callback'
             ),
-            'permission_callback' => function ($user) use ($permission) {
-                return true;
+            // SECURITY: Require authentication for liking posts
+            'permission_callback' => function () {
+                return is_user_logged_in();
             }
         ));
     }

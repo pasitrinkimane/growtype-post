@@ -1,6 +1,7 @@
-import {formatLoadedPostsKey} from "./formatLoadedPostsKey";
-import {growtypePostAjaxLoadMoreContent} from "../events/growtypePostAjaxLoadMoreContent";
-import {adjustPostsGrid} from "./adjustPostsGrid";
+import { formatLoadedPostsKey } from "./formatLoadedPostsKey";
+import { growtypePostAjaxLoadMoreContent } from "../events/growtypePostAjaxLoadMoreContent";
+import { adjustPostsGrid } from "./adjustPostsGrid";
+import { filterPosts } from "./filterPosts";
 
 let currentRequest;
 
@@ -8,8 +9,7 @@ export function loadMorePosts(elements, args = {}) {
     return new Promise((resolve, reject) => {
         let wrapper = elements['posts_container'].closest('.growtype-post-container-wrapper');
         let wrapperId = wrapper.attr('id');
-        let visiblePosts = wrapper.find('.growtype-post-container').attr('data-visible-posts');
-        let visiblePostsMobile = wrapper.find('.growtype-post-container').attr('data-visible-posts-mobile');
+        let displayHiddenPosts = args['display_hidden_posts'] ?? false;
 
         if (typeof elements['filters_container'] === 'undefined') {
             elements['filters_container'] = wrapper.find('.growtype-post-terms-filters');
@@ -58,12 +58,22 @@ export function loadMorePosts(elements, args = {}) {
             type: 'post',
             data: {
                 action: 'growtype_post_load_more_posts',
+                nonce: growtype_post.nonce,
                 args: args
             },
             success: function (response) {
 
-                if ($(window).width() <= 768 && visiblePosts !== visiblePostsMobile) {
-                    wrapper.find('.growtype-post-single:hidden').show();
+                if (displayHiddenPosts && args['selected_terms_navigation_values']) {
+                    let posts = wrapper.find('.growtype-post-single:hidden');
+
+                    let values = [];
+                    Object.entries(args['selected_terms_navigation_values']).map(function (value, index) {
+                        values[value[0]] = {
+                            value: value[1].toString(),
+                        };
+                    });
+
+                    filterPosts(posts, values)
                 }
 
                 if (response.data.render) {
@@ -81,7 +91,7 @@ export function loadMorePosts(elements, args = {}) {
                     btn.closest('.gp-actions-wrapper').show();
                 }
 
-                if (!response.data.render || response.data.render === "" || response.data.posts_amount !== args['amount_to_load']) {
+                if (!response.data.render || response.data.render === "" || parseInt(response.data.posts_amount) !== parseInt(args['amount_to_load'])) {
                     if (btn) {
                         btn.closest('.gp-actions-wrapper').hide();
                     }
@@ -109,6 +119,12 @@ export function loadMorePosts(elements, args = {}) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 window.growtype_post['wrappers'][wrapperId]['load_more_posts_btn_clicked'] = false;
+
+                if (textStatus === 'abort') {
+                    resolve();
+                    return;
+                }
+
                 reject(errorThrown);
             }
         });

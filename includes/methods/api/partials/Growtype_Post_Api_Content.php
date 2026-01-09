@@ -15,8 +15,9 @@ class Growtype_Post_Api_Content
             array (
                 'methods' => WP_REST_Server::CREATABLE,
                 'callback' => array ($this, 'generate_content'),
+                // SECURITY: Require edit_posts capability to create content
                 'permission_callback' => function () {
-                    return current_user_can('read'); // Adjust capability as needed
+                    return current_user_can('edit_posts');
                 },
             )
         );

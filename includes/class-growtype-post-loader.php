@@ -142,11 +142,6 @@ class Growtype_Post_Loader
     private function load_methods()
     {
         /**
-         * Autoload vendor
-         */
-        require_once GROWTYPE_POST_PATH . '/vendor/autoload.php';
-
-        /**
          * Ajax
          */
         require_once GROWTYPE_POST_PATH . 'includes/methods/ajax/class-growtype-post-ajax.php';

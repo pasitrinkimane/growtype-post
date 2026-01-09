@@ -50,6 +50,8 @@ export function loadContent() {
                         let content = container.html(html);
                         let wrapper = content.find('.growtype-post-container-wrapper');
 
+                        wrapper.attr('data-initial-content-loading-type', 'ajax');
+
                         termsFilter(wrapper);
 
                         loadMoreBtnTrigger(wrapper.find('.btn-loadmore'));

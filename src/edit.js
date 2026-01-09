@@ -267,7 +267,7 @@ export default function Edit({attributes, setAttributes}) {
                         />
                         {attributes.load_all_posts ?
                             <ToggleControl
-                                label={__('Show "load more" posts btn', 'growtype-post')}
+                                label={__('Show "Load More" posts btn', 'growtype-post')}
                                 checked={attributes.show_load_more_posts_btn}
                                 onChange={(val) => updateShortcode('show_load_more_posts_btn', val)}
                             />
@@ -276,7 +276,7 @@ export default function Edit({attributes, setAttributes}) {
                         }
                         {attributes.load_all_posts ?
                             <ToggleControl
-                                label={__('Infinite load posts', 'growtype-post')}
+                                label={__('Infinite load more posts', 'growtype-post')}
                                 checked={attributes.infinite_load_posts}
                                 onChange={(val) => updateShortcode('infinite_load_posts', val)}
                             />
@@ -285,7 +285,7 @@ export default function Edit({attributes, setAttributes}) {
                         }
                         {attributes.load_all_posts && (
                             <SelectControl
-                                label={__('Posts loading method', 'growtype-post')}
+                                label={__('Load more posts loading method', 'growtype-post')}
                                 options={[
                                     {
                                         label: 'Initial',
@@ -300,11 +300,11 @@ export default function Edit({attributes, setAttributes}) {
                                         value: 'ajax',
                                     }
                                 ]}
-                                value={attributes.loading_type}
-                                onChange={(val) => updateShortcode('loading_type', val)}
+                                value={attributes.load_more_posts_loading_type}
+                                onChange={(val) => updateShortcode('load_more_posts_loading_type', val)}
                             />
                         )}
-                        {(!attributes.load_all_posts || attributes.loading_type !== 'initial') && (
+                        {(!attributes.load_all_posts || attributes.load_more_posts_loading_type !== 'initial') && (
                             <RangeControl
                                 label={__('Visible posts', 'growtype-post')}
                                 value={
@@ -315,7 +315,7 @@ export default function Edit({attributes, setAttributes}) {
                                 max={50}
                             />
                         )}
-                        {(!attributes.load_all_posts || attributes.loading_type !== 'initial') && (
+                        {(!attributes.load_all_posts || attributes.load_more_posts_loading_type !== 'initial') && (
                             <RangeControl
                                 label={__('Visible posts - Mobile', 'growtype-post')}
                                 value={
@@ -395,6 +395,22 @@ export default function Edit({attributes, setAttributes}) {
                             checked={attributes.show_if_no_posts}
                             onChange={(val) => updateShortcode('show_if_no_posts', val)}
                         />
+                        <ToggleControl
+                            label={__('Show no posts text', 'growtype-post')}
+                            help={__('Show text when no posts are found', 'growtype-post')}
+                            checked={attributes.show_no_posts_text}
+                            onChange={(val) => updateShortcode('show_no_posts_text', val)}
+                        />
+                        {attributes.show_no_posts_text ?
+                            <TextControl
+                                label={__('No posts text', 'growtype-post')}
+                                help={__('Text visible when no posts are found', 'growtype-post')}
+                                onChange={(val) => updateShortcode('no_posts_text', val)}
+                                value={attributes.no_posts_text}
+                            />
+                            :
+                            ''
+                        }
                         <ToggleControl
                             label={__('Show custom tax posts', 'growtype-post')}
                             checked={attributes.show_custom_tax_posts}

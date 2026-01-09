@@ -173,45 +173,66 @@ function growtype_post_growtype_single_post_related_posts()
     $enabled = get_theme_mod('growtype_post_related_posts_enabled', true);
 
     if ($enabled) {
-        $first_tag = !empty(wp_get_post_tags(get_the_id())) ? wp_get_post_tags(get_the_id())[0]->term_id : '';
-
-        $posts_per_page = apply_filters('growtype_post_related_posts_per_page', 3);
-
-        $args = array (
-            'post_type' => get_post_type(),
-            'post__not_in' => array (get_the_id()),
-            'posts_per_page' => $posts_per_page,
-            'orderby' => 'menu_order',
-            'order' => 'ASC',
-        );
-
-        if (!empty($first_tag)) {
-            $args['tag__in'] = array ($first_tag);
-        }
-
-        $posts = new WP_Query($args);
-
-        $columns = apply_filters('growtype_post_related_posts_columns', 3);
-
-        $post_params = apply_filters('rowtype_post_related_posts_params', [
-            'columns' => $columns,
-            'post_is_a_link' => true,
+        echo growtype_post_render_related_posts([
+            'section_title' => __('Related Posts', 'growtype-post'),
         ]);
-
-        $posts_args = [
-            'posts' => $posts,
-            'section_title' => apply_filters('growtype_post_related_posts_section_title', __('Related Posts', 'growtype-post')),
-            'params' => $post_params
-        ];
-
-        $posts_args = apply_filters('growtype_post_related_posts_args', $posts_args);
-
-        if (isset($posts_args['posts']) && !empty($posts_args['posts']->posts)) {
-            echo growtype_post_include_view('section.related-posts', $posts_args);
-        }
-
-        wp_reset_query();
     }
+}
+
+function growtype_post_render_related_posts($args = [])
+{
+    $args['post_type'] = isset($args['post_type']) && !empty($args['post_type']) ? $args['post_type'] : get_post_type();
+
+    $args['post__not_in'] = isset($args['post__not_in']) && !empty($args['post__not_in']) ? $args['post__not_in'] : [get_the_id()];
+
+    $args['post_is_a_link'] = isset($args['post_is_a_link']) ? (bool)$args['post_is_a_link'] : true;
+
+    $args['preview_style'] = isset($args['preview_style']) && !empty($args['preview_style']) ? $args['preview_style'] : ($args['post_type'] === 'post' ? 'basic' : $args['post_type']);
+
+    $args['section_title'] = isset($args['section_title']) && !empty($args['section_title']) ? $args['section_title'] : '';
+    $args['section_title'] = apply_filters('growtype_post_related_posts_section_title', $args['section_title']);
+
+    $args['posts_per_page'] = isset($args['posts_per_page']) && !empty($args['posts_per_page']) ? $args['posts_per_page'] : 3;
+    $args['posts_per_page'] = apply_filters('growtype_post_related_posts_per_page', $args['posts_per_page']);
+
+    $args['columns'] = isset($args['columns']) && !empty($args['columns']) ? $args['columns'] : 3;
+    $args['columns'] = apply_filters('growtype_post_related_posts_columns', $args['columns']);
+
+    $first_tag = !empty(wp_get_post_tags(get_the_id())) ? wp_get_post_tags(get_the_id())[0]->term_id : '';
+
+    $query_args = array (
+        'post_type' => $args['post_type'],
+        'post__not_in' => $args['post__not_in'],
+        'posts_per_page' => $args['posts_per_page'],
+        'orderby' => 'menu_order',
+        'order' => 'ASC',
+    );
+
+    if (!empty($first_tag)) {
+        $query_args['tag__in'] = array ($first_tag);
+    }
+
+    $posts = new WP_Query($query_args);
+
+    $post_params = apply_filters('rowtype_post_related_posts_params', $args);
+
+    $posts_args = [
+        'posts' => $posts,
+        'section_title' => $args['section_title'],
+        'params' => $post_params
+    ];
+
+    $posts_args = apply_filters('growtype_post_related_posts_args', $posts_args);
+
+    ob_start();
+
+    if (isset($posts_args['posts']) && !empty($posts_args['posts']->posts)) {
+        echo growtype_post_include_view('section.related-posts', $posts_args);
+    }
+
+    wp_reset_query();
+
+    return ob_get_clean();
 }
 
 add_action('growtype_single_post_reading_time', 'growtype_post_growtype_single_post_reading_time');

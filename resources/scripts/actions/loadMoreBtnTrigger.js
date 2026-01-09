@@ -32,20 +32,21 @@ export function loadMoreBtnTrigger(element) {
         }
 
         if (postsContainer) {
-            let loadingType = postsContainer.attr('data-loading-type');
-            let initiallyVisiblePosts = btn.attr('data-growtype-post-load-more-amount') === undefined ? postsContainer.attr('data-visible-posts') : btn.attr('data-growtype-post-load-more-amount');
+            let loadMorePostsLoadingType = postsContainer.attr('data-load-more-posts-loading-type');
+            let visiblePosts = postsContainer.attr('data-visible-posts');
+            let visiblePostsMobile = postsContainer.attr('data-visible-posts-mobile');
+            let initiallyVisiblePosts = btn.attr('data-growtype-post-load-more-amount') === undefined ? visiblePosts : btn.attr('data-growtype-post-load-more-amount');
             initiallyVisiblePosts = parseInt(initiallyVisiblePosts);
+
             let postsAmountToLoad = initiallyVisiblePosts;
             let postAmountToShowLimit = initiallyVisiblePosts + postsAmountToLoad;
             let filtersContainer = postsContainer.closest('.wp-block-growtype-post').find('.growtype-post-terms-filters');
             let filterParams = growtypePostGetTermsFilterSelectedValues(filtersContainer);
+            let mobilePostsNeedsAdjustment = $(window).width() <= 768 && visiblePosts !== visiblePostsMobile;
+            let initiallyHiddenPostsAmount =
+                window.growtype_post?.wrappers?.[wrapperId]?.initially_hidden_posts?.length ?? 0;
 
-            if (loadingType === 'limited') {
-
-                /**
-                 * Save previous filter params
-                 * @type {*[]}
-                 */
+            if (loadMorePostsLoadingType === 'limited') {
                 let termsFilterAmountKey = '';
                 Object.entries(filterParams).map(function (element, index) {
                     let key = element[0].toString();
@@ -64,9 +65,22 @@ export function loadMoreBtnTrigger(element) {
                 growtypePostLoadPosts(postsContainer.closest('.wp-block-growtype-post'), filterParams, postAmountToShowLimit);
 
                 window.growtype_post['wrappers'][wrapperId]['load_more_posts_btn_clicked'] = false;
-            } else if (loadingType === 'ajax') {
+            } else if (loadMorePostsLoadingType === 'ajax') {
                 let args = postsContainer.closest('.growtype-post-container-wrapper').attr('data-args');
                 args = args ? JSON.parse(args) : {};
+
+                if (wrapper.attr('data-initial-content-loading-type') !== 'ajax' && mobilePostsNeedsAdjustment) {
+                    if (initiallyHiddenPostsAmount > 0) {
+                        window.growtype_post['wrappers'][wrapperId]['initially_hidden_posts'] = {};
+                        postsAmountToLoad = visiblePostsMobile - initiallyHiddenPostsAmount;
+                    } else {
+                        postsAmountToLoad = visiblePostsMobile;
+                    }
+                }
+
+                if (mobilePostsNeedsAdjustment) {
+                    args['display_hidden_posts'] = true;
+                }
 
                 args['amount_to_load'] = postsAmountToLoad;
                 args['amount_to_show'] = postAmountToShowLimit;
@@ -94,7 +108,6 @@ export function loadMoreBtnTrigger(element) {
     if (wrapper.find('.gp-actions-wrapper').length > 0) {
         let visiblePosts = wrapper.find('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container').attr('data-visible-posts');
         let existingPosts = wrapper.find('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container .growtype-post-single').length;
-        let loadingType = wrapper.find('.gp-actions-wrapper').closest('.growtype-post-container-wrapper').find('.growtype-post-container').attr('data-loading-type');
 
         if (existingPosts >= visiblePosts) {
             wrapper.find('.gp-actions-wrapper').show();

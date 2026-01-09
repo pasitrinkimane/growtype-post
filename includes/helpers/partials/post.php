@@ -175,10 +175,25 @@ if (!function_exists('growtype_post_render_single')) {
 if (!function_exists('growtype_post_get_featured_image_url')) {
     function growtype_post_get_featured_image_url($post, $size = 'medium', $default_img_id = null)
     {
-        $feat_img_url = isset(wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0]) ? wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), $size)[0] : null;
-        $feat_img_url = empty($feat_img_url) && !empty($default_img_id) ? wp_get_attachment_image_url($default_img_id) : $feat_img_url;
+        // Use early return for faster exit
+        $post_thumbnail_id = get_post_thumbnail_id($post->ID);
 
-        return apply_filters('growtype_post_get_featured_image_url', $feat_img_url, $post, $size, $default_img_id);
+        if ($post_thumbnail_id) {
+            $url = wp_get_attachment_image_url($post_thumbnail_id, $size);
+            if ($url) {
+                return apply_filters('growtype_post_get_featured_image_url', $url, $post, $size, $default_img_id);
+            }
+        }
+
+        // Fallback to default image if provided
+        if ($default_img_id) {
+            $url = wp_get_attachment_image_url($default_img_id, $size);
+            if ($url) {
+                return apply_filters('growtype_post_get_featured_image_url', $url, $post, $size, $default_img_id);
+            }
+        }
+
+        return apply_filters('growtype_post_get_featured_image_url', null, $post, $size, $default_img_id);
     }
 }
 

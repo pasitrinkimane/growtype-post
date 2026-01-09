@@ -153,6 +153,14 @@
       "type": "boolean",
       "default": false
     },
+    "show_no_posts_text": {
+      "type": "boolean",
+      "default": false
+    },
+    "no_posts_text": {
+      "type": "string",
+      "default": "No posts found"
+    },
     "show_custom_tax_posts": {
       "type": "boolean",
       "default": false
@@ -173,7 +181,7 @@
       "type": "boolean",
       "default": false
     },
-    "loading_type": {
+    "load_more_posts_loading_type": {
       "type": "string",
       "default": "initial"
     },

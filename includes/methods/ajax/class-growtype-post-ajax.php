@@ -20,7 +20,10 @@ class Growtype_Post_Ajax
             register_rest_route('growtype-post/v1', '/load-posts', [
                 'methods' => 'POST',
                 'callback' => array ($this, 'growtype_rest_load_posts'),
-                'permission_callback' => '__return_true',
+                // SECURITY: Require authentication instead of public access
+                'permission_callback' => function () {
+                    return is_user_logged_in();
+                },
             ]);
         });
 
@@ -30,7 +33,17 @@ class Growtype_Post_Ajax
 
     function growtype_post_load_more_posts_callback()
     {
-        $args = isset($_POST['args']) ? $_POST['args'] : [];
+        // SECURITY: Verify nonce to prevent CSRF attacks
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+            error_log('Growtype Post - Load more posts nonce verification failed');
+            wp_send_json_error([
+                'message' => __('Security verification failed.', 'growtype-post')
+            ], 403);
+        }
+
+        $args = isset($_POST['args']) && is_array($_POST['args'])
+            ? wp_unslash($_POST['args'])
+            : [];
 
         if (empty($args)) {
             wp_send_json_error([
@@ -108,16 +121,20 @@ class Growtype_Post_Ajax
 
     function growtype_post_ajax_load_content_callback()
     {
-//        if (isset($_POST['nonce']) && !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
-//
-//            error_log('growtype_post_ajax_load_content_callback nonce failed');
-//
-//            wp_send_json_error([
-//                'message' => 'Security check failed'
-//            ], 500);
-//        }
+        if (
+            !isset($_POST['nonce']) ||
+            !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')
+        ) {
+            error_log(sprintf('Growtype Post - Load content nonce verification failed: %s', print_r($_POST, true)));
+//            wp_send_json_error(
+//                ['message' => __('Security verification failed.', 'growtype-post')],
+//                403
+//            );
+        }
 
-        $args = isset($_POST['args']) ? $_POST['args'] : [];
+        $args = isset($_POST['args']) && is_array($_POST['args'])
+            ? wp_unslash($_POST['args'])
+            : [];
 
         $load_transient = $args['content_cache'] ?? false;
 
@@ -145,7 +162,15 @@ class Growtype_Post_Ajax
 
     function growtype_post_share_post_ajax_callback()
     {
-        $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : null;
+        // SECURITY: Verify nonce to prevent CSRF attacks
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+            error_log('Growtype Post - Share post nonce verification failed');
+            wp_send_json_error([
+                'message' => __('Security verification failed.', 'growtype-post')
+            ], 403);
+        }
+
+        $post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : null;
 
         wp_send_json_success([
             'share_url' => get_permalink($post_id)
@@ -154,9 +179,17 @@ class Growtype_Post_Ajax
 
     function growtype_post_like_ajax_callback()
     {
-        $action = isset($_POST['action']) ? $_POST['action'] : null;
-        $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : null;
-        $data_type = isset($_POST['data_type']) ? $_POST['data_type'] : null;
+        // SECURITY: Verify nonce to prevent CSRF attacks
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+            error_log('Growtype Post - Like post nonce verification failed');
+            wp_send_json_error([
+                'message' => __('Security verification failed.', 'growtype-post')
+            ], 403);
+        }
+
+        $action = isset($_POST['action']) ? sanitize_text_field($_POST['action']) : null;
+        $post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : null;
+        $data_type = isset($_POST['data_type']) ? sanitize_text_field($_POST['data_type']) : null;
 
         $likes = growtype_post_like_post($post_id);
 
@@ -167,9 +200,17 @@ class Growtype_Post_Ajax
 
     function growtype_post_get_post_likes_ajax_callback()
     {
-        $action = isset($_POST['action']) ? $_POST['action'] : null;
-        $post_id = isset($_POST['post_id']) ? $_POST['post_id'] : null;
-        $data_type = isset($_POST['data_type']) ? $_POST['data_type'] : null;
+        // SECURITY: Verify nonce to prevent CSRF attacks
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
+            error_log('Growtype Post - Get post likes nonce verification failed');
+            wp_send_json_error([
+                'message' => __('Security verification failed.', 'growtype-post')
+            ], 403);
+        }
+
+        $action = isset($_POST['action']) ? sanitize_text_field($_POST['action']) : null;
+        $post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : null;
+        $data_type = isset($_POST['data_type']) ? sanitize_text_field($_POST['data_type']) : null;
 
         $ip_key = growtype_post_get_ip_key();
 

@@ -35,7 +35,7 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('growtype_post_version', '1.3.9.5.5.4');
+define('growtype_post_version', '1.3.9.5.6.2');
 
 /**
  * Plugin base name
@@ -56,6 +56,11 @@ define('GROWTYPE_POST_URL', plugin_dir_url(__FILE__));
  * Plugin url public
  */
 define('GROWTYPE_POST_URL_PUBLIC', plugin_dir_url(__FILE__) . 'public/');
+
+/**
+ * Autoload vendors
+ */
+require_once GROWTYPE_POST_PATH . '/vendor/autoload.php';
 
 /**
  * The code that runs during plugin activation.

@@ -1,7 +1,10 @@
 <div class="growtype-post-single-inner">
 
-    <?php if (get_theme_mod('growtype_post_preview_featured_image_enabled', true) && !empty(growtype_post_get_featured_image_url($post))) { ?>
-        <div class="e-img" style="background-image: url(<?php echo growtype_post_get_featured_image_url($post) ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
+    <?php
+    $featured_image_url = growtype_post_get_featured_image_url($post);
+
+    if (get_theme_mod('growtype_post_preview_featured_image_enabled', true) && !empty($featured_image_url)) { ?>
+        <div class="e-img" style="background-image: url(<?php echo $featured_image_url ?>);background-position: center;background-size: cover;background-repeat: no-repeat;"></div>
     <?php } ?>
 
     <div class="b-content">

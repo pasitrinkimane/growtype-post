@@ -66,6 +66,7 @@ class Growtype_Post_Shortcode
 
         if ($args['ajax_load_content']) {
             $args['ajax_load_content'] = false;
+
             return [
                 'render' => sprintf("<div class='growtype-post-ajax-load-content' data-args='%s'><div class='spinner-wrapper'><span class='spinner-border'></span></div></div>", json_encode($args)),
                 'args' => $args
@@ -87,6 +88,8 @@ class Growtype_Post_Shortcode
                 $wp_query,
                 $args
             );
+        } elseif ($args['show_no_posts_text']) {
+            $render = '<p class="growtype-post-no-posts-text">' . $args['no_posts_text'] . '</p>';
         }
 
         return [
@@ -119,7 +122,7 @@ class Growtype_Post_Shortcode
             'meta_key' => isset($attr['meta_key']) ? $attr['meta_key'] : '',
             'parent_id' => isset($attr['parent_id']) && !empty($attr['parent_id']) ? $attr['parent_id'] : 'gpw-container',
             'intro_content_length' => isset($attr['intro_content_length']) ? $attr['intro_content_length'] : '100',
-            'loading_type' => isset($attr['loading_type']) ? $attr['loading_type'] : 'initial',
+            'load_more_posts_loading_type' => isset($attr['load_more_posts_loading_type']) ? $attr['load_more_posts_loading_type'] : 'initial',
             'meta_query' => isset($attr['meta_query']) && !empty($attr['meta_query']) ? $attr['meta_query'] : null,
             'tax_query' => isset($attr['tax_query']) && !empty($attr['tax_query']) ? $attr['tax_query'] : null,
             'custom_args' => isset($attr['custom_args']) && !empty($attr['custom_args']) ? $attr['custom_args'] : null,
@@ -156,6 +159,8 @@ class Growtype_Post_Shortcode
             'cta_label' => isset($attr['cta_label']) ? $attr['cta_label'] : apply_filters('growtype_post_cta_label', __('Continue reading', 'growtype-post')),
             'show_filters_visibility_trigger' => isset($attr['show_filters_visibility_trigger']) && filter_var($attr['show_filters_visibility_trigger'], FILTER_VALIDATE_BOOLEAN) ? true : false,
             'filters_visible_by_default' => isset($attr['filters_visible_by_default']) && $attr['filters_visible_by_default'] ? '1' : '0',
+            'show_no_posts_text' => isset($attr['show_no_posts_text']) && $attr['show_no_posts_text'] ? true : false,
+            'no_posts_text' => isset($attr['no_posts_text']) ? $attr['no_posts_text'] : '',
         ];
 
         // Apply custom args
@@ -254,7 +259,7 @@ class Growtype_Post_Shortcode
         /**
          * Show all posts
          */
-        if ($args['load_all_posts'] && in_array($args['loading_type'], ['initial', 'limited'])) {
+        if ($args['load_all_posts'] && in_array($args['load_more_posts_loading_type'], ['initial', 'limited'])) {
             $posts_per_page = -1;
         }
 
@@ -528,7 +533,7 @@ class Growtype_Post_Shortcode
                 }
             }
 
-            if (!empty($posts) && (!$args['load_all_posts'] || ($args['load_all_posts'] && $args['loading_type'] === 'ajax'))) {
+            if (!empty($posts) && (!$args['load_all_posts'] || ($args['load_all_posts'] && $args['load_more_posts_loading_type'] === 'ajax'))) {
                 $posts = array_slice($posts, growtype_post_get_pagination_offset($posts_per_page), $posts_per_page);
             }
 
@@ -810,11 +815,11 @@ class Growtype_Post_Shortcode
 
                 $container_classes = ['growtype-post-container'];
 
-                $loading_type = isset($args['loading_type']) ? $args['loading_type'] : 'initial';
+                $load_more_posts_loading_type = isset($args['load_more_posts_loading_type']) ? $args['load_more_posts_loading_type'] : 'initial';
                 $visible_posts = isset($args['posts_per_page']) ? $args['posts_per_page'] : '';
                 $visible_posts_mobile = isset($args['posts_per_page_mobile']) ? $args['posts_per_page_mobile'] : $visible_posts;
 
-                if ($loading_type === 'initial' && $args['load_all_posts']) {
+                if ($load_more_posts_loading_type === 'initial' && $args['load_all_posts']) {
                     $visible_posts = '-1';
                 }
 
@@ -826,7 +831,7 @@ class Growtype_Post_Shortcode
                      data-visible-posts="<?php echo $visible_posts ?>"
                      data-visible-posts-mobile="<?php echo $visible_posts_mobile ?>"
                      data-initially-retrieved-posts="<?php echo $initially_retrieved_posts ?>"
-                     data-loading-type="<?php echo $loading_type ?>"
+                     data-load-more-posts-loading-type="<?php echo $load_more_posts_loading_type ?>"
                      style="--growtype-post-posts-grid-columns-count:<?php echo $posts_columns_amount ?>;"
                 >
                     <?php echo self::render_posts($wp_query, $args, $terms) ?>
@@ -877,6 +882,11 @@ class Growtype_Post_Shortcode
 
     public static function render_posts($wp_query, $args, $terms = [])
     {
+        $args['growtype_post_preview_featured_image_enabled'] = get_theme_mod('growtype_post_preview_featured_image_enabled', true);
+        $args['growtype_post_preview_categories_enabled'] = get_theme_mod('growtype_post_preview_categories_enabled', true);
+        $args['growtype_post_preview_date_enabled'] = get_theme_mod('growtype_post_preview_date_enabled', true);
+        $args['growtype_post_preview_continue_actions_enabled'] = get_theme_mod('growtype_post_preview_continue_actions_enabled', true);
+
         $wp_query = apply_filters('growtype_post_before_render_posts_wp_query', $wp_query, $args, $terms);
 
         ob_start();
@@ -888,10 +898,10 @@ class Growtype_Post_Shortcode
             $existing_args = apply_filters('growtype_post_shortcode_extend_post_args', $args, $current_post, $terms);
 
             if (!empty($counter) && isset($existing_args['posts_per_page']) && $existing_args['posts_per_page'] > 0 && $counter >= $existing_args['posts_per_page']) {
-                if (!empty($args['loading_type'])) {
-                    if ($args['loading_type'] === 'limited') {
+                if (!empty($args['load_more_posts_loading_type'])) {
+                    if ($args['load_more_posts_loading_type'] === 'limited') {
                         $existing_args['post_classes'] = trim(($existing_args['post_classes'] ?? '') . ' is-hidden');
-                    } elseif ($args['loading_type'] === 'ajax') {
+                    } elseif ($args['load_more_posts_loading_type'] === 'ajax') {
                         continue; // Skip rendering this post
                     }
                 }
@@ -908,9 +918,16 @@ class Growtype_Post_Shortcode
                 } else {
                     // Fetch terms if not provided
                     if (empty($terms) && !empty($args['terms_navigation_taxonomy'])) {
-                        $default_terms = get_the_terms($post_id, $args['terms_navigation_taxonomy']) ?: [];
-                        foreach ($default_terms as $default_term) {
-                            $terms[$default_term->taxonomy] = $default_terms;
+                        // Ensure we have a string taxonomy name for get_the_terms()
+                        $taxonomy_for_fetch = is_array($args['terms_navigation_taxonomy']) 
+                            ? $args['terms_navigation_taxonomy'][0] 
+                            : $args['terms_navigation_taxonomy'];
+                        
+                        $default_terms = get_the_terms($post_id, $taxonomy_for_fetch) ?: [];
+                        if (!empty($default_terms) && !is_wp_error($default_terms)) {
+                            foreach ($default_terms as $default_term) {
+                                $terms[$default_term->taxonomy] = $default_terms;
+                            }
                         }
                     }
 
