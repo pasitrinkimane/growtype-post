@@ -125,7 +125,7 @@ class Growtype_Post_Ajax
             !isset($_POST['nonce']) ||
             !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')
         ) {
-            error_log(sprintf('Growtype Post - Load content nonce verification failed: %s', print_r($_POST, true)));
+//            error_log(sprintf('Growtype Post - Load content nonce verification failed: %s', print_r($_POST, true)));
 //            wp_send_json_error(
 //                ['message' => __('Security verification failed.', 'growtype-post')],
 //                403
