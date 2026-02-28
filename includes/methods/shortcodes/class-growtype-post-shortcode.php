@@ -7,10 +7,7 @@ class Growtype_Post_Shortcode
 {
     function __construct()
     {
-        if (!is_admin() && !wp_is_json_request()) {
-            add_shortcode('growtype_post', array ($this, 'growtype_post_shortcode_callback'));
-        }
-
+        add_shortcode('growtype_post', array ($this, 'growtype_post_shortcode_callback'));
         add_filter('wp_insert_post_data', [$this, 'wp_insert_post_data_callback'], 10, 2);
     }
 
@@ -39,7 +36,7 @@ class Growtype_Post_Shortcode
 
     function growtype_post_shortcode_callback($attr)
     {
-        if (is_customize_preview()) {
+        if (is_admin() || wp_is_json_request() || is_customize_preview()) {
             return '';
         }
 
@@ -919,10 +916,10 @@ class Growtype_Post_Shortcode
                     // Fetch terms if not provided
                     if (empty($terms) && !empty($args['terms_navigation_taxonomy'])) {
                         // Ensure we have a string taxonomy name for get_the_terms()
-                        $taxonomy_for_fetch = is_array($args['terms_navigation_taxonomy']) 
-                            ? $args['terms_navigation_taxonomy'][0] 
+                        $taxonomy_for_fetch = is_array($args['terms_navigation_taxonomy'])
+                            ? $args['terms_navigation_taxonomy'][0]
                             : $args['terms_navigation_taxonomy'];
-                        
+
                         $default_terms = get_the_terms($post_id, $taxonomy_for_fetch) ?: [];
                         if (!empty($default_terms) && !is_wp_error($default_terms)) {
                             foreach ($default_terms as $default_term) {

@@ -16,6 +16,7 @@
   @include bp-tablet-medium() {
     width: 50%;
   }
+
   @include bp-phone-xl() {
     width: 100%;
   }
@@ -52,6 +53,7 @@
     padding-bottom: 15px;
     padding-left: 20px;
     padding-right: 20px;
+    width: 100%;
 
     .btn {
       font-size: $font-size-body;
@@ -112,9 +114,11 @@
 .growtype-post-wrapper {
   width: calc(100% / 3);
   padding: 5px;
+
   @include bp-tablet-portrait() {
     width: 50%;
   }
+
   @include bp-phone-xl() {
     width: 100%;
     padding-left: 0;

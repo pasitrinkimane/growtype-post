@@ -1,12 +1,12 @@
-import {growtypePostAjaxLoadContent} from "./../events/growtypePostAjaxLoadContent";
-import {termsFilter} from "./termsFilter";
-import {loadMoreBtnTrigger} from "./loadMoreBtnTrigger";
-import {updateFiltersWithUrlParams} from "./updateFiltersWithUrlParams";
-import {getUrlFilterParams} from "./getUrlFilterParams";
-import {initFiltering} from "./initFiltering";
-import {setWrapperDefaultParams} from "./setWrapperDefaultParams";
-import {infiniteLoadPosts} from "./infiniteLoadPosts";
-import {adjustPostsGrid} from "./adjustPostsGrid";
+import { growtypePostAjaxLoadContent } from "./../events/growtypePostAjaxLoadContent";
+import { termsFilter } from "./termsFilter";
+import { loadMoreBtnTrigger } from "./loadMoreBtnTrigger";
+import { updateFiltersWithUrlParams } from "./updateFiltersWithUrlParams";
+import { getUrlFilterParams } from "./getUrlFilterParams";
+import { initFiltering } from "./initFiltering";
+import { setWrapperDefaultParams } from "./setWrapperDefaultParams";
+import { infiniteLoadPosts } from "./infiniteLoadPosts";
+import { adjustPostsGrid } from "./adjustPostsGrid";
 
 /**
  * Ajax load posts
@@ -20,7 +20,6 @@ export function loadContent() {
         let wrapperId = args['parent_id'];
         setWrapperDefaultParams(wrapperId)
 
-        let container = component.closest('.wp-block-growtype-post');
         let urlFilterParams = getUrlFilterParams(wrapperId);
 
         args['selected_terms_navigation_values'] = urlFilterParams;
@@ -46,9 +45,9 @@ export function loadContent() {
                 },
                 success: function (response) {
                     if (response.data.render) {
-                        let html = $(response.data.render);
-                        let content = container.html(html);
-                        let wrapper = content.find('.growtype-post-container-wrapper');
+                        let wrapper = $(response.data.render);
+
+                        component.replaceWith(wrapper);
 
                         wrapper.attr('data-initial-content-loading-type', 'ajax');
 
