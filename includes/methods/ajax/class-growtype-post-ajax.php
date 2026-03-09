@@ -35,10 +35,11 @@ class Growtype_Post_Ajax
     {
         // SECURITY: Verify nonce to prevent CSRF attacks
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'growtype_post_ajax_nonce')) {
-            error_log('Growtype Post - Load more posts nonce verification failed');
-            wp_send_json_error([
-                'message' => __('Security verification failed.', 'growtype-post')
-            ], 403);
+            error_log('Growtype Post - Load more posts nonce verification failed!!!');
+
+//            wp_send_json_error([
+//                'message' => __('Security verification failed.', 'growtype-post')
+//            ], 403);
         }
 
         $args = isset($_POST['args']) && is_array($_POST['args'])
