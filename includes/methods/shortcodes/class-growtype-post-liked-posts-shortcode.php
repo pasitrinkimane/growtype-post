@@ -43,7 +43,7 @@ class Growtype_Post_Liked_Posts_Shortcode
                 ]
             );
         } else {
-            echo '<p class="text-center mt-2 pt-2">' . __('No posts found.', 'growtype-child') . '</p>';
+            echo '<p class="text-center mt-2 pt-2">' . __('No posts found.', 'growtype-post') . '</p>';
         }
 
         $content = ob_get_clean();
