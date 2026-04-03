@@ -652,7 +652,10 @@ class Growtype_Post_Shortcode
         $initially_retrieved_posts = $wp_query->post_count;
 
         if (isset($args['post_type']) && $args['post_type']) {
-            $pages_amount = (int)ceil($wp_query->found_posts / $args['posts_per_page']);
+            $posts_per_page_int = (int)$args['posts_per_page'];
+            $pages_amount = $posts_per_page_int > 0
+                ? (int)ceil($wp_query->found_posts / $posts_per_page_int)
+                : 1;
         }
 
         $args['total_pages'] = isset($args['total_pages']) ? $args['total_pages'] : $pages_amount;
