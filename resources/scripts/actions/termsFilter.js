@@ -38,7 +38,10 @@ export function termsFilter(wrapper) {
     function checkFilterVisibility() {
         const urlSearchParams = new URLSearchParams(window.location.search);
 
-        if (urlSearchParams.get(paramKey) === '1') {
+        const currentVisible = $(wrapper).find('.growtype-post-filters-wrapper').attr('data-filters-visible') === '1';
+        if (urlSearchParams.get(paramKey) === '1' && !currentVisible) {
+            $(wrapper).find('.growtype-post-filters-visibility-trigger')?.click();
+        } else if (urlSearchParams.get(paramKey) === '0' && currentVisible) {
             $(wrapper).find('.growtype-post-filters-visibility-trigger')?.click();
         }
     }
@@ -115,35 +118,92 @@ export function termsFilter(wrapper) {
     });
 
     /**
-     *
+     * Build a map of URL params that are NOT represented in the UI.
+     * For example, if URL has s_tags=pack_anime,tattoo and only tattoo has a button,
+     * this will return { tags: ['pack_anime'] }.
      */
-    $(wrapper).find('.growtype-post-terms-filter').each(function (index, element) {
-        let selectedBtn
-        if (Object.entries(urlFilterParams).length === 0) {
-            selectedBtn = $(element).find('.growtype-post-terms-filter-btn[data-cat-' + $(element).attr('data-type') + '="' + $(element).attr('data-init-cat') + '"]');
-        } else {
-            Object.entries(urlFilterParams).forEach(([key, value]) => {
-                let btn = $(element).find('.growtype-post-terms-filter-btn[data-cat-' + key + '="' + value + '"]');
+    function getHiddenUrlFilterParams() {
+        let hidden = {};
+        Object.entries(urlFilterParams).forEach(([key, valueArray]) => {
+            if (!Array.isArray(valueArray)) valueArray = [valueArray];
 
-                if (btn.length > 0) {
-                    selectedBtn = btn;
-                }
+            let hiddenValues = valueArray.filter(val => {
+                // If 'all' is passed, it's never "hidden" - it means reset.
+                if (val === 'all') return false;
+
+                let btn = $(wrapper).find('.growtype-post-terms-filter-btn[data-cat-' + key + '="' + val + '"]');
+                let opt = $(wrapper).find('select[data-type="' + key + '"] option[data-cat-' + key + '="' + val + '"]');
+
+                // If no button or option exists for this specific value, it's hidden.
+                return btn.length === 0 && opt.length === 0;
             });
+
+            if (hiddenValues.length > 0) {
+                hidden[key] = hiddenValues;
+            }
+        });
+        return hidden;
+    }
+
+    $(wrapper).find('.growtype-post-terms-filter').each(function (index, element) {
+        let activeValue = $(element).attr('data-init-cat');
+        let type = $(element).attr('data-type');
+
+        // Use URL param if exists
+        if (urlFilterParams[type]) {
+            activeValue = Array.isArray(urlFilterParams[type]) ? urlFilterParams[type][0] : urlFilterParams[type];
         }
 
-        if ($(this).attr('data-init-cat') !== '' && $(element).is(':visible')) {
-            if ($(element).is('select')) {
-                var initCat = $(this).attr('data-init-cat');
-                var $option = $(element).find('option[data-cat-' + $(element).attr('data-type') + '="' + initCat + '"]');
-
+        if ($(element).is('select')) {
+            if (activeValue && activeValue !== '') {
+                let $option = $(element).find('option[data-cat-' + type + '="' + activeValue + '"]');
                 if ($option.length) {
-                    $(element).val($option.val()).trigger('change');
+                    $(element).val($option.val());
+                    if ($(element).next().hasClass('chosen-container')) {
+                        $(element).trigger("chosen:updated");
+                    }
                 }
-            } else if ($(element).is('div')) {
-                postTermsFilterBtnClick(selectedBtn, false);
+            }
+        } else if ($(element).is('div')) {
+            if (activeValue && activeValue !== '') {
+                let btn = $(element).find('.growtype-post-terms-filter-btn[data-cat-' + type + '="' + activeValue + '"]');
+                if (btn.length > 0) {
+                    $(element).find('.growtype-post-terms-filter-btn').removeClass('is-active');
+                    btn.addClass('is-active');
+                }
             }
         }
     });
+
+    /**
+     * Trigger a single filtering pass after all filters are initialized.
+     */
+    let initialFilterParams = growtypePostGetTermsFilterSelectedValues($(wrapper).find('.growtype-post-terms-filters'));
+    let hiddenParams = getHiddenUrlFilterParams();
+    let hasFilters = Object.keys(initialFilterParams).length > 0 || Object.keys(hiddenParams).length > 0;
+
+    if (hasFilters) {
+        Object.entries(hiddenParams).forEach(([key, values]) => {
+            if (!initialFilterParams[key]) {
+                initialFilterParams[key] = values;
+            } else {
+                initialFilterParams[key] = [...new Set([...initialFilterParams[key], ...values])];
+            }
+        });
+
+        let postsWrapper = $(wrapper);
+        let visiblePosts = parseInt(postsWrapper.find('.growtype-post-container').attr('data-visible-posts')) || 20;
+
+        // Perform a single client-side filter pass immediately.
+        // We call growtypePostLoadPosts directly instead of termsFilterPosts 
+        // to avoid redundant fade-out animations and extra AJAX "load more" calls during initialization.
+        growtypePostLoadPosts(postsWrapper, initialFilterParams, visiblePosts);
+
+        // Ensure the grid is adjusted and events are dispatched
+        setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('growtypePostTermsFilterContent', {detail: {wrapper: postsWrapper}}));
+        }, 10);
+    }
 
     function postTermsFilterBtnClick(btn, preventDoubleClick = true) {
         if (btn.attr('data-disabled') && preventDoubleClick || btn.length === 0) {
@@ -179,6 +239,20 @@ export function termsFilter(wrapper) {
                  * Get current filter params
                  */
                 let filterParams = growtypePostGetTermsFilterSelectedValues(filtersContainer);
+
+                /**
+                 * Merge in hidden URL params (e.g. s_tags=pack_anime) that have
+                 * no UI control. We append them to UI values.
+                 */
+                let hiddenParams = getHiddenUrlFilterParams();
+                Object.entries(hiddenParams).forEach(([key, values]) => {
+                    if (!filterParams[key]) {
+                        filterParams[key] = values;
+                    } else {
+                        // Merge and de-duplicate
+                        filterParams[key] = [...new Set([...filterParams[key], ...values])];
+                    }
+                });
 
                 /**
                  * Update URL
@@ -321,7 +395,10 @@ export function termsFilter(wrapper) {
             }
 
             if (loadingType === 'ajax') {
-                if (postsWrapper.find('.btn-loadmore:visible').length > 0) {
+                let loadedPostsKey = formatLoadedPostsKey(filtersContainer);
+                let isFullyLoaded = window.growtype_post['wrappers'][wrapperId]['loaded_posts'] && window.growtype_post['wrappers'][wrapperId]['loaded_posts'][loadedPostsKey];
+
+                if (!isFullyLoaded && postsWrapper.find('.btn-loadmore:visible').length > 0) {
                     let postAmountToShowLimit = visiblePosts - postsWrapper.find('.growtype-post-single:visible').length;
 
                     if (postAmountToShowLimit > 0) {

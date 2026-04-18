@@ -25,6 +25,10 @@ export function getUrlFilterParams(wrapperId) {
                 let customFilterBtn = $(wrapper).find('.growtype-post-custom-filters-single[data-name="' + key + '"]');
 
                 if (termsFilterBtn.length > 0 || customFilterBtn.length > 0) {
+                    // Filter has a visible UI control — let it handle activation
+                    filterParams[key] = value;
+                } else {
+                    // No UI button for this filter (e.g. tags passed via URL) — still apply it
                     filterParams[key] = value;
                 }
             } else {

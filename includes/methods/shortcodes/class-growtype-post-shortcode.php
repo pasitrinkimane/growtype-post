@@ -155,7 +155,9 @@ class Growtype_Post_Shortcode
             'custom_tax_level' => isset($attr['custom_tax_level']) ? $attr['custom_tax_level'] : null,
             'cta_label' => isset($attr['cta_label']) ? $attr['cta_label'] : apply_filters('growtype_post_cta_label', __('Continue reading', 'growtype-post')),
             'show_filters_visibility_trigger' => isset($attr['show_filters_visibility_trigger']) && filter_var($attr['show_filters_visibility_trigger'], FILTER_VALIDATE_BOOLEAN) ? true : false,
-            'filters_visible_by_default' => isset($attr['filters_visible_by_default']) && $attr['filters_visible_by_default'] ? '1' : '0',
+            'filters_visible_by_default' => isset($attr['filters_visible_by_default']) ? 
+                ($attr['filters_visible_by_default'] === '-1' ? '-1' : (filter_var($attr['filters_visible_by_default'], FILTER_VALIDATE_BOOLEAN) ? '1' : '0')) 
+                : '1',
             'show_no_posts_text' => isset($attr['show_no_posts_text']) && $attr['show_no_posts_text'] ? true : false,
             'no_posts_text' => isset($attr['no_posts_text']) ? $attr['no_posts_text'] : '',
         ];
@@ -246,7 +248,56 @@ class Growtype_Post_Shortcode
     {
         $args = self::set_args($attr);
 
+        $args = self::apply_url_preload_args($args);
+
         return apply_filters('growtype_post_shortcode_format_args', $args, $attr);
+    }
+
+    /**
+     * Detect URL parameters for filtering (Smart Pre-loading) and mutate $args accordingly.
+     *
+     * Convention:
+     *   {parent_id}-s_{taxonomy}={value}   → pre-select taxonomy filter, disable initial AJAX
+     *   {parent_id}-f-visible=0|1          → control inner filters expansion state
+     *   {parent_id}-filters-visible=0      → hide the whole filters wrapper
+     */
+    private static function apply_url_preload_args(array $args): array
+    {
+        $parent_id          = $_GET['gpwid'] ?? ($args['parent_id'] ?? 'gpw-container');
+        $prefix             = $parent_id . '-s_';
+        $visibility_key     = $parent_id . '-f-visible';
+        $filters_vis_key    = $parent_id . '-filters-visible';
+
+        // 1. Whole wrapper visibility
+        if (isset($_GET[$filters_vis_key]) && $_GET[$filters_vis_key] === '0') {
+            $args['filters_visible_by_default'] = '-1';
+            $args['ajax_load_content']          = false;
+        }
+
+        // 2. Inner filters expansion state (only when wrapper is not hidden)
+        if ($args['filters_visible_by_default'] !== '-1' && isset($_GET[$visibility_key])) {
+            $val = $_GET[$visibility_key];
+            if ($val === '0') {
+                $args['filters_visible_by_default'] = '0';
+                $args['ajax_load_content']          = false;
+            } elseif ($val === '1') {
+                $args['filters_visible_by_default'] = '1';
+                $args['ajax_load_content']          = false;
+            }
+        }
+
+        // 3. Taxonomy filter pre-selection
+        foreach ($_GET as $key => $value) {
+            if (strpos($key, $prefix) === 0) {
+                $tax = substr($key, strlen($prefix));
+                $args['selected_terms_navigation_values'][$tax] = explode(',', $value);
+
+                // Disable initial AJAX so filtered views (e.g. character packs) render instantly.
+                $args['ajax_load_content'] = false;
+            }
+        }
+
+        return $args;
     }
 
     public static function query_posts($args)
@@ -414,7 +465,14 @@ class Growtype_Post_Shortcode
                  */
                 if (isset($args['selected_terms_navigation_values']) && !empty($args['selected_terms_navigation_values'])) {
                     foreach ($args['selected_terms_navigation_values'] as $tax => $term) {
-                        if (in_array('all', $term) || !taxonomy_exists($tax)) {
+                        if (in_array('all', $term)) {
+                            continue;
+                        }
+
+                        // For standard WP posts, we must have a registered taxonomy.
+                        // For wp_json or character_database characters, we allow non-WP taxonomies like 'tags'.
+                        $is_external_source = in_array($args['content_source'] ?? '', ['wp_json', 'character_database', 'other']);
+                        if (!$is_external_source && !taxonomy_exists($tax)) {
                             continue;
                         }
 
@@ -477,11 +535,16 @@ class Growtype_Post_Shortcode
             $params = ['orderby', 'order'];
 
             foreach ($params as $key => $param) {
-                $separator = $key === 0 ? '?' : '&';
+                $separator = (strpos($content_url, '?') !== false) ? '&' : '?';
                 $content_url .= $separator . $param . '=' . $args[$param];
             }
 
-            $transient_name = sprintf('growtype_post_shortcode_%s_%s', $args['content_source'], md5($content_url));
+            $cache_url = $content_url;
+            if (!empty($args['selected_terms_navigation_values'])) {
+                $cache_url .= '&filters=' . md5(json_encode($args['selected_terms_navigation_values']));
+            }
+
+            $transient_name = sprintf('growtype_post_shortcode_%s_%s', $args['content_source'], md5($cache_url));
             $transient_name = apply_filters('growtype_post_shortcode_transient_name', $transient_name, $args);
             $transient_name = substr($transient_name, 0, 150);
 
@@ -513,11 +576,14 @@ class Growtype_Post_Shortcode
 
                     $posts = apply_filters('growtype_post_shortcode_modify_remote_response_body', $posts, $args);
 
+                    $posts = self::filter_external_posts_by_terms($posts, $args);
+
                     if ($args['content_url_cache']) {
                         set_transient($transient_name, $posts, MONTH_IN_SECONDS);
                     }
                 }
             }
+
 
             /**
              * Exclude posts
@@ -724,7 +790,7 @@ class Growtype_Post_Shortcode
                 data-content-url-cache="<?php echo $args['content_url_cache'] ?>"
                 data-args='<?php echo json_encode($args) ?>'
             >
-                <?php if (isset($args['terms_navigation']) && $args['terms_navigation'] || isset($args['custom_filters']) && $args['custom_filters']) { ?>
+                <?php if ($args['filters_visible_by_default'] !== '-1' && (isset($args['terms_navigation']) && $args['terms_navigation'] || isset($args['custom_filters']) && $args['custom_filters'])) { ?>
                     <div class="growtype-post-filters-wrapper" data-filters-visible="<?php echo $args['filters_visible_by_default'] ?>">
                         <?php
                         do_action('growtype_post_filters_after_open', $terms, $terms_navigation_taxonomies, $args);
@@ -1032,4 +1098,57 @@ class Growtype_Post_Shortcode
             ));
         }
     }
+
+    /**
+     * Filter posts based on selected terms for external sources.
+     * Use case: wp_json or character_database where filtering happens on the fetched array.
+     */
+    private static function filter_external_posts_by_terms(array $posts, array $args): array
+    {
+        if (empty($posts) || empty($args['selected_terms_navigation_values'])) {
+            return $posts;
+        }
+
+        foreach ($args['selected_terms_navigation_values'] as $tax => $terms) {
+            if (empty($terms) || in_array('all', $terms)) {
+                continue;
+            }
+
+            $posts = array_filter($posts, function ($post) use ($tax, $terms) {
+                // Extract values from the post object
+                $post_tags = $post['tags'] ?? [];
+                if (is_string($post_tags)) {
+                    $post_tags = explode(',', $post_tags);
+                }
+                $post_tags = array_map('strtolower', array_map('trim', (array)$post_tags));
+
+                $post_gender = strtolower(trim($post['details']['character_gender'] ?? $post['gender'] ?? ''));
+                $post_type   = array_keys((array)($post['categories'] ?? []));
+                $post_type   = array_map('strtolower', array_map('trim', $post_type));
+
+                foreach ($terms as $term) {
+                    $term = strtolower(trim($term));
+
+                    if ($tax === 'tags' && in_array($term, $post_tags)) {
+                        return true;
+                    }
+                    if ($tax === 'gender' && $post_gender === $term) {
+                        return true;
+                    }
+                    if ($tax === 'type' && in_array($term, $post_type)) {
+                        return true;
+                    }
+
+                    // Fallback for generic attributes
+                    if (isset($post[$tax]) && strtolower($post[$tax]) === $term) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+
+        return $posts;
+    }
 }
+

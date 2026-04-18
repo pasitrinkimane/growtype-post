@@ -109,6 +109,7 @@ select.growtype-post-terms-filter {
   justify-content: flex-end;
 
   &[data-filters-visible="0"] {
+
     .growtype-post-terms-filters,
     .growtype-post-custom-filters {
       display: none;
@@ -119,7 +120,8 @@ select.growtype-post-terms-filter {
     padding-bottom: 10px;
   }
 
-  .growtype-post-terms-filters, .growtype-post-custom-filters {
+  .growtype-post-terms-filters,
+  .growtype-post-custom-filters {
     display: flex;
     align-items: flex-end;
     padding: 0;
@@ -135,7 +137,8 @@ select.growtype-post-terms-filter {
     padding-top: 30px;
   }
 
-  .growtype-post-terms-filters-single, .growtype-post-custom-filters-single {
+  .growtype-post-terms-filters-single,
+  .growtype-post-custom-filters-single {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -149,6 +152,7 @@ select.growtype-post-terms-filter {
     font-size: 16px;
     cursor: pointer;
     padding-bottom: 5px;
+
     @include bp-phone-xl() {
       font-size: 14px;
     }
@@ -157,6 +161,7 @@ select.growtype-post-terms-filter {
       svg {
         width: 28px;
         height: 28px;
+
         @include bp-phone-xl() {
           width: 25px;
           height: 25px;
