@@ -263,10 +263,17 @@ class Growtype_Post_Shortcode
      */
     private static function apply_url_preload_args(array $args): array
     {
-        $parent_id          = $_GET['gpwid'] ?? ($args['parent_id'] ?? 'gpw-container');
-        $prefix             = $parent_id . '-s_';
-        $visibility_key     = $parent_id . '-f-visible';
-        $filters_vis_key    = $parent_id . '-filters-visible';
+        $own_id = $args['parent_id'] ?? 'gpw-container';
+        $gpwid  = $_GET['gpwid'] ?? '';
+
+        // If a specific widget is targeted in the URL and it's not us, ignore these parameters.
+        if ($gpwid && $gpwid !== $own_id) {
+            return $args;
+        }
+
+        $prefix             = $own_id . '-s_';
+        $visibility_key     = $own_id . '-f-visible';
+        $filters_vis_key    = $own_id . '-filters-visible';
 
         // 1. Whole wrapper visibility
         if (isset($_GET[$filters_vis_key]) && $_GET[$filters_vis_key] === '0') {
