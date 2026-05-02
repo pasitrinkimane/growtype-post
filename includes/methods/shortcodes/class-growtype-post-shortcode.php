@@ -36,13 +36,61 @@ class Growtype_Post_Shortcode
 
     function growtype_post_shortcode_callback($attr)
     {
-        if (is_admin() || wp_is_json_request() || is_customize_preview()) {
+        if (!self::is_frontend_request()) {
             return '';
         }
 
-        $init = self::init($attr);
+        /**
+         * ── SHORTCODE CACHE ───────────────────────────────────────────────────
+         * Caching the entire rendered output to eliminate all internal overhead.
+         * Key includes $attr and user_id to ensure context correctness.
+         */
+        $cache_key = 'gt_post_sc_cache_' . md5(json_encode($attr) . get_current_user_id());
+        $cached_render = get_transient($cache_key);
+        if ($cached_render !== false) {
+            return $cached_render;
+        }
 
-        return $init['render'];
+        $init = self::init($attr);
+        $render = $init['render'] ?? '';
+
+        // Cache for 5 minutes
+        set_transient($cache_key, $render, 5 * MINUTE_IN_SECONDS);
+
+        return $render;
+    }
+
+    /**
+     * Returns true only for real, interactive frontend page requests.
+     * Blocks admin, REST, AJAX, cron, cache-warmer loopbacks, and browser
+     * sub-resource fetches (image, script, fetch, etc.) that would otherwise
+     * trigger a full WP bootstrap and execute the shortcode unintentionally.
+     */
+    public static function is_frontend_request(): bool
+    {
+        $fd = $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '';
+        $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        if (
+            is_admin()
+            || (defined('REST_REQUEST') && REST_REQUEST)
+            || wp_is_json_request()
+            || wp_doing_ajax()
+            || wp_doing_cron()
+            || is_customize_preview()
+            || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+            // WP core loopback: "WordPress/X.X" / WP-Optimize preloader: "WP-Optimize/X.X WordPress/..."
+            || strpos($ua, 'WordPress/') !== false
+            || strpos($ua, 'WP-Optimize/') !== false
+            // Block browser sub-resource requests (image, script, fetch, etc.) — NOT real page visits.
+            // Sec-Fetch-Dest is sent by all modern browsers; only "document" = real page navigation.
+            // Root cause: admin post-list had <img src="/"> triggering a full WP bootstrap.
+            || ($fd !== '' && $fd !== 'document')
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -155,8 +203,8 @@ class Growtype_Post_Shortcode
             'custom_tax_level' => isset($attr['custom_tax_level']) ? $attr['custom_tax_level'] : null,
             'cta_label' => isset($attr['cta_label']) ? $attr['cta_label'] : apply_filters('growtype_post_cta_label', __('Continue reading', 'growtype-post')),
             'show_filters_visibility_trigger' => isset($attr['show_filters_visibility_trigger']) && filter_var($attr['show_filters_visibility_trigger'], FILTER_VALIDATE_BOOLEAN) ? true : false,
-            'filters_visible_by_default' => isset($attr['filters_visible_by_default']) ? 
-                ($attr['filters_visible_by_default'] === '-1' ? '-1' : (filter_var($attr['filters_visible_by_default'], FILTER_VALIDATE_BOOLEAN) ? '1' : '0')) 
+            'filters_visible_by_default' => isset($attr['filters_visible_by_default']) ?
+                ($attr['filters_visible_by_default'] === '-1' ? '-1' : (filter_var($attr['filters_visible_by_default'], FILTER_VALIDATE_BOOLEAN) ? '1' : '0'))
                 : '1',
             'show_no_posts_text' => isset($attr['show_no_posts_text']) && $attr['show_no_posts_text'] ? true : false,
             'no_posts_text' => isset($attr['no_posts_text']) ? $attr['no_posts_text'] : '',
@@ -264,21 +312,21 @@ class Growtype_Post_Shortcode
     private static function apply_url_preload_args(array $args): array
     {
         $own_id = $args['parent_id'] ?? 'gpw-container';
-        $gpwid  = $_GET['gpwid'] ?? '';
+        $gpwid = $_GET['gpwid'] ?? '';
 
         // If a specific widget is targeted in the URL and it's not us, ignore these parameters.
         if ($gpwid && $gpwid !== $own_id) {
             return $args;
         }
 
-        $prefix             = $own_id . '-s_';
-        $visibility_key     = $own_id . '-f-visible';
-        $filters_vis_key    = $own_id . '-filters-visible';
+        $prefix = $own_id . '-s_';
+        $visibility_key = $own_id . '-f-visible';
+        $filters_vis_key = $own_id . '-filters-visible';
 
         // 1. Whole wrapper visibility
         if (isset($_GET[$filters_vis_key]) && $_GET[$filters_vis_key] === '0') {
             $args['filters_visible_by_default'] = '-1';
-            $args['ajax_load_content']          = false;
+            $args['ajax_load_content'] = false;
         }
 
         // 2. Inner filters expansion state (only when wrapper is not hidden)
@@ -286,10 +334,10 @@ class Growtype_Post_Shortcode
             $val = $_GET[$visibility_key];
             if ($val === '0') {
                 $args['filters_visible_by_default'] = '0';
-                $args['ajax_load_content']          = false;
+                $args['ajax_load_content'] = false;
             } elseif ($val === '1') {
                 $args['filters_visible_by_default'] = '1';
-                $args['ajax_load_content']          = false;
+                $args['ajax_load_content'] = false;
             }
         }
 
@@ -626,11 +674,7 @@ class Growtype_Post_Shortcode
             $wp_query->is_posts_page = true;
             $wp_query->is_main_query = false;
 
-            foreach ($formatted_posts as $post) {
-                if ($post instanceof WP_Post) {
-                    wp_cache_set($post->ID, $post, 'posts');
-                }
-            }
+            update_post_cache($formatted_posts);
         }
 
         return [
@@ -1130,8 +1174,8 @@ class Growtype_Post_Shortcode
                 $post_tags = array_map('strtolower', array_map('trim', (array)$post_tags));
 
                 $post_gender = strtolower(trim($post['details']['character_gender'] ?? $post['gender'] ?? ''));
-                $post_type   = array_keys((array)($post['categories'] ?? []));
-                $post_type   = array_map('strtolower', array_map('trim', $post_type));
+                $post_type = array_keys((array)($post['categories'] ?? []));
+                $post_type = array_map('strtolower', array_map('trim', $post_type));
 
                 foreach ($terms as $term) {
                     $term = strtolower(trim($term));
