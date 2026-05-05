@@ -661,11 +661,13 @@ class Growtype_Post_Shortcode
                 return $post instanceof WP_Post ? $post : new WP_Post((object)$post);
             }, $formatted_posts);
 
-            $wp_query = new WP_Query([
-                'post_type' => 'any',
-                'posts_per_page' => -1,
+            $wp_query = new WP_Query();
+            $wp_query->query_vars = [
                 'fields' => 'all',
-            ]);
+                'update_post_term_cache' => false,
+                'update_post_meta_cache' => false,
+                'cache_results' => false,
+            ];
 
             $wp_query->posts = $formatted_posts;
             $wp_query->post_count = count($formatted_posts);
