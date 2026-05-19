@@ -54,8 +54,8 @@ class Growtype_Post_Shortcode
         $init = self::init($attr);
         $render = $init['render'] ?? '';
 
-        // Cache for 5 minutes
-        set_transient($cache_key, $render, 5 * MINUTE_IN_SECONDS);
+        // Cache for 10 seconds
+        set_transient($cache_key, $render, 5);
 
         return $render;
     }
@@ -79,13 +79,9 @@ class Growtype_Post_Shortcode
             || wp_doing_cron()
             || is_customize_preview()
             || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
-            // WP core loopback: "WordPress/X.X" / WP-Optimize preloader: "WP-Optimize/X.X WordPress/..."
             || strpos($ua, 'WordPress/') !== false
             || strpos($ua, 'WP-Optimize/') !== false
-            // Block browser sub-resource requests (image, script, fetch, etc.) — NOT real page visits.
-            // Sec-Fetch-Dest is sent by all modern browsers; only "document" = real page navigation.
-            // Root cause: admin post-list had <img src="/"> triggering a full WP bootstrap.
-            || ($fd !== '' && $fd !== 'document')
+//            || ($fd !== '' && $fd !== 'document')
         ) {
             return false;
         }
