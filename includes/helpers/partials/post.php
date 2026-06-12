@@ -24,7 +24,9 @@ function growtype_post_get_id($post)
         $post_name = $post->post_name;
         if (!empty($post_name)) {
             $post = get_page_by_path($post_name);
-            $post_id = $post->ID;
+            if (!empty($post)) {
+                $post_id = $post->ID;
+            }
         }
     }
 
